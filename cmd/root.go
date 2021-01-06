@@ -19,6 +19,8 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cookieFile, "cookiefile", "c", "cookie", "Path were to read the user provided cookie file")
+
+	rootCmd.AddCommand(getOwnedGamesCmd)
 	rootCmd.AddCommand(userInfoCmd)
 }
 

@@ -9,7 +9,7 @@ func generateUserInfoCmd() *cobra.Command {
 		Use:   "user-info",
 		Short: "Command to retrieve your GOG user summary",
 		Run: func(cmd *cobra.Command, args []string) {
-			sdkInst.GetUser().Print()
+			sdkInst.GetUser(debugMode).Print()
 		},
 	}
 }

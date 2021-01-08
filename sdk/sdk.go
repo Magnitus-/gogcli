@@ -40,3 +40,36 @@ func (s Sdk) getClient() http.Client {
 	j := Jar{cookies: cs}
 	return http.Client{Jar: &j}
 }
+
+func (s Sdk) getUrl(url string, fnCall string, debug bool) []byte {
+	c := s.getClient()
+
+	if debug {
+		fmt.Println(fmt.Sprintf("%s -> GET %s", fnCall, url))
+	}
+	r, err := c.Get(url)
+	if err != nil {
+		fmt.Println(
+			fmt.Sprintf("%s -> retrieval request error:", fnCall),
+			err,
+		)
+		os.Exit(1)
+	}
+
+	b, bErr := ioutil.ReadAll(r.Body)
+	if bErr != nil {
+		fmt.Println(
+			fmt.Sprintf("%s -> retrieval body error:", fnCall),
+			bErr,
+		)
+		os.Exit(1)
+	}
+	if debug {
+		fmt.Println(
+			fmt.Sprintf("%s -> response body:", fnCall),
+			string(b),
+		)
+	}
+
+	return b
+}

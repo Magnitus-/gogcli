@@ -3,8 +3,6 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 )
 
 type currency struct {
@@ -84,20 +82,12 @@ func (u User) Print() {
 	}
 }
 
-func (s Sdk) GetUser() User {
-	c := s.getClient()
-
-	r, err := c.Get("https://embed.gog.com/userData.json")
-	if err != nil {
-		fmt.Println("User retrieval request error:", err)
-		os.Exit(1)
-	}
-
-	b, bErr := ioutil.ReadAll(r.Body)
-	if bErr != nil {
-		fmt.Println("User retrieval body error:", bErr)
-		os.Exit(1)
-	}
+func (s Sdk) GetUser(debug bool) User {
+	b := s.getUrl(
+		"https://embed.gog.com/userData.json",
+		"GetUser()",
+		debug,
+	)
 
 	var u User
 	sErr := json.Unmarshal(b, &u)

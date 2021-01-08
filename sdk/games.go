@@ -3,8 +3,6 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 )
 
 type tag struct {
@@ -115,21 +113,18 @@ func (o OwnedGamesPage) Print() {
 	}
 }
 
-func (s Sdk) GetOwnedGames(page int) OwnedGamesPage {
+func (s Sdk) GetOwnedGames(page int, search string, debug bool) OwnedGamesPage {
+	fn := fmt.Sprintf("GetOwnedGames(page=%d, search=%s)", page, search)
 	u := fmt.Sprintf("https://embed.gog.com/account/getFilteredProducts?mediaType=1&page=%d", page)
-	c := s.getClient()
-
-	r, err := c.Get(u)
-	if err != nil {
-		fmt.Println("Owned games retrieval request error:", err)
-		os.Exit(1)
+	if search != "" {
+		u += fmt.Sprintf("&search=%s", search)
 	}
 
-	b, bErr := ioutil.ReadAll(r.Body)
-	if bErr != nil {
-		fmt.Println("Owned games retrieval body error:", bErr)
-		os.Exit(1)
-	}
+	b := s.getUrl(
+		u,
+		fn,
+		debug,
+	)
 
 	var o OwnedGamesPage
 	sErr := json.Unmarshal(b, &o)

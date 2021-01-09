@@ -87,6 +87,7 @@ func (s Sdk) GetUser(debug bool) User {
 		"https://embed.gog.com/userData.json",
 		"GetUser()",
 		debug,
+		true,
 	)
 
 	var u User

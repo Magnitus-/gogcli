@@ -1,6 +1,8 @@
 package sdk
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -41,7 +43,7 @@ func (s Sdk) getClient() http.Client {
 	return http.Client{Jar: &j}
 }
 
-func (s Sdk) getUrl(url string, fnCall string, debug bool) []byte {
+func (s Sdk) getUrl(url string, fnCall string, debug bool, jsonBody bool) []byte {
 	c := s.getClient()
 
 	if debug {
@@ -65,6 +67,18 @@ func (s Sdk) getUrl(url string, fnCall string, debug bool) []byte {
 		os.Exit(1)
 	}
 	if debug {
+		if jsonBody {
+			var out bytes.Buffer
+			err := json.Indent(&out, b, "", "  ")
+			if err != nil {
+				fmt.Println(
+					fmt.Sprintf("%s -> json parsing error:", fnCall),
+					err,
+				)
+				os.Exit(1)
+			}
+			b = out.Bytes()
+		}
 		fmt.Println(
 			fmt.Sprintf("%s -> response body:", fnCall),
 			string(b),

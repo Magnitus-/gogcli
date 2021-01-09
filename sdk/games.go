@@ -3,6 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 )
 
 type tag struct {
@@ -95,7 +96,6 @@ func (o OwnedGamesPage) Print() {
 	fmt.Println("ProductsPerPage:       ", o.ProductsPerPage)
 	fmt.Println("Products:")
 	for _, p := range o.Products {
-		fmt.Println("--------------------")
 		fmt.Println("  - Title:             ", p.Title)
 		fmt.Println("    Slug:              ", p.Slug)
 		fmt.Println("    Id:                ", p.Id)
@@ -110,6 +110,7 @@ func (o OwnedGamesPage) Print() {
 		fmt.Println("    IsGalaxyCompatible:", p.IsGalaxyCompatible)
 		fmt.Println("    Updates:           ", p.Updates)
 		fmt.Println("    DlcCount:          ", p.DlcCount)
+		fmt.Println("")
 	}
 }
 
@@ -117,13 +118,14 @@ func (s Sdk) GetOwnedGames(page int, search string, debug bool) OwnedGamesPage {
 	fn := fmt.Sprintf("GetOwnedGames(page=%d, search=%s)", page, search)
 	u := fmt.Sprintf("https://embed.gog.com/account/getFilteredProducts?mediaType=1&page=%d", page)
 	if search != "" {
-		u += fmt.Sprintf("&search=%s", search)
+		u += fmt.Sprintf("&search=%s", url.QueryEscape(search))
 	}
 
 	b := s.getUrl(
 		u,
 		fn,
 		debug,
+		true,
 	)
 
 	var o OwnedGamesPage

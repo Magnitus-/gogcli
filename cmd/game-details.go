@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +11,7 @@ func generateGameDetailsCmd() *cobra.Command {
 		Use:   "game-details",
 		Short: "Retrieve details about a given game including link to download files",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(sdkInst.GetGameDetails(gameId))
+			sdkInst.GetGameDetails(gameId, debugMode).Print()
 		},
 	}
 

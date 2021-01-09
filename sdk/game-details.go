@@ -1,30 +1,101 @@
 package sdk
 
 import (
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 )
 
-type GameDetails struct {
+type simpleGalaxyInstaller struct {
+	Path string
+	Os   string
 }
 
-func (s Sdk) GetGameDetails(gameId int) string {
+type gameDetailsTags struct {
+	Id           string
+	Name         string
+	ProductCount string
+}
+
+type gameDetailsExtra struct {
+	ManualUrl string
+	Name      string
+	Type      string
+	Info      int
+	Size      string
+}
+
+type GameDetails struct {
+	Title           string
+	BackgroundImage string
+	CdKey           string
+	TextInformation string
+	//Downloads
+	Extras                 []gameDetailsExtra
+	Dlcs                   []GameDetails
+	Tags                   []gameDetailsTags
+	IsPreOrder             bool
+	ReleaseTimestamp       int
+	Changelog              string
+	ForumLink              string
+	IsBaseProductMissing   bool
+	Features               []string
+	SimpleGalaxyInstallers []simpleGalaxyInstaller
+	//messages
+	//GalaxyDownloads
+}
+
+func (g GameDetails) Print() {
+	fmt.Println("Title:           ", g.Title)
+	fmt.Println("BackgroundImage: ", g.BackgroundImage)
+	fmt.Println("CdKey:           ", g.CdKey)
+	fmt.Println("ReleaseTimestamp:", g.ReleaseTimestamp)
+	fmt.Println("ForumLink:       ", g.ForumLink)
+	if len(g.Features) > 0 {
+		fmt.Println("Features:")
+		for _, f := range g.Features {
+			fmt.Println("  -", f)
+		}
+	} else {
+		fmt.Println("Features: []")
+	}
+	if len(g.Tags) > 0 {
+		fmt.Println("Tags:")
+		for _, t := range g.Tags {
+			fmt.Println("  -", t.Name)
+		}
+	} else {
+		fmt.Println("Tags: []")
+	}
+	if len(g.Extras) > 0 {
+		fmt.Println("Extras:")
+		for _, e := range g.Extras {
+			fmt.Println("  - Name:     ", e.Name)
+			fmt.Println("    Type:     ", e.Type)
+			fmt.Println("    ManualUrl:", e.ManualUrl)
+			fmt.Println("    Size:     ", e.Size)
+			fmt.Println("")
+		}
+	} else {
+		fmt.Println("Extras: []")
+	}
+}
+
+func (s Sdk) GetGameDetails(gameId int, debug bool) GameDetails {
+	fn := fmt.Sprintf("GetGameDetails(gameId=%d)", gameId)
 	u := fmt.Sprintf("https://embed.gog.com/account//gameDetails/%d.json", gameId)
 
-	c := s.getClient()
+	b := s.getUrl(
+		u,
+		fn,
+		debug,
+		true,
+	)
 
-	r, err := c.Get(u)
-	if err != nil {
-		fmt.Println("Game details retrieval request error:", err)
-		os.Exit(1)
+	var g GameDetails
+	sErr := json.Unmarshal(b, &g)
+	if sErr != nil {
+		fmt.Println("Responde deserialization error:", sErr)
 	}
 
-	b, bErr := ioutil.ReadAll(r.Body)
-	if bErr != nil {
-		fmt.Println("Owned games retrieval body error:", bErr)
-		os.Exit(1)
-	}
-
-	return string(b)
+	return g
 }

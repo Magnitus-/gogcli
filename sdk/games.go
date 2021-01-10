@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"os"
 )
 
 type tag struct {
@@ -132,6 +133,7 @@ func (s Sdk) GetOwnedGames(page int, search string, debug bool) OwnedGamesPage {
 	sErr := json.Unmarshal(b, &o)
 	if sErr != nil {
 		fmt.Println("Responde deserialization error:", sErr)
+		os.Exit(1)
 	}
 
 	return o

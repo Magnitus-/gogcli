@@ -3,6 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 )
 
 type simpleGalaxyInstaller struct {
@@ -25,11 +26,11 @@ type gameDetailsExtra struct {
 }
 
 type GameDetails struct {
-	Title           string
-	BackgroundImage string
-	CdKey           string
-	TextInformation string
-	//Downloads
+	Title                  string
+	BackgroundImage        string
+	CdKey                  string
+	TextInformation        string
+	Downloads              gameDetailsDownloads
 	Extras                 []gameDetailsExtra
 	Dlcs                   []GameDetails
 	Tags                   []gameDetailsTags
@@ -78,6 +79,18 @@ func (g GameDetails) Print() {
 	} else {
 		fmt.Println("Extras: []")
 	}
+	if len(g.Downloads) > 0 {
+		fmt.Println("Downloads:")
+		for _, f := range g.Downloads {
+			fmt.Println("  - Name:     ", f.Name)
+			fmt.Println("    Language: ", f.Language)
+			fmt.Println("    Os:       ", f.Os)
+			fmt.Println("    Version:  ", f.Version)
+			fmt.Println("    Size:     ", f.Size)
+			fmt.Println("    Date:     ", f.Date)
+			fmt.Println("    ManualUrl:", f.ManualUrl)
+		}
+	}
 }
 
 func (s Sdk) GetGameDetails(gameId int, debug bool) GameDetails {
@@ -95,6 +108,7 @@ func (s Sdk) GetGameDetails(gameId int, debug bool) GameDetails {
 	sErr := json.Unmarshal(b, &g)
 	if sErr != nil {
 		fmt.Println("Responde deserialization error:", sErr)
+		os.Exit(1)
 	}
 
 	return g

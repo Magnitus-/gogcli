@@ -3,6 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 )
 
 type currency struct {
@@ -94,6 +95,7 @@ func (s Sdk) GetUser(debug bool) User {
 	sErr := json.Unmarshal(b, &u)
 	if sErr != nil {
 		fmt.Println("Responde deserialization error:", sErr)
+		os.Exit(1)
 	}
 
 	return u

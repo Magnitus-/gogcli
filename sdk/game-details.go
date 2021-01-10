@@ -67,18 +67,6 @@ func (g GameDetails) Print() {
 	} else {
 		fmt.Println("Tags: []")
 	}
-	if len(g.Extras) > 0 {
-		fmt.Println("Extras:")
-		for _, e := range g.Extras {
-			fmt.Println("  - Name:     ", e.Name)
-			fmt.Println("    Type:     ", e.Type)
-			fmt.Println("    ManualUrl:", e.ManualUrl)
-			fmt.Println("    Size:     ", e.Size)
-			fmt.Println("")
-		}
-	} else {
-		fmt.Println("Extras: []")
-	}
 	if len(g.Downloads) > 0 {
 		fmt.Println("Downloads:")
 		for _, f := range g.Downloads {
@@ -90,6 +78,51 @@ func (g GameDetails) Print() {
 			fmt.Println("    Date:     ", f.Date)
 			fmt.Println("    ManualUrl:", f.ManualUrl)
 		}
+	}
+	if len(g.Dlcs) > 0 {
+		fmt.Println("Dlcs:")
+		for _, d := range g.Dlcs {
+			fmt.Println("  - Title:          ", d.Title)
+			fmt.Println("    BackgroundImage:", d.BackgroundImage)
+			fmt.Println("    CdKey:          ", d.CdKey)
+			if len(d.Downloads) > 0 {
+				fmt.Println("    Downloads:")
+				for _, f := range d.Downloads {
+					fmt.Println("      - Name:     ", f.Name)
+					fmt.Println("        Language: ", f.Language)
+					fmt.Println("        Os:       ", f.Os)
+					fmt.Println("        Version:  ", f.Version)
+					fmt.Println("        Size:     ", f.Size)
+					fmt.Println("        Date:     ", f.Date)
+					fmt.Println("        ManualUrl:", f.ManualUrl)
+				}
+			} else {
+				fmt.Println("    Downloads: []")
+			}
+			if len(d.Extras) > 0 {
+				fmt.Println("    Extras:")
+				for _, e := range d.Extras {
+					fmt.Println("      - Name:     ", e.Name)
+					fmt.Println("        Type:     ", e.Type)
+					fmt.Println("        ManualUrl:", e.ManualUrl)
+					fmt.Println("        Size:     ", e.Size)
+				}
+			} else {
+				fmt.Println("    Extras: []")
+			}
+		}
+	}
+	if len(g.Extras) > 0 {
+		fmt.Println("Extras:")
+		for _, e := range g.Extras {
+			fmt.Println("  - Name:     ", e.Name)
+			fmt.Println("    Type:     ", e.Type)
+			fmt.Println("    ManualUrl:", e.ManualUrl)
+			fmt.Println("    Size:     ", e.Size)
+			fmt.Println("")
+		}
+	} else {
+		fmt.Println("Extras: []")
 	}
 }
 

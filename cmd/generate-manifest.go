@@ -14,6 +14,7 @@ func generateManifestGenerationCmd() *cobra.Command {
 	var downloads bool
 	var extras bool
 	var extraTypeFilters []string
+	var outputPath string
 
 	manifestGenerationCmd := &cobra.Command{
 		Use:   "generate-manifest",
@@ -29,5 +30,6 @@ func generateManifestGenerationCmd() *cobra.Command {
 	manifestGenerationCmd.Flags().BoolVarP(&downloads, "installers", "n", true, "Whether to incluse installer downloads")
 	manifestGenerationCmd.Flags().BoolVarP(&extras, "extras", "e", true, "Whether to incluse extras")
 	manifestGenerationCmd.Flags().StringArrayVarP(&extraTypeFilters, "extratype", "x", []string{}, "If you want to include only extras whole type contain one of the given strings. Look at full generated manifest without this flag to figure out valid types")
+	manifestGenerationCmd.Flags().StringVarP(&outputPath, "outputpath", "p", "", "Path representing a file to write the manifest in. If omitted, the manifest will be outputed on the terminal in json format")
 	return manifestGenerationCmd
 }

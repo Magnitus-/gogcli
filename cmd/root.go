@@ -20,11 +20,13 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cookieFile, "cookiefile", "c", "cookie", "Path were to read the user provided cookie file")
+	rootCmd.MarkPersistentFlagFilename("cookiefile")
 	rootCmd.PersistentFlags().BoolVarP(&debugMode, "debug", "d", false, "Provide additional more detailed ouputs to help troubleshoot the tool")
 
 	rootCmd.AddCommand(generateGameDetailsCmd())
 	rootCmd.AddCommand(generateOwnedGamesCmd())
 	rootCmd.AddCommand(generateUserInfoCmd())
+	rootCmd.AddCommand(generateManifestGenerationCmd())
 }
 
 func Execute() error {

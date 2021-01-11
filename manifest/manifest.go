@@ -31,12 +31,20 @@ type ManifestGameInstaller struct {
 }
 
 func (i *ManifestGameInstaller) hasOneOfOses(oses []string) bool {
-	//TODO
+	for _, os := range oses {
+		if os == i.Os {
+			return true
+		}
+	}
 	return false
 }
 
 func (i *ManifestGameInstaller) hasOneOfLanguages(languages []string) bool {
-	//TODO
+	for _, l := range languages {
+		if l == i.Language {
+			return true
+		}
+	}
 	return false
 }
 

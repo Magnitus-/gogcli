@@ -1,20 +1,29 @@
 package cmd
 
 import (
+	"fmt"
 	"gogcli/sdk"
+	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 )
 
 var debugMode bool
 var cookieFile string
-var sdkInst sdk.Sdk
+var sdkPtr *sdk.Sdk
 
 var rootCmd = &cobra.Command{
 	Use:   "gogcli",
 	Short: "A Client to Interact with the GOG.com API",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		sdkInst = sdk.NewSdk(cookieFile)
+		var err error
+		logger := log.New(os.Stdout, "gogcli sdk: ", log.Lshortfile)
+		sdkPtr, err = sdk.NewSdk(cookieFile, logger)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	},
 }
 

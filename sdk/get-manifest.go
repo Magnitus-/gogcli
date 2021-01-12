@@ -29,7 +29,7 @@ func init() {
 	LANGUAGE_MAP["romanian"] = "rom\u00e2n\u0103"
 }
 
-func (s Sdk) getManifest(search string, concurrency int) manifest.Manifest {
+func (s *Sdk) getManifest(search string, concurrency int) manifest.Manifest {
 	//TODO
 	return manifest.Manifest{}
 }

@@ -115,19 +115,23 @@ func (o OwnedGamesPage) Print() {
 	}
 }
 
-func (s Sdk) GetOwnedGames(page int, search string, debug bool) OwnedGamesPage {
+func (s *Sdk) GetOwnedGames(page int, search string, debug bool) OwnedGamesPage {
 	fn := fmt.Sprintf("GetOwnedGames(page=%d, search=%s)", page, search)
 	u := fmt.Sprintf("https://embed.gog.com/account/getFilteredProducts?mediaType=1&page=%d", page)
 	if search != "" {
 		u += fmt.Sprintf("&search=%s", url.QueryEscape(search))
 	}
 
-	b := s.getUrl(
+	b, err := (*s).getUrl(
 		u,
 		fn,
 		debug,
 		true,
 	)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	var o OwnedGamesPage
 	sErr := json.Unmarshal(b, &o)

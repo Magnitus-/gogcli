@@ -126,16 +126,20 @@ func (g GameDetails) Print() {
 	}
 }
 
-func (s Sdk) GetGameDetails(gameId int, debug bool) GameDetails {
+func (s *Sdk) GetGameDetails(gameId int, debug bool) GameDetails {
 	fn := fmt.Sprintf("GetGameDetails(gameId=%d)", gameId)
 	u := fmt.Sprintf("https://embed.gog.com/account//gameDetails/%d.json", gameId)
 
-	b := s.getUrl(
+	b, err := (*s).getUrl(
 		u,
 		fn,
 		debug,
 		true,
 	)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	var g GameDetails
 	sErr := json.Unmarshal(b, &g)

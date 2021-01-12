@@ -83,13 +83,17 @@ func (u User) Print() {
 	}
 }
 
-func (s Sdk) GetUser(debug bool) User {
-	b := s.getUrl(
+func (s *Sdk) GetUser(debug bool) User {
+	b, err := (*s).getUrl(
 		"https://embed.gog.com/userData.json",
 		"GetUser()",
 		debug,
 		true,
 	)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	var u User
 	sErr := json.Unmarshal(b, &u)

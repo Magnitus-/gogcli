@@ -3,24 +3,26 @@ package sdk
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"os"
 	"strings"
 )
 
 type Sdk struct {
 	session string
 	al      string
+	logger  *log.Logger
 }
 
-func NewSdk(cookiePath string) Sdk {
-	var sdk Sdk
+func NewSdk(cookiePath string, logger *log.Logger) (*Sdk, error) {
+	sdk := Sdk{session: "", al: "", logger: logger}
 	bs, err := ioutil.ReadFile(cookiePath)
 	if err != nil {
-		fmt.Println("Error retrieving session:", err)
-		os.Exit(1)
+		msg := fmt.Sprintf(" Error retrieving session: %s", err.Error())
+		return &sdk, errors.New(msg)
 	}
 
 	fileLines := strings.Split(string(bs), "\n")
@@ -31,59 +33,50 @@ func NewSdk(cookiePath string) Sdk {
 			sdk.al = strings.TrimPrefix(fileLine, "gog-al=")
 		}
 	}
-	return sdk
+	return &sdk, nil
 }
 
-func (s Sdk) getClient() http.Client {
+func (s *Sdk) getClient() http.Client {
 	cs := []*http.Cookie{
-		&http.Cookie{Name: "sessions_gog_com", Value: s.session},
-		&http.Cookie{Name: "gog-al", Value: s.al},
+		&http.Cookie{Name: "sessions_gog_com", Value: (*s).session},
+		&http.Cookie{Name: "gog-al", Value: (*s).al},
 	}
 	j := Jar{cookies: cs}
 	return http.Client{Jar: &j}
 }
 
-func (s Sdk) getUrl(url string, fnCall string, debug bool, jsonBody bool) []byte {
-	c := s.getClient()
+func (s *Sdk) getUrl(url string, fnCall string, debug bool, jsonBody bool) ([]byte, error) {
+	c := (*s).getClient()
 
 	if debug {
-		fmt.Println(fmt.Sprintf("%s -> GET %s", fnCall, url))
+		(*s).logger.Println(fmt.Sprintf("%s -> GET %s", fnCall, url))
 	}
 	r, err := c.Get(url)
 	if err != nil {
-		fmt.Println(
-			fmt.Sprintf("%s -> retrieval request error:", fnCall),
-			err,
-		)
-		os.Exit(1)
+		msg := fmt.Sprintf("%s -> retrieval request error: %s", fnCall, err.Error())
+		return nil, errors.New(msg)
 	}
 
 	b, bErr := ioutil.ReadAll(r.Body)
 	if bErr != nil {
-		fmt.Println(
-			fmt.Sprintf("%s -> retrieval body error:", fnCall),
-			bErr,
-		)
-		os.Exit(1)
+		msg := fmt.Sprintf("%s -> retrieval body error: %s", fnCall, bErr.Error())
+		return nil, errors.New(msg)
 	}
 	if debug {
 		if jsonBody {
 			var out bytes.Buffer
-			err := json.Indent(&out, b, "", "  ")
+			jErr := json.Indent(&out, b, "", "  ")
 			if err != nil {
-				fmt.Println(
-					fmt.Sprintf("%s -> json parsing error:", fnCall),
-					err,
-				)
-				os.Exit(1)
+				msg := fmt.Sprintf("%s -> json parsing error: %s", fnCall, jErr.Error())
+				return nil, errors.New(msg)
 			}
 			b = out.Bytes()
 		}
-		fmt.Println(
+		(*s).logger.Println(
 			fmt.Sprintf("%s -> response body:", fnCall),
 			string(b),
 		)
 	}
 
-	return b
+	return b, nil
 }

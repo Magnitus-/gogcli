@@ -11,7 +11,7 @@ func generateGameDetailsCmd() *cobra.Command {
 		Use:   "game-details",
 		Short: "Retrieve details about a given game including link to download files",
 		Run: func(cmd *cobra.Command, args []string) {
-			sdkInst.GetGameDetails(gameId, debugMode).Print()
+			sdkPtr.GetGameDetails(gameId, debugMode).Print()
 		},
 	}
 

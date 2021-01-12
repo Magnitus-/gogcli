@@ -5,6 +5,7 @@ import "gogcli/manifest"
 var LANGUAGE_MAP map[string]string
 
 func init() {
+	LANGUAGE_MAP = make(map[string]string)
 	LANGUAGE_MAP["english"] = "English"
 	LANGUAGE_MAP["french"] = "fran\u00e7ais"
 	LANGUAGE_MAP["dutch"] = "nederlands"

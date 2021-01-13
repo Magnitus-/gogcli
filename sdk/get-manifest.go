@@ -1,6 +1,10 @@
 package sdk
 
-import "gogcli/manifest"
+import (
+	"fmt"
+	"gogcli/manifest"
+	"os"
+)
 
 var LANGUAGE_MAP map[string]string
 
@@ -29,7 +33,13 @@ func init() {
 	LANGUAGE_MAP["romanian"] = "rom\u00e2n\u0103"
 }
 
-func (s *Sdk) GetManifest(search string, concurrency int) (manifest.Manifest, error) {
-	//TODO
+func (s *Sdk) GetManifest(search string, concurrency int, pause int, debug bool) (manifest.Manifest, error) {
+	pages, errs := s.GetAllOwnedGamesPages(search, concurrency, pause, debug)
+	if len(errs) > 0 {
+		fmt.Println(errs)
+		os.Exit(1)
+	} else {
+		fmt.Println(pages)
+	}
 	return manifest.Manifest{}, nil
 }

@@ -16,12 +16,13 @@ func generateManifestGenerationCmd() *cobra.Command {
 	var extraTypeFilters []string
 	var outputPath string
 	var concurrency int
+	var pause int
 
 	manifestGenerationCmd := &cobra.Command{
 		Use:   "generate-manifest",
 		Short: "Generate a download manifest from the GOG Api",
 		Run: func(cmd *cobra.Command, args []string) {
-			sdkPtr.GetManifest(gameTitleFilter, concurrency)
+			sdkPtr.GetManifest(gameTitleFilter, concurrency, pause, debugMode)
 			fmt.Println("currently a noop")
 		},
 	}
@@ -35,5 +36,6 @@ func generateManifestGenerationCmd() *cobra.Command {
 	manifestGenerationCmd.Flags().StringArrayVarP(&extraTypeFilters, "extratype", "x", []string{}, "If you want to include only extras whole type contain one of the given strings. Look at full generated manifest without this flag to figure out valid types")
 	manifestGenerationCmd.Flags().StringVarP(&outputPath, "outputpath", "p", "", "Path representing a file to write the manifest in. If omitted, the manifest will be outputed on the terminal in json format")
 	manifestGenerationCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Maximum number of concurrent requests that will be made on the GOG api")
+	manifestGenerationCmd.Flags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")
 	return manifestGenerationCmd
 }

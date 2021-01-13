@@ -2,9 +2,9 @@ package sdk
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
-	"os"
 )
 
 type tag struct {
@@ -115,7 +115,9 @@ func (o OwnedGamesPage) Print() {
 	}
 }
 
-func (s *Sdk) GetOwnedGames(page int, search string, debug bool) OwnedGamesPage {
+func (s *Sdk) GetOwnedGames(page int, search string, debug bool) (OwnedGamesPage, error) {
+	var o OwnedGamesPage
+
 	fn := fmt.Sprintf("GetOwnedGames(page=%d, search=%s)", page, search)
 	u := fmt.Sprintf("https://embed.gog.com/account/getFilteredProducts?mediaType=1&page=%d", page)
 	if search != "" {
@@ -129,16 +131,14 @@ func (s *Sdk) GetOwnedGames(page int, search string, debug bool) OwnedGamesPage 
 		true,
 	)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return o, err
 	}
 
-	var o OwnedGamesPage
 	sErr := json.Unmarshal(b, &o)
 	if sErr != nil {
-		fmt.Println("Responde deserialization error:", sErr)
-		os.Exit(1)
+		msg := fmt.Sprintf("Responde deserialization error: %s", sErr.Error())
+		return o, errors.New(msg)
 	}
 
-	return o
+	return o, nil
 }

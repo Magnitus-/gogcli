@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +15,12 @@ func generateOwnedGamesCmd() *cobra.Command {
 		Use:   "owned-games",
 		Short: "Command to retrieve a list of games you own",
 		Run: func(cmd *cobra.Command, args []string) {
-			sdkPtr.GetOwnedGames(page, search, debugMode).Print()
+			o, err := sdkPtr.GetOwnedGames(page, search, debugMode)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			o.Print()
 		},
 	}
 

@@ -2,8 +2,8 @@ package sdk
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"os"
 )
 
 type currency struct {
@@ -83,7 +83,9 @@ func (u User) Print() {
 	}
 }
 
-func (s *Sdk) GetUser(debug bool) User {
+func (s *Sdk) GetUser(debug bool) (User, error) {
+	var u User
+
 	b, err := (*s).getUrl(
 		"https://embed.gog.com/userData.json",
 		"GetUser()",
@@ -91,16 +93,14 @@ func (s *Sdk) GetUser(debug bool) User {
 		true,
 	)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return u, err
 	}
 
-	var u User
 	sErr := json.Unmarshal(b, &u)
 	if sErr != nil {
-		fmt.Println("Responde deserialization error:", sErr)
-		os.Exit(1)
+		msg := fmt.Sprintf("Responde deserialization error: %s", sErr.Error())
+		return u, errors.New(msg)
 	}
 
-	return u
+	return u, nil
 }

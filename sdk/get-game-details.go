@@ -2,8 +2,8 @@ package sdk
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"os"
 )
 
 type simpleGalaxyInstaller struct {
@@ -126,7 +126,9 @@ func (g GameDetails) Print() {
 	}
 }
 
-func (s *Sdk) GetGameDetails(gameId int, debug bool) GameDetails {
+func (s *Sdk) GetGameDetails(gameId int, debug bool) (GameDetails, error) {
+	var g GameDetails
+
 	fn := fmt.Sprintf("GetGameDetails(gameId=%d)", gameId)
 	u := fmt.Sprintf("https://embed.gog.com/account//gameDetails/%d.json", gameId)
 
@@ -137,16 +139,14 @@ func (s *Sdk) GetGameDetails(gameId int, debug bool) GameDetails {
 		true,
 	)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return g, err
 	}
 
-	var g GameDetails
 	sErr := json.Unmarshal(b, &g)
 	if sErr != nil {
-		fmt.Println("Responde deserialization error:", sErr)
-		os.Exit(1)
+		msg := fmt.Sprintf("Responde deserialization error: %s", sErr.Error())
+		return g, errors.New(msg)
 	}
 
-	return g
+	return g, nil
 }

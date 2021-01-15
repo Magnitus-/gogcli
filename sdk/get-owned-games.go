@@ -180,8 +180,13 @@ func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int, d
 		return pages, errs
 	}
 
-	pageCount = pages[0].TotalPages
-	currentPage = pages[0].Page
+	if callVal.page.TotalPages == 0 {
+		return pages, errs
+	}
+
+	pages = append(pages, callVal.page)
+	pageCount = callVal.page.TotalPages
+	currentPage = callVal.page.Page + 1
 
 	if debug {
 		(*s).logger.Println(

@@ -46,6 +46,25 @@ func addOwnedGamesPagesToManifest(m *manifest.Manifest, pages []OwnedGamesPage) 
 	}
 }
 
+func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWithId) {
+	for _, gd := range gameDetails {
+		for gidx, _ := range (*m).Games {
+			if gd.id == (*m).Games[gidx].Id {
+				(*m).Games[gidx].CdKey = gd.game.CdKey
+
+				(*m).Games[gidx].Tags = make([]string, len(gd.game.Tags))
+				for i, _ := range gd.game.Tags {
+					(*m).Games[gidx].Tags[i] = gd.game.Tags[i].Name
+				}
+
+				//TODO
+				//g.Installers
+				//g.Extras
+			}
+		}
+	}
+}
+
 func (s *Sdk) GetManifest(search string, concurrency int, pause int, debug bool) (manifest.Manifest, []error) {
 	var m manifest.Manifest
 
@@ -55,5 +74,18 @@ func (s *Sdk) GetManifest(search string, concurrency int, pause int, debug bool)
 	}
 
 	addOwnedGamesPagesToManifest(&m, pages)
+
+	gameIds := make([]int, len(m.Games))
+	for i := 0; i < len(m.Games); i++ {
+		gameIds[i] = m.Games[i].Id
+	}
+
+	details, detailsErrs := s.GetManyGameDetails(gameIds, concurrency, pause, debug)
+	if len(detailsErrs) > 0 {
+		return m, detailsErrs
+	}
+
+	addGameDetailsToManifest(&m, details)
+
 	return m, nil
 }

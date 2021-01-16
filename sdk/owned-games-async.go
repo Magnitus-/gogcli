@@ -1,7 +1,6 @@
 package sdk
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -16,12 +15,6 @@ func (s *Sdk) GetOwnedGamesPageAsync(page int, search string, debug bool, return
 }
 
 func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int, debug bool) ([]OwnedGamesPage, []error) {
-	fnCall := fmt.Sprintf(
-		"GetAllOwnedGamesPages(search=%s, concurrency=%d, pause=%d",
-		search,
-		concurrency,
-		pause,
-	)
 	var pageCount int
 	var currentPage int
 	var pages []OwnedGamesPage
@@ -29,11 +22,6 @@ func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int, d
 	var callVal OwnedGamesPageReturn
 	c := make(chan OwnedGamesPageReturn)
 
-	if debug {
-		(*s).logger.Println(
-			fmt.Sprintf("%s -> fetching first page", fnCall),
-		)
-	}
 	go s.GetOwnedGamesPageAsync(1, search, debug, c)
 	callVal = <-c
 	if callVal.err != nil {
@@ -49,20 +37,8 @@ func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int, d
 	pageCount = callVal.page.TotalPages
 	currentPage = callVal.page.Page + 1
 
-	if debug {
-		(*s).logger.Println(
-			fmt.Sprintf("%s -> total pages to fetch: %d", fnCall, pageCount),
-		)
-	}
-
 	for currentPage < pageCount {
 		maxPage := min(currentPage+concurrency, pageCount)
-
-		if debug {
-			(*s).logger.Println(
-				fmt.Sprintf("%s -> fetching page %d to %d", fnCall, currentPage, maxPage),
-			)
-		}
 
 		for i := currentPage + 1; i <= maxPage; i++ {
 			go s.GetOwnedGamesPageAsync(i, search, debug, c)
@@ -85,11 +61,4 @@ func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int, d
 		time.Sleep(time.Duration(pause) * time.Millisecond)
 	}
 	return pages, errs
-}
-
-func min(x int, y int) int {
-	if x < y {
-		return x
-	}
-	return y
 }

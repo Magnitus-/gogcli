@@ -66,7 +66,7 @@ func (s *Sdk) getUrl(url string, fnCall string, debug bool, jsonBody bool) ([]by
 		if jsonBody {
 			var out bytes.Buffer
 			jErr := json.Indent(&out, b, "", "  ")
-			if err != nil {
+			if jErr != nil {
 				msg := fmt.Sprintf("%s -> json parsing error: %s", fnCall, jErr.Error())
 				return nil, errors.New(msg)
 			}

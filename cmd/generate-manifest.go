@@ -1,10 +1,18 @@
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 )
+
+type Errors struct {
+	Errors []string
+}
 
 func generateManifestGenerationCmd() *cobra.Command {
 	var oses []string
@@ -17,13 +25,45 @@ func generateManifestGenerationCmd() *cobra.Command {
 	var outputPath string
 	var concurrency int
 	var pause int
+	var file string
+	var terminalOutput bool
 
 	manifestGenerationCmd := &cobra.Command{
 		Use:   "generate-manifest",
 		Short: "Generate a download manifest from the GOG Api",
 		Run: func(cmd *cobra.Command, args []string) {
-			sdkPtr.GetManifest(gameTitleFilter, concurrency, pause, debugMode)
-			fmt.Println("currently a noop")
+			hasErr := false
+			var buf bytes.Buffer
+			var output []byte
+			var e Errors
+			m, errs := sdkPtr.GetManifest(gameTitleFilter, concurrency, pause, debugMode)
+
+			if len(errs) > 0 {
+				for _, err := range errs {
+					e.Errors = append(e.Errors, err.Error())
+				}
+				output, _ = json.Marshal(e)
+				hasErr = true
+			} else {
+				output, _ = json.Marshal(m)
+			}
+
+			json.Indent(&buf, output, "", "  ")
+			output = buf.Bytes()
+
+			if terminalOutput {
+				fmt.Println(string(output))
+			} else {
+				err := ioutil.WriteFile(file, output, 0644)
+				if err != nil {
+					fmt.Println(err)
+					hasErr = true
+				}
+			}
+
+			if hasErr {
+				os.Exit(1)
+			}
 		},
 	}
 
@@ -37,5 +77,7 @@ func generateManifestGenerationCmd() *cobra.Command {
 	manifestGenerationCmd.Flags().StringVarP(&outputPath, "outputpath", "p", "", "Path representing a file to write the manifest in. If omitted, the manifest will be outputed on the terminal in json format")
 	manifestGenerationCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Maximum number of concurrent requests that will be made on the GOG api")
 	manifestGenerationCmd.Flags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")
+	manifestGenerationCmd.Flags().StringVarP(&file, "file", "f", "manifest.json", "File to output the manifest in")
+	manifestGenerationCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the manifest will be output on the terminal instead of in a file")
 	return manifestGenerationCmd
 }

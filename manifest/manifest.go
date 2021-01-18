@@ -8,7 +8,7 @@ type ManifestGameExtra struct {
 	Type         string
 	Info         int
 	Size         string
-	ComputedSize int
+	VerifiedSize int
 	Checksum     string
 }
 
@@ -29,7 +29,7 @@ type ManifestGameInstaller struct {
 	Version      string
 	Date         string
 	Size         string
-	ComputedSize int
+	VerifiedSize int
 	Checksum     string
 }
 

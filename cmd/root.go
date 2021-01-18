@@ -36,6 +36,7 @@ func init() {
 	rootCmd.AddCommand(generateOwnedGamesCmd())
 	rootCmd.AddCommand(generateUserInfoCmd())
 	rootCmd.AddCommand(generateManifestGenerationCmd())
+	rootCmd.AddCommand(generateDownloadPathCmd())
 }
 
 func Execute() error {

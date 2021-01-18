@@ -31,6 +31,15 @@ func init() {
 	LANGUAGE_MAP["romanian"] = "rom\u00e2n\u0103"
 }
 
+func languageToAscii(unicodeRepresentation string) string {
+	for k, v := range LANGUAGE_MAP {
+		if v == unicodeRepresentation {
+			return k
+		}
+	}
+	return "unknown"
+}
+
 func addOwnedGamesPagesToManifest(m *manifest.Manifest, pages []OwnedGamesPage) {
 	for _, page := range pages {
 		for _, product := range page.Products {
@@ -57,9 +66,63 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 					(*m).Games[gidx].Tags[i] = gd.game.Tags[i].Name
 				}
 
-				//TODO
-				//g.Installers
-				//g.Extras
+				for _, i := range gd.game.Downloads {
+					(*m).Games[gidx].Installers = append(
+						(*m).Games[gidx].Installers,
+						manifest.ManifestGameInstaller{
+							Language: languageToAscii(i.Language),
+							Os:       i.Os,
+							Url:      i.ManualUrl,
+							Name:     i.Name,
+							Version:  i.Version,
+							Date:     i.Date,
+							Size:     i.Size,
+						},
+					)
+				}
+
+				for _, e := range gd.game.Extras {
+					(*m).Games[gidx].Extras = append(
+						(*m).Games[gidx].Extras,
+						manifest.ManifestGameExtra{
+							Url:  e.ManualUrl,
+							Name: e.Name,
+							Type: e.Type,
+							Info: e.Info,
+							Size: e.Size,
+						},
+					)
+				}
+
+				for _, d := range gd.game.Dlcs {
+					for _, i := range d.Downloads {
+						(*m).Games[gidx].Installers = append(
+							(*m).Games[gidx].Installers,
+							manifest.ManifestGameInstaller{
+								Language: languageToAscii(i.Language),
+								Os:       i.Os,
+								Url:      i.ManualUrl,
+								Name:     i.Name,
+								Version:  i.Version,
+								Date:     i.Date,
+								Size:     i.Size,
+							},
+						)
+					}
+
+					for _, e := range d.Extras {
+						(*m).Games[gidx].Extras = append(
+							(*m).Games[gidx].Extras,
+							manifest.ManifestGameExtra{
+								Url:  e.ManualUrl,
+								Name: e.Name,
+								Type: e.Type,
+								Info: e.Info,
+								Size: e.Size,
+							},
+						)
+					}
+				}
 			}
 		}
 	}

@@ -3,11 +3,13 @@ package manifest
 import "strings"
 
 type ManifestGameExtra struct {
-	Url  string
-	Name string
-	Type string
-	Info int
-	Size string
+	Url          string
+	Name         string
+	Type         string
+	Info         int
+	Size         string
+	ComputedSize int
+	Checksum     string
 }
 
 func (e *ManifestGameExtra) hasOneOfTypeTerms(typeTerms []string) bool {
@@ -20,14 +22,15 @@ func (e *ManifestGameExtra) hasOneOfTypeTerms(typeTerms []string) bool {
 }
 
 type ManifestGameInstaller struct {
-	Language string
-	Os       string
-	Dlc      string
-	Url      string
-	Name     string
-	Version  string
-	Date     string
-	Size     string
+	Language     string
+	Os           string
+	Url          string
+	Name         string
+	Version      string
+	Date         string
+	Size         string
+	ComputedSize int
+	Checksum     string
 }
 
 func (i *ManifestGameInstaller) hasOneOfOses(oses []string) bool {

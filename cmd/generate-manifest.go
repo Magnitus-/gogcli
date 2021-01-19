@@ -45,6 +45,9 @@ func generateManifestGenerationCmd() *cobra.Command {
 				output, _ = json.Marshal(e)
 				hasErr = true
 			} else {
+				m.TrimGames("", gameTagFilters)
+				m.TrimInstallers(oses, languages, downloads)
+				m.TrimExtras(extraTypeFilters, extras)
 				output, _ = json.Marshal(m)
 			}
 
@@ -68,7 +71,7 @@ func generateManifestGenerationCmd() *cobra.Command {
 	}
 
 	manifestGenerationCmd.Flags().StringArrayVarP(&oses, "os", "o", []string{}, "If you want to include only specific oses. Valid values: windows, mac, linux")
-	manifestGenerationCmd.Flags().StringArrayVarP(&languages, "lang", "l", []string{}, "If you want to include only specific languages. Valid values: english, french, spanish, dutch, portuguese_brazilian, russian, korean, chinese_simplified, japanese, polish, italian, german, czech, hungarian, portuguese, danish, finnish, swedish, turkish, arabic, romanian")
+	manifestGenerationCmd.Flags().StringArrayVarP(&languages, "lang", "l", []string{}, "If you want to include only specific languages. Valid values: english, french, spanish, dutch, portuguese_brazilian, russian, korean, chinese_simplified, japanese, polish, italian, german, czech, hungarian, portuguese, danish, finnish, swedish, turkish, arabic, romanian, unknown")
 	manifestGenerationCmd.Flags().StringArrayVarP(&gameTagFilters, "tag", "a", []string{}, "If you want to include only games having specific tags")
 	manifestGenerationCmd.Flags().StringVarP(&gameTitleFilter, "title", "i", "", "If you want to include only games with title that contain the given string")
 	manifestGenerationCmd.Flags().BoolVarP(&downloads, "installers", "n", true, "Whether to incluse installer downloads")

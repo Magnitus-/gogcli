@@ -62,7 +62,8 @@ type ManifestGame struct {
 }
 
 func (g *ManifestGame) trimInstallers(oses []string, languages []string, keepAny bool) {
-	var filteredInstallers []ManifestGameInstaller
+	filteredInstallers := make([]ManifestGameInstaller, 0)
+
 	if keepAny {
 		if len(oses) == 0 && len(languages) == 0 {
 			//Save some needless computation
@@ -70,7 +71,7 @@ func (g *ManifestGame) trimInstallers(oses []string, languages []string, keepAny
 		}
 
 		for _, i := range (*g).Installers {
-			hasOneOfOses := len(oses) == 0 || i.hasOneOfLanguages(oses)
+			hasOneOfOses := len(oses) == 0 || i.hasOneOfOses(oses)
 			hasOneOfLanguages := len(languages) == 0 || i.hasOneOfLanguages(languages)
 			if hasOneOfOses && hasOneOfLanguages {
 				filteredInstallers = append(filteredInstallers, i)
@@ -81,7 +82,8 @@ func (g *ManifestGame) trimInstallers(oses []string, languages []string, keepAny
 }
 
 func (g *ManifestGame) trimExtras(typeTerms []string, keepAny bool) {
-	var filteredExtras []ManifestGameExtra
+	filteredExtras := make([]ManifestGameExtra, 0)
+
 	if keepAny {
 		if len(typeTerms) == 0 {
 			return
@@ -112,7 +114,7 @@ func (g *ManifestGame) hasOneOfTags(tags []string) bool {
 }
 
 func (g *ManifestGame) isEmpty() bool {
-	return len((*g).Installers) > 0 || len((*g).Extras) > 0
+	return len((*g).Installers) == 0 && len((*g).Extras) == 0
 }
 
 type Manifest struct {
@@ -121,7 +123,7 @@ type Manifest struct {
 }
 
 func (m *Manifest) TrimGames(titleTerm string, tags []string) {
-	var filteredGames []ManifestGame
+	filteredGames := make([]ManifestGame, 0)
 
 	if titleTerm == "" && len(tags) == 0 {
 		//Save some needless computation
@@ -140,7 +142,7 @@ func (m *Manifest) TrimGames(titleTerm string, tags []string) {
 }
 
 func (m *Manifest) TrimInstallers(oses []string, languages []string, keepAny bool) {
-	var filteredGames []ManifestGame
+	filteredGames := make([]ManifestGame, 0)
 
 	if len(oses) == 0 && len(languages) == 0 && keepAny {
 		//Save some needless computation
@@ -158,7 +160,7 @@ func (m *Manifest) TrimInstallers(oses []string, languages []string, keepAny boo
 }
 
 func (m *Manifest) TrimExtras(typeTerms []string, keepAny bool) {
-	var filteredGames []ManifestGame
+	filteredGames := make([]ManifestGame, 0)
 
 	if len(typeTerms) == 0 && keepAny {
 		//Save some needless computation

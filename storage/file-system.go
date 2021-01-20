@@ -27,7 +27,7 @@ func (f FileSystem) HasManifest() (bool, error) {
 	return true, nil
 }
 
-func (f FileSystem) HasGameActions() (bool, error) {
+func (f FileSystem) HasActions() (bool, error) {
 	_, err := os.Stat(path.Join(f.Path, "actions.json"))
 	if err != nil {
 		if os.IsNotExist(err) {

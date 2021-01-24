@@ -2,7 +2,9 @@ package storage
 
 import (
 	"bytes"
+	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"gogcli/manifest"
 	"io"
 	"io/ioutil"
@@ -159,12 +161,40 @@ func (f FileSystem) RemoveGame(gameId int) error {
 	return nil
 }
 
-func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, name string) (string, error) {
-	//TODO
-	return "", nil
+func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, name string) ([]byte, error) {
+	var fPath string
+	if kind == "installer" {
+		fPath = path.Join(f.Path, strconv.Itoa(gameId), "installers", name)
+	} else if kind == "extra" {
+		fPath = path.Join(f.Path, strconv.Itoa(gameId), "extras", name)
+	} else {
+		return nil, errors.New("Unknown kind of file")
+	}
+
+	h := md5.New()
+
+	dest, err := os.Create(fPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dest.Close()
+
+	w := io.MultiWriter(dest, h)
+	io.Copy(w, source)
+
+	return h.Sum(nil), nil
 }
 
 func (f FileSystem) RemoteFile(gameId int, kind string, name string) error {
-	//TODO
-	return nil
+	var fPath string
+	if kind == "installer" {
+		fPath = path.Join(f.Path, strconv.Itoa(gameId), "installers", name)
+	} else if kind == "extra" {
+		fPath = path.Join(f.Path, strconv.Itoa(gameId), "extras", name)
+	} else {
+		return errors.New("Unknown kind of file")
+	}
+
+	err := os.Remove(fPath)
+	return err
 }

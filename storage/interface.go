@@ -14,6 +14,6 @@ type storage interface {
 	LoadActions() (*manifest.GameActions, error)
 	AddGame(gameId int) error
 	RemoveGame(gameId int) error
-	UploadFile(source io.ReadCloser, gameId int, kind string, name string) (string, error)
+	UploadFile(source io.ReadCloser, gameId int, kind string, name string) ([]byte, error)
 	RemoteFile(gameId int, kind string, name string) error
 }

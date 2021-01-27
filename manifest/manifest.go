@@ -21,6 +21,14 @@ func (e *ManifestGameExtra) hasOneOfTypeTerms(typeTerms []string) bool {
 	return false
 }
 
+func (e *ManifestGameExtra) isEquivalentTo(o *ManifestGameExtra) bool {
+	sameName := (*e).Name == (*o).Name
+	sameUrl := (*e).Url == (*o).Url
+	sameVerifiedSize := (*o).VerifiedSize != 0 && (*e).VerifiedSize == (*o).VerifiedSize
+	sameChecksum := (*o).Checksum != "" && (*e).Checksum == (*o).Checksum
+	return sameName && sameUrl && sameVerifiedSize && sameChecksum
+}
+
 type ManifestGameInstaller struct {
 	Language     string
 	Os           string
@@ -49,6 +57,14 @@ func (i *ManifestGameInstaller) hasOneOfLanguages(languages []string) bool {
 		}
 	}
 	return false
+}
+
+func (i *ManifestGameInstaller) isEquivalentTo(o *ManifestGameInstaller) bool {
+	sameName := (*i).Name == (*o).Name
+	sameUrl := (*i).Url == (*o).Url
+	sameVerifiedSize := (*o).VerifiedSize != 0 && (*i).VerifiedSize == (*o).VerifiedSize
+	sameChecksum := (*o).Checksum != "" && (*i).Checksum == (*o).Checksum
+	return sameName && sameUrl && sameVerifiedSize && sameChecksum
 }
 
 type ManifestGame struct {

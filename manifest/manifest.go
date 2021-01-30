@@ -1,6 +1,10 @@
 package manifest
 
-import "strings"
+import (
+	"errors"
+	"fmt"
+	"strings"
+)
 
 type ManifestGameExtra struct {
 	Url           string
@@ -168,6 +172,34 @@ func (g *ManifestGame) computeEstimatedSize() (int, error) {
 	return accumulate, nil
 }
 
+func (g *ManifestGame) fillMissingFileInfo(fileKind string, fileUrl string, fileName string, fileSize int, fileChecksum string) error {
+	if fileKind == "installer" {
+		for idx, _ := range (*g).Installers {
+			if (*g).Installers[idx].Url == fileUrl {
+				(*g).Installers[idx].Name = fileName
+				(*g).Installers[idx].VerifiedSize = fileSize
+				(*g).Installers[idx].Checksum = fileChecksum
+				return nil
+			}
+		}
+
+		return errors.New(fmt.Sprintf("File with url %s was not found in the installers of game with id %d", fileUrl, (*g).Id))
+	} else if fileKind == "extra" {
+		for idx, _ := range (*g).Extras {
+			if (*g).Extras[idx].Url == fileUrl {
+				(*g).Extras[idx].Name = fileName
+				(*g).Extras[idx].VerifiedSize = fileSize
+				(*g).Extras[idx].Checksum = fileChecksum
+				return nil
+			}
+		}
+
+		return errors.New(fmt.Sprintf("File with url %s was not found in the extras of game with id %d", fileUrl, (*g).Id))
+	}
+
+	return errors.New(fmt.Sprintf("%s is not a valid kind of file", fileKind))
+}
+
 type Manifest struct {
 	Games         []ManifestGame
 	EstimatedSize string
@@ -271,4 +303,27 @@ func (m *Manifest) ComputeEstimatedSize() (int, error) {
 
 	(*m).EstimatedSize = GetBytesToEstimate(accumulate)
 	return accumulate, nil
+}
+
+func (m *Manifest) FillMissingFileInfo(gameId int, fileKind string, fileUrl string, fileName string, fileSize int, fileChecksum string) error {
+	fn := fmt.Sprintf(
+		"Manifest.FillMissingFileInfo(gameId=%d, fileKind=%s, fileUrl=%s, fileName=%s, fileSize=%d, fileChecksum=%s)",
+		gameId,
+		fileKind,
+		fileUrl,
+		fileName,
+		fileSize,
+		fileChecksum,
+	)
+	for idx, _ := range (*m).Games {
+		if (*m).Games[idx].Id == gameId {
+			err := (*m).Games[idx].fillMissingFileInfo(fileKind, fileUrl, fileName, fileSize, fileChecksum)
+			if err != nil {
+				return errors.New(fmt.Sprintf("%s -> Error filling game's missing info: %s", err.Error()))
+			}
+			return nil
+		}
+	}
+
+	return errors.New(fmt.Sprintf("%s -> Provided game id could not be found in the manifest", fn))
 }

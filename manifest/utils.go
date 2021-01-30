@@ -21,20 +21,20 @@ func init() {
 func GetEstimateToBytes(est string) (int, error) {
 	fn := fmt.Sprintf("getEstimateInBytes(est=%s)", est)
 	if !estSizeRegex.MatchString(est) {
-		return 0, errors.New(fmt.Sprintf("%s => Could not parse input", fn))
+		return 0, errors.New(fmt.Sprintf("%s -> Could not parse input", fn))
 	}
 	match := estSizeRegex.FindStringSubmatch(est)
 	
 	amount, err := strconv.ParseFloat(match[1], 64)
 	if err != nil {
-		return 0, errors.New(fmt.Sprintf("%s => Could not convert amount to float", fn))
+		return 0, errors.New(fmt.Sprintf("%s -> Could not convert amount to float", fn))
 	}
 
 	unit := strings.ToLower(match[2])
 	if multiplier, ok := units[unit]; ok {
 		return int(float64(multiplier)*amount), nil
 	} else {
-		return 0, errors.New(fmt.Sprintf("%s => Could not recognize unit", fn))
+		return 0, errors.New(fmt.Sprintf("%s -> Could not recognize unit", fn))
 	}
 }
 

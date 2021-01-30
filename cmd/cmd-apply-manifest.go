@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"gogcli/manifest"
+	"gogcli/storage"
 	"io/ioutil"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-func generateApplyManifestFsCmd(m *manifest.Manifest) *cobra.Command {
+func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int) *cobra.Command {
 	var path string
 
 	applyManifestFsCmd := &cobra.Command{
@@ -32,7 +33,7 @@ func generateApplyManifestFsCmd(m *manifest.Manifest) *cobra.Command {
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Placeholder")
+			uploadManifest(m, storage.FileSystem{path}, (*concurrency))
 		},
 	}
 
@@ -44,6 +45,7 @@ func generateApplyManifestFsCmd(m *manifest.Manifest) *cobra.Command {
 func generateApplyManifestCmd() *cobra.Command {
 	var m manifest.Manifest
 	var manifestPath string
+	var concurrency int
 
 	applyManifestCmd := &cobra.Command{
 		Use:   "apply-manifest",
@@ -63,10 +65,11 @@ func generateApplyManifestCmd() *cobra.Command {
 		},
 	}
 
-	rootCmd.PersistentFlags().StringVarP(&manifestPath, "manifest", "m", "manifest.json", "Path were the manifest you want to apply is")
-	rootCmd.MarkPersistentFlagFilename("manifest")
+	applyManifestCmd.PersistentFlags().StringVarP(&manifestPath, "manifest", "m", "manifest.json", "Path were the manifest you want to apply is")
+	applyManifestCmd.MarkPersistentFlagFilename("manifest")
+	applyManifestCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "c", 10, "Number of downloads that should be attempted at the same time")
 
-	applyManifestCmd.AddCommand(generateApplyManifestFsCmd(&m))
+	applyManifestCmd.AddCommand(generateApplyManifestFsCmd(&m, &concurrency))
 
 	return applyManifestCmd
 }

@@ -138,6 +138,10 @@ type Manifest struct {
 	Size  string
 }
 
+func NewEmptyManifest() *Manifest {
+	return &Manifest{Games: make([]ManifestGame, 0), Size: "0 MB"}
+}
+
 func (m *Manifest) TrimGames(titleTerm string, tags []string) {
 	filteredGames := make([]ManifestGame, 0)
 
@@ -187,6 +191,31 @@ func (m *Manifest) TrimExtras(typeTerms []string, keepAny bool) {
 		g.trimExtras(typeTerms, keepAny)
 		if !g.isEmpty() {
 			filteredGames = append(filteredGames, g)
+		}
+	}
+
+	(*m).Games = filteredGames
+}
+
+//For new games
+func (m *Manifest) AddGames(games []ManifestGame) {
+	(*m).Games = append((*m).Games, games...)
+}
+
+//For game updates
+func (m *Manifest) ReplaceGames(games []ManifestGame) {
+	filteredGames := make([]ManifestGame, 0)
+	replaceMap := make(map[int]ManifestGame)
+
+	for _, game := range games {
+		replaceMap[game.Id] = game
+	}
+
+	for _, game := range (*m).Games {
+		if repl, ok := replaceMap[game.Id]; ok {
+			filteredGames = append(filteredGames, repl)
+		} else {
+			filteredGames = append(filteredGames, game)
 		}
 	}
 

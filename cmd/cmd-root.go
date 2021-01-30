@@ -37,6 +37,7 @@ func init() {
 	rootCmd.AddCommand(generateUserInfoCmd())
 	rootCmd.AddCommand(generateManifestGenerationCmd())
 	rootCmd.AddCommand(generateDownloadPathCmd())
+	rootCmd.AddCommand(generatePlanManifestCmd())
 	rootCmd.AddCommand(generateApplyManifestCmd())
 }
 

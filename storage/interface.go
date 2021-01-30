@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-type storage interface {
+type Storage interface {
 	HasManifest() (bool, error)
 	HasActions() (bool, error)
 	StoreManifest(m *manifest.Manifest) error
@@ -15,5 +15,23 @@ type storage interface {
 	AddGame(gameId int) error
 	RemoveGame(gameId int) error
 	UploadFile(source io.ReadCloser, gameId int, kind string, name string) ([]byte, error)
-	RemoteFile(gameId int, kind string, name string) error
+	RemoveFile(gameId int, kind string, name string) error
+}
+
+func PlanManifest(m *manifest.Manifest, s Storage) (*manifest.GameActions, error) {
+	storedManifestPtr := manifest.NewEmptyManifest()
+	hasManifest, err := s.HasManifest()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if hasManifest {
+		err = s.StoreManifest(storedManifestPtr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return storedManifestPtr.Plan(m), nil
 }

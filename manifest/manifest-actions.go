@@ -117,8 +117,8 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 	return g
 }
 
-func (curr *Manifest) plan(next *Manifest) GameActions {
-	var actions GameActions
+func (curr *Manifest) Plan(next *Manifest) *GameActions {
+	actions := GameActions(make(map[int]GameAction))
 	currentGames := make(map[int]ManifestGame)
 	futureGames := make(map[int]ManifestGame)
 
@@ -144,5 +144,5 @@ func (curr *Manifest) plan(next *Manifest) GameActions {
 		}
 	}
 
-	return actions
+	return &actions
 }

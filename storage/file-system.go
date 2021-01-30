@@ -185,7 +185,7 @@ func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, na
 	return h.Sum(nil), nil
 }
 
-func (f FileSystem) RemoteFile(gameId int, kind string, name string) error {
+func (f FileSystem) RemoveFile(gameId int, kind string, name string) error {
 	var fPath string
 	if kind == "installer" {
 		fPath = path.Join(f.Path, strconv.Itoa(gameId), "installers", name)

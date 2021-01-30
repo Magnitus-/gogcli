@@ -10,13 +10,12 @@ import (
 
 func generateDownloadPathCmd() *cobra.Command {
 	var path string
-	var file string
 
 	downloadPathCmd := &cobra.Command{
 		Use:   "download-path",
 		Short: "Download a single file with the given path from GOG. Valid paths can be obtained from the manifest.",
 		Run: func(cmd *cobra.Command, args []string) {
-			body, _, err := sdkPtr.GetDownloadHandle(path, debugMode)
+			body, _, file, err := sdkPtr.GetDownloadHandle(path, debugMode)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)
@@ -40,9 +39,6 @@ func generateDownloadPathCmd() *cobra.Command {
 
 	downloadPathCmd.Flags().StringVarP(&path, "path", "p", "", "Url path to download")
 	downloadPathCmd.MarkFlagRequired("path")
-
-	downloadPathCmd.Flags().StringVarP(&file, "file", "f", "", "File to put the download in")
-	downloadPathCmd.MarkFlagRequired("file")
 
 	return downloadPathCmd
 }

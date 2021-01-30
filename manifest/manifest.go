@@ -3,14 +3,14 @@ package manifest
 import "strings"
 
 type ManifestGameExtra struct {
-	Url          string
-	Title        string
-	Name         string
-	Type         string
-	Info         int
-	Size         string
-	VerifiedSize int
-	Checksum     string
+	Url           string
+	Title         string
+	Name          string
+	Type          string
+	Info          int
+	EstimatedSize string
+	VerifiedSize  int
+	Checksum      string
 }
 
 func (e *ManifestGameExtra) hasOneOfTypeTerms(typeTerms []string) bool {
@@ -31,17 +31,21 @@ func (e *ManifestGameExtra) isEquivalentTo(o *ManifestGameExtra) bool {
 	return sameName && sameTitle && sameUrl && sameVerifiedSize && sameChecksum
 }
 
+func (e *ManifestGameExtra) getEstimatedSizeInBytes() (int, error) {
+	return GetEstimateToBytes((*e).EstimatedSize)
+}
+
 type ManifestGameInstaller struct {
-	Language     string
-	Os           string
-	Url          string
-	Title        string
-	Name         string
-	Version      string
-	Date         string
-	Size         string
-	VerifiedSize int
-	Checksum     string
+	Language      string
+	Os            string
+	Url           string
+	Title         string
+	Name          string
+	Version       string
+	Date          string
+	EstimatedSize string
+	VerifiedSize  int
+	Checksum      string
 }
 
 func (i *ManifestGameInstaller) hasOneOfOses(oses []string) bool {
@@ -71,14 +75,19 @@ func (i *ManifestGameInstaller) isEquivalentTo(o *ManifestGameInstaller) bool {
 	return sameName && sameTitle && sameUrl && sameVerifiedSize && sameChecksum
 }
 
+func (i *ManifestGameInstaller) getEstimatedSizeInBytes() (int, error) {
+	return GetEstimateToBytes((*i).EstimatedSize)
+}
+
 type ManifestGame struct {
-	Id         int
-	Title      string
-	CdKey      string
-	Tags       []string
-	Installers []ManifestGameInstaller
-	Extras     []ManifestGameExtra
-	Size       string
+	Id            int
+	Title         string
+	CdKey         string
+	Tags          []string
+	Installers    []ManifestGameInstaller
+	Extras        []ManifestGameExtra
+	EstimatedSize string
+	VerifiedSize  int
 }
 
 func (g *ManifestGame) trimInstallers(oses []string, languages []string, keepAny bool) {
@@ -137,13 +146,36 @@ func (g *ManifestGame) isEmpty() bool {
 	return len((*g).Installers) == 0 && len((*g).Extras) == 0
 }
 
+func (g *ManifestGame) computeEstimatedSize() (int, error) {
+	accumulate := 0
+	for _, inst := range (*g).Installers {
+		size, err := inst.getEstimatedSizeInBytes()
+		if err != nil {
+			return 0, err
+		}
+		accumulate += size
+	}
+
+	for _, extr := range (*g).Extras {
+		size, err := extr.getEstimatedSizeInBytes()
+		if err != nil {
+			return 0, err
+		}
+		accumulate += size
+	}
+
+	(*g).EstimatedSize = GetBytesToEstimate(accumulate)
+	return accumulate, nil
+}
+
 type Manifest struct {
-	Games []ManifestGame
-	Size  string
+	Games         []ManifestGame
+	EstimatedSize string
+	VerifiedSize  int
 }
 
 func NewEmptyManifest() *Manifest {
-	return &Manifest{Games: make([]ManifestGame, 0), Size: "0 MB"}
+	return &Manifest{Games: make([]ManifestGame, 0), EstimatedSize: "0 MB"}
 }
 
 func (m *Manifest) TrimGames(titleTerm string, tags []string) {
@@ -224,4 +256,19 @@ func (m *Manifest) ReplaceGames(games []ManifestGame) {
 	}
 
 	(*m).Games = filteredGames
+}
+
+func (m *Manifest) ComputeEstimatedSize() (int, error) {
+	accumulate := 0
+
+	for idx, _ := range (*m).Games {
+		size, err := (*m).Games[idx].computeEstimatedSize()
+		if err != nil {
+			return 0, err
+		}
+		accumulate += size
+	}
+
+	(*m).EstimatedSize = GetBytesToEstimate(accumulate)
+	return accumulate, nil
 }

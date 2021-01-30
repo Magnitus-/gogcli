@@ -71,13 +71,13 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 					(*m).Games[gidx].Installers = append(
 						(*m).Games[gidx].Installers,
 						manifest.ManifestGameInstaller{
-							Language: languageToAscii(i.Language),
-							Os:       i.Os,
-							Url:      i.ManualUrl,
-							Title:    i.Name,
-							Version:  i.Version,
-							Date:     i.Date,
-							Size:     i.Size,
+							Language:      languageToAscii(i.Language),
+							Os:            i.Os,
+							Url:           i.ManualUrl,
+							Title:         i.Name,
+							Version:       i.Version,
+							Date:          i.Date,
+							EstimatedSize: i.Size,
 						},
 					)
 				}
@@ -86,11 +86,11 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 					(*m).Games[gidx].Extras = append(
 						(*m).Games[gidx].Extras,
 						manifest.ManifestGameExtra{
-							Url:   e.ManualUrl,
-							Title: e.Name,
-							Type:  e.Type,
-							Info:  e.Info,
-							Size:  e.Size,
+							Url:           e.ManualUrl,
+							Title:         e.Name,
+							Type:          e.Type,
+							Info:          e.Info,
+							EstimatedSize: e.Size,
 						},
 					)
 				}
@@ -100,13 +100,13 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 						(*m).Games[gidx].Installers = append(
 							(*m).Games[gidx].Installers,
 							manifest.ManifestGameInstaller{
-								Language: languageToAscii(i.Language),
-								Os:       i.Os,
-								Url:      i.ManualUrl,
-								Title:    i.Name,
-								Version:  i.Version,
-								Date:     i.Date,
-								Size:     i.Size,
+								Language:      languageToAscii(i.Language),
+								Os:            i.Os,
+								Url:           i.ManualUrl,
+								Title:         i.Name,
+								Version:       i.Version,
+								Date:          i.Date,
+								EstimatedSize: i.Size,
 							},
 						)
 					}
@@ -115,11 +115,11 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 						(*m).Games[gidx].Extras = append(
 							(*m).Games[gidx].Extras,
 							manifest.ManifestGameExtra{
-								Url:   e.ManualUrl,
-								Title: e.Name,
-								Type:  e.Type,
-								Info:  e.Info,
-								Size:  e.Size,
+								Url:           e.ManualUrl,
+								Title:         e.Name,
+								Type:          e.Type,
+								Info:          e.Info,
+								EstimatedSize: e.Size,
 							},
 						)
 					}

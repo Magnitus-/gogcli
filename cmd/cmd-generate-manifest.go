@@ -48,6 +48,7 @@ func generateManifestGenerationCmd() *cobra.Command {
 				m.TrimGames("", gameTagFilters)
 				m.TrimInstallers(oses, languages, downloads)
 				m.TrimExtras(extraTypeFilters, extras)
+				m.ComputeEstimatedSize()
 				output, _ = json.Marshal(m)
 			}
 

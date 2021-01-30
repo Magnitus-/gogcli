@@ -74,7 +74,7 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 							Language: languageToAscii(i.Language),
 							Os:       i.Os,
 							Url:      i.ManualUrl,
-							Name:     i.Name,
+							Title:    i.Name,
 							Version:  i.Version,
 							Date:     i.Date,
 							Size:     i.Size,
@@ -86,11 +86,11 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 					(*m).Games[gidx].Extras = append(
 						(*m).Games[gidx].Extras,
 						manifest.ManifestGameExtra{
-							Url:  e.ManualUrl,
-							Name: e.Name,
-							Type: e.Type,
-							Info: e.Info,
-							Size: e.Size,
+							Url:   e.ManualUrl,
+							Title: e.Name,
+							Type:  e.Type,
+							Info:  e.Info,
+							Size:  e.Size,
 						},
 					)
 				}
@@ -103,7 +103,7 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 								Language: languageToAscii(i.Language),
 								Os:       i.Os,
 								Url:      i.ManualUrl,
-								Name:     i.Name,
+								Title:    i.Name,
 								Version:  i.Version,
 								Date:     i.Date,
 								Size:     i.Size,
@@ -115,11 +115,11 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 						(*m).Games[gidx].Extras = append(
 							(*m).Games[gidx].Extras,
 							manifest.ManifestGameExtra{
-								Url:  e.ManualUrl,
-								Name: e.Name,
-								Type: e.Type,
-								Info: e.Info,
-								Size: e.Size,
+								Url:   e.ManualUrl,
+								Title: e.Name,
+								Type:  e.Type,
+								Info:  e.Info,
+								Size:  e.Size,
 							},
 						)
 					}

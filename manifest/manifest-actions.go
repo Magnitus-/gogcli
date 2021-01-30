@@ -1,9 +1,10 @@
 package manifest
 
 type FileAction struct {
-	Name   string
-	Url    string
-	Action string
+	PreviousName string
+	Name         string
+	Url          string
+	Action       string
 }
 
 type GameAction struct {
@@ -69,7 +70,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 		if val, ok := currentInstallers[name]; ok {
 			if !inst.isEquivalentTo(&val) {
 				//Overwrite
-				g.InstallerActions[name] = FileAction{Name: inst.Name, Url: inst.Url, Action: "add"}
+				g.InstallerActions[name] = FileAction{PreviousName: val.Name, Name: inst.Name, Url: inst.Url, Action: "replace"}
 			}
 		} else {
 			//Add missing file
@@ -99,7 +100,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 		if val, ok := currentExtras[name]; ok {
 			if !extr.isEquivalentTo(&val) {
 				//Overwrite
-				g.ExtraActions[name] = FileAction{Name: extr.Name, Url: extr.Url, Action: "add"}
+				g.ExtraActions[name] = FileAction{PreviousName: val.Name, Name: extr.Name, Url: extr.Url, Action: "replace"}
 			}
 		} else {
 			//Add missing file

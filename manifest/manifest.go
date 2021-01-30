@@ -4,6 +4,7 @@ import "strings"
 
 type ManifestGameExtra struct {
 	Url          string
+	Title        string
 	Name         string
 	Type         string
 	Info         int
@@ -23,16 +24,18 @@ func (e *ManifestGameExtra) hasOneOfTypeTerms(typeTerms []string) bool {
 
 func (e *ManifestGameExtra) isEquivalentTo(o *ManifestGameExtra) bool {
 	sameName := (*e).Name == (*o).Name
+	sameTitle := (*e).Title == (*o).Title
 	sameUrl := (*e).Url == (*o).Url
 	sameVerifiedSize := (*o).VerifiedSize != 0 && (*e).VerifiedSize == (*o).VerifiedSize
 	sameChecksum := (*o).Checksum != "" && (*e).Checksum == (*o).Checksum
-	return sameName && sameUrl && sameVerifiedSize && sameChecksum
+	return sameName && sameTitle && sameUrl && sameVerifiedSize && sameChecksum
 }
 
 type ManifestGameInstaller struct {
 	Language     string
 	Os           string
 	Url          string
+	Title        string
 	Name         string
 	Version      string
 	Date         string
@@ -61,10 +64,11 @@ func (i *ManifestGameInstaller) hasOneOfLanguages(languages []string) bool {
 
 func (i *ManifestGameInstaller) isEquivalentTo(o *ManifestGameInstaller) bool {
 	sameName := (*i).Name == (*o).Name
+	sameTitle := (*i).Title == (*o).Title
 	sameUrl := (*i).Url == (*o).Url
 	sameVerifiedSize := (*o).VerifiedSize != 0 && (*i).VerifiedSize == (*o).VerifiedSize
 	sameChecksum := (*o).Checksum != "" && (*i).Checksum == (*o).Checksum
-	return sameName && sameUrl && sameVerifiedSize && sameChecksum
+	return sameName && sameTitle && sameUrl && sameVerifiedSize && sameChecksum
 }
 
 type ManifestGame struct {

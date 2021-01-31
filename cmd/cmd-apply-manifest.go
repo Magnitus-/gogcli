@@ -67,7 +67,7 @@ func generateApplyManifestCmd() *cobra.Command {
 
 	applyManifestCmd.PersistentFlags().StringVarP(&manifestPath, "manifest", "m", "manifest.json", "Path were the manifest you want to apply is")
 	applyManifestCmd.MarkPersistentFlagFilename("manifest")
-	applyManifestCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "c", 10, "Number of downloads that should be attempted at the same time")
+	applyManifestCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
 
 	applyManifestCmd.AddCommand(generateApplyManifestFsCmd(&m, &concurrency))
 

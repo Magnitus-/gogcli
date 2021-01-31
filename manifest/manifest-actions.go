@@ -1,5 +1,10 @@
 package manifest
 
+import (
+	"errors"
+	"fmt"
+)
+
 type FileAction struct {
 	PreviousName string
 	Name         string
@@ -16,16 +21,16 @@ type GameAction struct {
 
 type GameActions map[int]GameAction
 
-func planManifestGameAddOrRemove(m *ManifestGame, action string) GameAction {
-	if action != "add" && action != "remove" {
-		action = "undefined"
-	}
-
+func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, error) {
 	g := GameAction{
 		Id:               (*m).Id,
 		Action:           action,
 		InstallerActions: make(map[string]FileAction),
 		ExtraActions:     make(map[string]FileAction),
+	}
+
+	if action != "add" && action != "remove" {
+		return g, errors.New(fmt.Sprintf("action %s is undefined", action))
 	}
 
 	for _, i := range (*m).Installers {
@@ -44,7 +49,7 @@ func planManifestGameAddOrRemove(m *ManifestGame, action string) GameAction {
 		}
 	}
 
-	return g
+	return g, nil
 }
 
 func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
@@ -133,7 +138,7 @@ func (curr *Manifest) Plan(next *Manifest) *GameActions {
 
 	for id, game := range futureGames {
 		if val, ok := currentGames[id]; !ok {
-			actions[id] = planManifestGameAddOrRemove(&game, "add")
+			actions[id], _ = planManifestGameAddOrRemove(&game, "add")
 		} else {
 			actions[id] = planManifestGameUpdate(&val, &game)
 		}
@@ -141,7 +146,7 @@ func (curr *Manifest) Plan(next *Manifest) *GameActions {
 
 	for id, game := range currentGames {
 		if _, ok := futureGames[id]; !ok {
-			actions[id] = planManifestGameAddOrRemove(&game, "remove")
+			actions[id], _ = planManifestGameAddOrRemove(&game, "remove")
 		}
 	}
 

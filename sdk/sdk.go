@@ -36,17 +36,26 @@ func NewSdk(cookiePath string, logger *log.Logger) (*Sdk, error) {
 	return &sdk, nil
 }
 
-func (s *Sdk) getClient() http.Client {
+func (s *Sdk) getClient(followRedirects bool) http.Client {
 	cs := []*http.Cookie{
 		&http.Cookie{Name: "sessions_gog_com", Value: (*s).session},
 		&http.Cookie{Name: "gog-al", Value: (*s).al},
 	}
 	j := Jar{cookies: cs}
-	return http.Client{Jar: &j}
+	if followRedirects{
+		return http.Client{Jar: &j}
+	} else {
+		return http.Client{
+			Jar: &j,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		}
+	}
 }
 
 func (s *Sdk) getUrl(url string, fnCall string, debug bool, jsonBody bool) ([]byte, error) {
-	c := (*s).getClient()
+	c := (*s).getClient(true)
 
 	if debug {
 		(*s).logger.Println(fmt.Sprintf("%s -> GET %s", fnCall, url))

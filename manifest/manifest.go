@@ -132,3 +132,27 @@ func (m *Manifest) FillMissingFileInfo(gameId int, fileKind string, fileUrl stri
 
 	return errors.New(fmt.Sprintf("%s -> Provided game id could not be found in the manifest", fn))
 }
+
+func (m *Manifest) GetUrlMappedInstallers() map[string]*ManifestGameInstaller {
+	installers := make(map[string]*ManifestGameInstaller)
+
+	for idx, _ := range (*m).Games {
+		for idx2, _ := range (*m).Games[idx].Installers {
+			installers[(*m).Games[idx].Installers[idx2].Url] = &(*m).Games[idx].Installers[idx2]
+		}
+	}
+	
+	return installers
+}
+
+func (m *Manifest) GetUrlMappedExtras() map[string]*ManifestGameExtra {
+	extras := make(map[string]*ManifestGameExtra)
+
+	for idx, _ := range (*m).Games {
+		for idx2, _ := range (*m).Games[idx].Extras {
+			extras[(*m).Games[idx].Extras[idx2].Url] = &(*m).Games[idx].Extras[idx2]
+		}
+	}
+	
+	return extras
+}

@@ -151,5 +151,37 @@ func (s *Sdk) GetManifest(search string, concurrency int, pause int, debug bool)
 
 	addGameDetailsToManifest(&m, details)
 
+	installersMap := m.GetUrlMappedInstallers()
+	installerUrls := make([]string, len(installersMap))
+	idx := 0
+	for k, _ := range installersMap {
+		installerUrls[idx] = k
+		idx++;
+	}
+
+	downloadFilenames, filenameErrs := s.GetManyDownloadFilename(installerUrls, concurrency, pause, debug)
+	if len(filenameErrs) > 0 {
+		return m, filenameErrs
+	}
+	for _, downloadFilename := range downloadFilenames {
+		(*installersMap[downloadFilename.url]).Name = downloadFilename.filename
+	} 
+
+	extrasMap := m.GetUrlMappedExtras()
+	extraUrls := make([]string, len(extrasMap))
+	idx = 0
+	for k, _ := range extrasMap {
+		extraUrls[idx] = k
+		idx++;
+	}
+
+	downloadFilenames, filenameErrs = s.GetManyDownloadFilename(extraUrls, concurrency, pause, debug)
+	if len(filenameErrs) > 0 {
+		return m, filenameErrs
+	}
+	for _, downloadFilename := range downloadFilenames {
+		(*extrasMap[downloadFilename.url]).Name = downloadFilename.filename
+	} 
+
 	return m, nil
 }

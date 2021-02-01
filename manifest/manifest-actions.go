@@ -7,7 +7,6 @@ import (
 
 type FileAction struct {
 	Title        string
-	PreviousName string
 	Name         string
 	Url          string
 	Action       string
@@ -37,7 +36,7 @@ func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, er
 	}
 
 	for _, i := range (*m).Installers {
-		g.InstallerActions[i.Url] = FileAction{
+		g.InstallerActions[i.Name] = FileAction{
 			Title:  i.Title,
 			Name:   i.Name,
 			Url:    i.Url,
@@ -46,7 +45,7 @@ func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, er
 	}
 
 	for _, e := range (*m).Extras {
-		g.ExtraActions[e.Url] = FileAction{
+		g.ExtraActions[e.Name] = FileAction{
 			Title:  e.Title,
 			Name:   e.Name,
 			Url:    e.Url,
@@ -70,29 +69,29 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 	futureInstallers := make(map[string]ManifestGameInstaller)
 
 	for _, i := range (*curr).Installers {
-		currentInstallers[i.Url] = i
+		currentInstallers[i.Name] = i
 	}
 
 	for _, i := range (*next).Installers {
-		futureInstallers[i.Url] = i
+		futureInstallers[i.Name] = i
 	}
 
-	for url, inst := range futureInstallers {
-		if val, ok := currentInstallers[url]; ok {
+	for name, inst := range futureInstallers {
+		if val, ok := currentInstallers[name]; ok {
 			if !inst.isEquivalentTo(&val) {
 				//Overwrite
-				g.InstallerActions[url] = FileAction{Title: inst.Title, PreviousName: val.Name, Name: inst.Name, Url: inst.Url, Action: "replace"}
+				g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Action: "add"}
 			}
 		} else {
 			//Add missing file
-			g.InstallerActions[url] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Action: "add"}
+			g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Action: "add"}
 		}
 	}
 
-	for url, inst := range currentInstallers {
-		if _, ok := futureInstallers[url]; !ok {
+	for name, inst := range currentInstallers {
+		if _, ok := futureInstallers[name]; !ok {
 			//Remove dangling file
-			g.InstallerActions[url] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Action: "remove"}
+			g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Action: "remove"}
 		}
 	}
 
@@ -100,29 +99,29 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 	futureExtras := make(map[string]ManifestGameExtra)
 
 	for _, e := range (*curr).Extras {
-		currentExtras[e.Url] = e
+		currentExtras[e.Name] = e
 	}
 
 	for _, e := range (*next).Extras {
-		futureExtras[e.Url] = e
+		futureExtras[e.Name] = e
 	}
 
-	for url, extr := range futureExtras {
-		if val, ok := currentExtras[url]; ok {
+	for name, extr := range futureExtras {
+		if val, ok := currentExtras[name]; ok {
 			if !extr.isEquivalentTo(&val) {
 				//Overwrite
-				g.ExtraActions[url] = FileAction{Title: extr.Title, PreviousName: val.Name, Name: extr.Name, Url: extr.Url, Action: "replace"}
+				g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Action: "add"}
 			}
 		} else {
 			//Add missing file
-			g.ExtraActions[url] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Action: "add"}
+			g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Action: "add"}
 		}
 	}
 
-	for url, extr := range currentExtras {
-		if _, ok := futureExtras[url]; !ok {
+	for name, extr := range currentExtras {
+		if _, ok := futureExtras[name]; !ok {
 			//Remove dangling file
-			g.ExtraActions[url] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Action: "remove"}
+			g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Action: "remove"}
 		}
 	}
 

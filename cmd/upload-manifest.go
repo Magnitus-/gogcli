@@ -8,19 +8,27 @@ import (
 )
 
 func uploadManifest(m *manifest.Manifest, s storage.Storage, concurrency int, pause int) {
-	actionsPtr, err := storage.PlanManifest(m, s)
+	var hasActions bool
+	var actions *manifest.GameActions
+	var err error
 
+	hasActions, err = s.HasActions()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	if hasActions {
+		fmt.Println("An unfinished manifest apply is already in progress. Aborting.")
+		os.Exit(1)	
+	}
+
+	actions, err = storage.PlanManifest(m, s)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	if len((*actionsPtr)) == 0 {
-		fmt.Println("No action to be applied. Aborting the process.")
-		os.Exit(1)
-	}
-
-	err = s.StoreActions(actionsPtr)
+	err = s.StoreActions(actions)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)	

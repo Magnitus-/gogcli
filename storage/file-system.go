@@ -5,9 +5,11 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"gogcli/manifest"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"strconv"
@@ -15,16 +17,28 @@ import (
 
 type FileSystem struct {
 	Path string
+	debug bool
+	logger *log.Logger
+}
+
+func GetFileSystem(path string, debug bool) FileSystem {
+	return FileSystem{path, debug, log.New(os.Stdout, "FS STORE: ", log.Lshortfile)}
 }
 
 func (f FileSystem) HasManifest() (bool, error) {
 	_, err := os.Stat(path.Join(f.Path, "manifest.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
+			if f.debug {
+				f.logger.Println("HasManifest() -> Manifest not found")
+			}
 			return false, nil
 		} else {
 			return true, err
 		}
+	}
+	if f.debug {
+		f.logger.Println("HasManifest() -> Manifest found")
 	}
 	return true, nil
 }
@@ -33,10 +47,16 @@ func (f FileSystem) HasActions() (bool, error) {
 	_, err := os.Stat(path.Join(f.Path, "actions.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
+			if f.debug {
+				f.logger.Println("HasActions() -> Actions not found")
+			}
 			return false, nil
 		} else {
 			return true, err
 		}
+	}
+	if f.debug {
+		f.logger.Println("HasActions() -> Actions found")
 	}
 	return true, nil
 }
@@ -56,6 +76,9 @@ func (f FileSystem) StoreManifest(m *manifest.Manifest) error {
 	output = buf.Bytes()
 
 	err = ioutil.WriteFile(path.Join(f.Path, "manifest.json"), output, 0644)
+	if err == nil {
+		f.logger.Println(fmt.Sprintf("StoreManifest(...) -> Stored manifest with %d games", len((*m).Games)))
+	}
 	return err
 }
 
@@ -74,6 +97,9 @@ func (f FileSystem) StoreActions(a *manifest.GameActions) error {
 	output = buf.Bytes()
 
 	err = ioutil.WriteFile(path.Join(f.Path, "actions.json"), output, 0644)
+	if err == nil {
+		f.logger.Println(fmt.Sprintf("StoreActions(...) -> Stored actions on %d games", len(*a)))
+	}
 	return err
 }
 

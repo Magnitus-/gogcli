@@ -36,7 +36,7 @@ func generatePlanManifestFsCmd(m *manifest.Manifest, fn showActions) *cobra.Comm
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			actionsPtr, err := storage.PlanManifest(m, storage.FileSystem{path})
+			actionsPtr, err := storage.PlanManifest(m, storage.GetFileSystem(path, debugMode))
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)

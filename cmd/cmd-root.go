@@ -18,7 +18,7 @@ var rootCmd = &cobra.Command{
 	Short: "A Client to Interact with the GOG.com API",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
-		logger := log.New(os.Stdout, "gogcli sdk: ", log.Lshortfile)
+		logger := log.New(os.Stdout, "SDK: ", log.Lshortfile)
 		sdkPtr, err = sdk.NewSdk(cookieFile, logger)
 		if err != nil {
 			fmt.Println(err)

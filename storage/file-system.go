@@ -104,19 +104,19 @@ func (f FileSystem) StoreActions(a *manifest.GameActions) error {
 }
 
 func (f FileSystem) LoadManifest() (*manifest.Manifest, error) {
-	var m *manifest.Manifest
+	var m manifest.Manifest
 
 	bs, err := ioutil.ReadFile(path.Join(f.Path, "manifest.json"))
 	if err != nil {
-		return m, err
+		return &m, err
 	}
 
-	err = json.Unmarshal(bs, m)
+	err = json.Unmarshal(bs, &m)
 	if err != nil {
-		return m, err
+		return &m, err
 	}
 
-	return m, nil
+	return &m, nil
 }
 
 func (f FileSystem) LoadActions() (*manifest.GameActions, error) {

@@ -9,6 +9,7 @@ import (
 
 func uploadManifest(m *manifest.Manifest, s storage.Storage, concurrency int, pause int) {
 	actionsPtr, err := storage.PlanManifest(m, s)
+
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"errors"
+	"fmt"
 	"gogcli/manifest"
 	"io"
 )
@@ -19,19 +21,23 @@ type Storage interface {
 }
 
 func PlanManifest(m *manifest.Manifest, s Storage) (*manifest.GameActions, error) {
-	storedManifestPtr := manifest.NewEmptyManifest()
+	var storedManifest *manifest.Manifest
 	hasManifest, err := s.HasManifest()
 
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("PlanManifest(...) -> Error checking manifest existance: %s", err.Error())
+		return nil, errors.New(msg)
 	}
 
 	if hasManifest {
-		err = s.StoreManifest(storedManifestPtr)
+		storedManifest, err = s.LoadManifest()
 		if err != nil {
-			return nil, err
+			msg := fmt.Sprintf("PlanManifest(...) -> Error loading manifest: %s", err.Error())
+			return nil, errors.New(msg)
 		}
+	} else {
+	    storedManifest = manifest.NewEmptyManifest()
 	}
 
-	return storedManifestPtr.Plan(m), nil
+	return storedManifest.Plan(m), nil
 }

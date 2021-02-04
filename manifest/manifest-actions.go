@@ -20,7 +20,69 @@ type GameAction struct {
 	ExtraActions     map[string]FileAction
 }
 
+func (g *GameAction) HasFileActions() {
+	return len((*g).InstallerActions) > 0 || len((*g).ExtraActions) > 0
+}
+
+func (g *GameAction) ExtractFileAction() (FileAction, string, error) {
+	var fetchedAction FileAction
+	if len((*g).InstallerActions) > 0 {
+		for k, _ := range (*g).InstallerActions {
+			fetchedAction = range (*g).InstallerActions[k]
+			delete((*g).InstallerActions, k)
+			return fetchedAction, "installer", nil
+		}
+	} else if len((*g).ExtraActions) > 0 {
+		for k, _ := range (*g).ExtraActions {
+			fetchedAction = range (*g).ExtraActions[k]
+			delete((*g).ExtraActions, k)
+			return fetchedAction, "extra", nil
+		}
+	}
+
+	return fetchedAction, "", errors.New("ExtractFileAction() -> No action left to extract")
+}
+
+func (g *GameAction) CountFileActions() int {
+	return len((*g).InstallerActions) + len((*g).ExtraActions)
+}
+
 type GameActions map[int]GameAction
+
+func (g *GameActions) DeepCopy() (*GameActions) {
+	new = GameActions(make(map[int]GameAction))
+
+	for id, _ := range (*g) {
+		newGame := GameAction{
+			Title: (*g)[id].Title,
+			Id: (*g)[id].Id,
+			Action: (*g)[id].Action,
+			InstallerActions: make(map[string]FileAction),
+			ExtraActions: make(map[string]FileAction),
+		}
+
+		for name, inst := range (*g)[id].InstallerActions {
+			newGame.InstallerActions[name] = inst
+		}
+
+		for name, extr := range (*g)[id].ExtraActions {
+			newGame.ExtraActions[name] = extr
+		}
+
+		new[id] = newGame
+	}
+
+	return &new
+}
+
+func (g *GameActions) CountFileActions() int {
+	total := 0
+	for id, _ := range (*g) {
+		total += (*g)[id].CountFileActions()
+	}
+	
+	return total
+}
 
 func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, error) {
 	g := GameAction{

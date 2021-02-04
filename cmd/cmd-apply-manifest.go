@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"gogcli/manifest"
 	"gogcli/storage"
+	"io"
 	"io/ioutil"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int, pause *int) *cobra.Command {
+func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int, fn GetDownloadHandle) *cobra.Command {
 	var path string
 
 	applyManifestFsCmd := &cobra.Command{
@@ -33,7 +34,7 @@ func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int, pause *i
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			uploadManifest(m, storage.GetFileSystem(path, debugMode), (*concurrency), (*pause))
+			uploadManifest(m, storage.GetFileSystem(path, debugMode), (*concurrency), fn)
 		},
 	}
 
@@ -46,7 +47,10 @@ func generateApplyManifestCmd() *cobra.Command {
 	var m manifest.Manifest
 	var manifestPath string
 	var concurrency int
-	var pause int
+
+	download := func(gameId int, add manifest.FileAction) (io.ReadCloser, int, string, error) {
+		return sdkPtr.GetDownloadHandle(add.Url, debugMode)
+	}
 
 	applyManifestCmd := &cobra.Command{
 		Use:   "apply-manifest",
@@ -69,9 +73,8 @@ func generateApplyManifestCmd() *cobra.Command {
 	applyManifestCmd.PersistentFlags().StringVarP(&manifestPath, "manifest", "m", "manifest.json", "Path were the manifest you want to apply is")
 	applyManifestCmd.MarkPersistentFlagFilename("manifest")
 	applyManifestCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
-	applyManifestCmd.PersistentFlags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")
 
-	applyManifestCmd.AddCommand(generateApplyManifestFsCmd(&m, &concurrency, &pause))
+	applyManifestCmd.AddCommand(generateApplyManifestFsCmd(&m, &concurrency, download))
 
 	return applyManifestCmd
 }

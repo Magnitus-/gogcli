@@ -110,19 +110,18 @@ func (m *Manifest) ComputeEstimatedSize() (int, error) {
 	return accumulate, nil
 }
 
-func (m *Manifest) FillMissingFileInfo(gameId int, fileKind string, fileUrl string, fileName string, fileSize int, fileChecksum string) error {
+func (m *Manifest) FillMissingFileInfo(gameId int, fileKind string, fileName string, fileSize int, fileChecksum string) error {
 	fn := fmt.Sprintf(
-		"Manifest.FillMissingFileInfo(gameId=%d, fileKind=%s, fileUrl=%s, fileName=%s, fileSize=%d, fileChecksum=%s)",
+		"Manifest.FillMissingFileInfo(gameId=%d, fileKind=%s, fileName=%s, fileSize=%d, fileChecksum=%s)",
 		gameId,
 		fileKind,
-		fileUrl,
 		fileName,
 		fileSize,
 		fileChecksum,
 	)
 	for idx, _ := range (*m).Games {
 		if (*m).Games[idx].Id == gameId {
-			err := (*m).Games[idx].fillMissingFileInfo(fileKind, fileUrl, fileName, fileSize, fileChecksum)
+			err := (*m).Games[idx].fillMissingFileInfo(fileKind, fileName, fileSize, fileChecksum)
 			if err != nil {
 				return errors.New(fmt.Sprintf("%s -> Error filling game's missing info: %s", err.Error()))
 			}

@@ -95,29 +95,27 @@ func (g *ManifestGame) computeEstimatedSize() (int, error) {
 	return accumulate, nil
 }
 
-func (g *ManifestGame) fillMissingFileInfo(fileKind string, fileUrl string, fileName string, fileSize int, fileChecksum string) error {
+func (g *ManifestGame) fillMissingFileInfo(fileKind string, fileName string, fileSize int, fileChecksum string) error {
 	if fileKind == "installer" {
 		for idx, _ := range (*g).Installers {
-			if (*g).Installers[idx].Url == fileUrl {
-				(*g).Installers[idx].Name = fileName
+			if (*g).Installers[idx].Name == fileName {
 				(*g).Installers[idx].VerifiedSize = fileSize
 				(*g).Installers[idx].Checksum = fileChecksum
 				return nil
 			}
 		}
 
-		return errors.New(fmt.Sprintf("File with url %s was not found in the installers of game with id %d", fileUrl, (*g).Id))
+		return errors.New(fmt.Sprintf("File with name %s was not found in the installers of game with id %d", fileName, (*g).Id))
 	} else if fileKind == "extra" {
 		for idx, _ := range (*g).Extras {
-			if (*g).Extras[idx].Url == fileUrl {
-				(*g).Extras[idx].Name = fileName
+			if (*g).Extras[idx].Name == fileName {
 				(*g).Extras[idx].VerifiedSize = fileSize
 				(*g).Extras[idx].Checksum = fileChecksum
 				return nil
 			}
 		}
 
-		return errors.New(fmt.Sprintf("File with url %s was not found in the extras of game with id %d", fileUrl, (*g).Id))
+		return errors.New(fmt.Sprintf("File with name %s was not found in the extras of game with id %d", fileName, (*g).Id))
 	}
 
 	return errors.New(fmt.Sprintf("%s is not a valid kind of file", fileKind))

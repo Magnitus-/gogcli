@@ -34,7 +34,14 @@ func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int, fn GetDo
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			uploadManifest(m, storage.GetFileSystem(path, debugMode), (*concurrency), fn)
+			fs := storage.GetFileSystem(path, debugMode)
+			errs := uploadManifest(m, fs, *concurrency, fn)
+			if len(errs) > 0 {
+				for _, err := range errs {
+					fmt.Println(err)
+				}
+				os.Exit(1)
+			}
 		},
 	}
 

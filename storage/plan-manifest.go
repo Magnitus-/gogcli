@@ -4,22 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"gogcli/manifest"
-	"io"
 )
-
-type Storage interface {
-	HasManifest() (bool, error)
-	HasActions() (bool, error)
-	StoreManifest(m *manifest.Manifest) error
-	StoreActions(a *manifest.GameActions) error
-	LoadManifest() (*manifest.Manifest, error)
-	LoadActions() (*manifest.GameActions, error)
-	RemoveActions() error
-	AddGame(gameId int) error
-	RemoveGame(gameId int) error
-	UploadFile(source io.ReadCloser, gameId int, kind string, name string) ([]byte, error)
-	RemoveFile(gameId int, kind string, name string) error
-}
 
 func PlanManifest(m *manifest.Manifest, s Storage) (*manifest.GameActions, error) {
 	var storedManifest *manifest.Manifest

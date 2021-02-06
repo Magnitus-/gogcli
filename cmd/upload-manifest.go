@@ -51,7 +51,7 @@ func addFileAction(
 			r.err = uploadErr
 			actionErr <- uploadErr
 		} else {
-			r.fileChecksum = string(fChecksum)
+			r.fileChecksum = fChecksum
 			result <- r
 			actionErr <- nil
 		}

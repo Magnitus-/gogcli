@@ -2,8 +2,9 @@ package storage
 
 import (
 	"bytes"
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/json"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"gogcli/manifest"
@@ -216,21 +217,21 @@ func (f FileSystem) RemoveGame(gameId int) error {
 	return err
 }
 
-func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, name string) ([]byte, error) {
+func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, name string) (string, error) {
 	var fPath string
 	if kind == "installer" {
 		fPath = path.Join(f.Path, strconv.Itoa(gameId), "installers", name)
 	} else if kind == "extra" {
 		fPath = path.Join(f.Path, strconv.Itoa(gameId), "extras", name)
 	} else {
-		return nil, errors.New("Unknown kind of file")
+		return "", errors.New("Unknown kind of file")
 	}
 
-	h := md5.New()
+	h := sha256.New()
 
 	dest, err := os.Create(fPath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer dest.Close()
 
@@ -240,7 +241,7 @@ func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, na
 	if f.debug {
 		f.logger.Println(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", gameId, kind, name))
 	}
-	return h.Sum(nil), nil
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func (f FileSystem) RemoveFile(gameId int, kind string, name string) error {

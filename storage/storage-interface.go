@@ -15,6 +15,6 @@ type Storage interface {
 	RemoveActions() error
 	AddGame(gameId int) error
 	RemoveGame(gameId int) error
-	UploadFile(source io.ReadCloser, gameId int, kind string, name string) ([]byte, error)
+	UploadFile(source io.ReadCloser, gameId int, kind string, name string) (string, error)
 	RemoveFile(gameId int, kind string, name string) error
 }

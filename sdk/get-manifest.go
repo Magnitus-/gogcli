@@ -129,10 +129,10 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 	}
 }
 
-func (s *Sdk) GetManifest(search string, concurrency int, pause int, debug bool) (manifest.Manifest, []error) {
+func (s *Sdk) GetManifest(search string, concurrency int, pause int) (manifest.Manifest, []error) {
 	var m manifest.Manifest
 
-	pages, errs := s.GetAllOwnedGamesPages(search, concurrency, pause, debug)
+	pages, errs := s.GetAllOwnedGamesPages(search, concurrency, pause)
 	if len(errs) > 0 {
 		return m, errs
 	}
@@ -144,7 +144,7 @@ func (s *Sdk) GetManifest(search string, concurrency int, pause int, debug bool)
 		gameIds[i] = m.Games[i].Id
 	}
 
-	details, detailsErrs := s.GetManyGameDetails(gameIds, concurrency, pause, debug)
+	details, detailsErrs := s.GetManyGameDetails(gameIds, concurrency, pause)
 	if len(detailsErrs) > 0 {
 		return m, detailsErrs
 	}
@@ -159,7 +159,7 @@ func (s *Sdk) GetManifest(search string, concurrency int, pause int, debug bool)
 		idx++;
 	}
 
-	downloadFilenames, filenameErrs := s.GetManyDownloadFilename(installerUrls, concurrency, pause, debug)
+	downloadFilenames, filenameErrs := s.GetManyDownloadFilename(installerUrls, concurrency, pause)
 	if len(filenameErrs) > 0 {
 		return m, filenameErrs
 	}
@@ -175,7 +175,7 @@ func (s *Sdk) GetManifest(search string, concurrency int, pause int, debug bool)
 		idx++;
 	}
 
-	downloadFilenames, filenameErrs = s.GetManyDownloadFilename(extraUrls, concurrency, pause, debug)
+	downloadFilenames, filenameErrs = s.GetManyDownloadFilename(extraUrls, concurrency, pause)
 	if len(filenameErrs) > 0 {
 		return m, filenameErrs
 	}

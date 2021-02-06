@@ -14,11 +14,12 @@ import (
 type Sdk struct {
 	session string
 	al      string
+	debug bool
 	logger  *log.Logger
 }
 
-func NewSdk(cookiePath string, logger *log.Logger) (*Sdk, error) {
-	sdk := Sdk{session: "", al: "", logger: logger}
+func NewSdk(cookiePath string, debug bool, logger *log.Logger) (*Sdk, error) {
+	sdk := Sdk{session: "", al: "", debug: debug, logger: logger}
 	bs, err := ioutil.ReadFile(cookiePath)
 	if err != nil {
 		msg := fmt.Sprintf(" Error retrieving session: %s", err.Error())
@@ -54,10 +55,10 @@ func (s *Sdk) getClient(followRedirects bool) http.Client {
 	}
 }
 
-func (s *Sdk) getUrl(url string, fnCall string, debug bool, jsonBody bool) ([]byte, error) {
+func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, error) {
 	c := (*s).getClient(true)
 
-	if debug {
+	if (*s).debug {
 		(*s).logger.Println(fmt.Sprintf("%s -> GET %s", fnCall, url))
 	}
 	r, err := c.Get(url)
@@ -71,7 +72,7 @@ func (s *Sdk) getUrl(url string, fnCall string, debug bool, jsonBody bool) ([]by
 		msg := fmt.Sprintf("%s -> retrieval body error: %s", fnCall, bErr.Error())
 		return nil, errors.New(msg)
 	}
-	if debug {
+	if (*s).debug {
 		if jsonBody {
 			var out bytes.Buffer
 			jErr := json.Indent(&out, b, "", "  ")

@@ -126,7 +126,7 @@ func (g GameDetails) Print() {
 	}
 }
 
-func (s *Sdk) GetGameDetails(gameId int, debug bool) (GameDetails, error) {
+func (s *Sdk) GetGameDetails(gameId int) (GameDetails, error) {
 	var g GameDetails
 
 	fn := fmt.Sprintf("GetGameDetails(gameId=%d)", gameId)
@@ -135,7 +135,6 @@ func (s *Sdk) GetGameDetails(gameId int, debug bool) (GameDetails, error) {
 	b, err := s.getUrl(
 		u,
 		fn,
-		debug,
 		true,
 	)
 	if err != nil {

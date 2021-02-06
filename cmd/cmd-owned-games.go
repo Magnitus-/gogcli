@@ -15,7 +15,7 @@ func generateOwnedGamesCmd() *cobra.Command {
 		Use:   "owned-games",
 		Short: "Command to retrieve a list of games you own",
 		Run: func(cmd *cobra.Command, args []string) {
-			o, err := sdkPtr.GetOwnedGames(page, search, debugMode)
+			o, err := sdkPtr.GetOwnedGames(page, search)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)

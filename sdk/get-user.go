@@ -83,13 +83,12 @@ func (u User) Print() {
 	}
 }
 
-func (s *Sdk) GetUser(debug bool) (User, error) {
+func (s *Sdk) GetUser() (User, error) {
 	var u User
 
 	b, err := s.getUrl(
 		"https://embed.gog.com/userData.json",
 		"GetUser()",
-		debug,
 		true,
 	)
 	if err != nil {

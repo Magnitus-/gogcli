@@ -36,7 +36,7 @@ func generateManifestGenerationCmd() *cobra.Command {
 			var buf bytes.Buffer
 			var output []byte
 			var e Errors
-			m, errs := sdkPtr.GetManifest(gameTitleFilter, concurrency, pause, debugMode)
+			m, errs := sdkPtr.GetManifest(gameTitleFilter, concurrency, pause)
 
 			if len(errs) > 0 {
 				for _, err := range errs {

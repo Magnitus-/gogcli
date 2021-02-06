@@ -9,12 +9,12 @@ type OwnedGamesPageReturn struct {
 	err  error
 }
 
-func (s *Sdk) GetOwnedGamesPageAsync(page int, search string, debug bool, returnVal chan OwnedGamesPageReturn) {
-	o, err := s.GetOwnedGames(page, search, debug)
+func (s *Sdk) GetOwnedGamesPageAsync(page int, search string, returnVal chan OwnedGamesPageReturn) {
+	o, err := s.GetOwnedGames(page, search)
 	returnVal <- OwnedGamesPageReturn{page: o, err: err}
 }
 
-func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int, debug bool) ([]OwnedGamesPage, []error) {
+func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int) ([]OwnedGamesPage, []error) {
 	var pageCount int
 	var currentPage int
 	var pages []OwnedGamesPage
@@ -22,7 +22,7 @@ func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int, d
 	var callVal OwnedGamesPageReturn
 	c := make(chan OwnedGamesPageReturn)
 
-	go s.GetOwnedGamesPageAsync(1, search, debug, c)
+	go s.GetOwnedGamesPageAsync(1, search, c)
 	callVal = <-c
 	if callVal.err != nil {
 		errs = append(errs, callVal.err)
@@ -41,7 +41,7 @@ func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int, d
 		maxPage := min(currentPage+concurrency, pageCount)
 
 		for i := currentPage + 1; i <= maxPage; i++ {
-			go s.GetOwnedGamesPageAsync(i, search, debug, c)
+			go s.GetOwnedGamesPageAsync(i, search, c)
 		}
 
 		for i := currentPage + 1; i <= maxPage; i++ {

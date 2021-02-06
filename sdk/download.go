@@ -9,12 +9,12 @@ import (
 	"net/url"
 )
 
-func (s *Sdk) GetDownloadFilename(downloadPath string, debug bool) (string, error) {
+func (s *Sdk) GetDownloadFilename(downloadPath string) (string, error) {
 	fn := fmt.Sprintf("GetDownloadFilename(downloadPath=%s)", downloadPath)
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
 	c := (*s).getClient(false)
-	if debug {
+	if (*s).debug {
 		(*s).logger.Println(fmt.Sprintf("%s -> GET %s", fn, u))
 	}
 
@@ -36,7 +36,7 @@ func (s *Sdk) GetDownloadFilename(downloadPath string, debug bool) (string, erro
 		return "", errors.New(msg)
 	} else {
 		location = locHeader[0]
-		if debug {
+		if (*s).debug {
 			(*s).logger.Println(fmt.Sprintf("%s -> Location Header: %s", fn, location))
 		}
 	}
@@ -57,7 +57,7 @@ func (s *Sdk) GetDownloadFilename(downloadPath string, debug bool) (string, erro
 	return path.Base(pathParam[0]), nil
 }
 
-func (s *Sdk) GetDownloadHandle(downloadPath string, debug bool) (io.ReadCloser, int, string, error) {
+func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int, string, error) {
 	fn := fmt.Sprintf("GetDownloadHandle(downloadPath=%s)", downloadPath)
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
@@ -66,7 +66,7 @@ func (s *Sdk) GetDownloadHandle(downloadPath string, debug bool) (io.ReadCloser,
 	filename := ""
 
 	c := (*s).getClient(true)
-	if debug {
+	if (*s).debug {
 		(*s).logger.Println(fmt.Sprintf("%s -> GET %s", fn, u))
 	}
 
@@ -91,7 +91,7 @@ func (s *Sdk) GetDownloadHandle(downloadPath string, debug bool) (io.ReadCloser,
 	}
 
 	finalURL := r.Request.URL.String()
-	if debug {
+	if (*s).debug {
 		(*s).logger.Println(fmt.Sprintf("    Final Url: %s", finalURL))
 	}
 

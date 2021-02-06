@@ -19,7 +19,7 @@ var rootCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
 		logger := log.New(os.Stdout, "SDK: ", log.Lshortfile)
-		sdkPtr, err = sdk.NewSdk(cookieFile, logger)
+		sdkPtr, err = sdk.NewSdk(cookieFile, debugMode, logger)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)

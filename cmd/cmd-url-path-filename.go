@@ -14,7 +14,7 @@ func generateUrlPathFilenameCmd() *cobra.Command {
 		Use:   "url-path-filename",
 		Short: "Download a single file with the given path from GOG. Valid paths can be obtained from the manifest.",
 		Run: func(cmd *cobra.Command, args []string) {
-			filename, err := sdkPtr.GetDownloadFilename(path, debugMode)
+			filename, err := sdkPtr.GetDownloadFilename(path)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)

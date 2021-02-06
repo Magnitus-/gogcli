@@ -115,7 +115,7 @@ func (o OwnedGamesPage) Print() {
 	}
 }
 
-func (s *Sdk) GetOwnedGames(page int, search string, debug bool) (OwnedGamesPage, error) {
+func (s *Sdk) GetOwnedGames(page int, search string) (OwnedGamesPage, error) {
 	var o OwnedGamesPage
 
 	fn := fmt.Sprintf("GetOwnedGames(page=%d, search=%s)", page, search)
@@ -127,7 +127,6 @@ func (s *Sdk) GetOwnedGames(page int, search string, debug bool) (OwnedGamesPage
 	b, err := s.getUrl(
 		u,
 		fn,
-		debug,
 		true,
 	)
 	if err != nil {

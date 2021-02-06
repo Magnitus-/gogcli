@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"gogcli/manifest"
+	"gogcli/sdk"
 	"gogcli/storage"
-	"io"
 	"io/ioutil"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int, fn GetDownloadHandle) *cobra.Command {
+func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int) *cobra.Command {
 	var path string
 
 	applyManifestFsCmd := &cobra.Command{
@@ -35,7 +35,7 @@ func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int, fn GetDo
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			fs := storage.GetFileSystem(path, debugMode)
-			errs := uploadManifest(m, fs, *concurrency, fn)
+			errs := uploadManifest(m, fs, *concurrency, sdk.Downloader{sdkPtr})
 			if len(errs) > 0 {
 				for _, err := range errs {
 					fmt.Println(err)
@@ -55,14 +55,11 @@ func generateApplyManifestCmd() *cobra.Command {
 	var manifestPath string
 	var concurrency int
 
-	download := func(gameId int, add manifest.FileAction) (io.ReadCloser, int, string, error) {
-		return sdkPtr.GetDownloadHandle(add.Url, debugMode)
-	}
-
 	applyManifestCmd := &cobra.Command{
 		Use:   "apply-manifest",
 		Short: "Change the files in a given storage to match the content of a manifest, uploading and deleting files as necessary",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			callPersistentPreRun(cmd, args) 
 			bs, err := ioutil.ReadFile(manifestPath)
 			if err != nil {
 				fmt.Println("Could not load the manifest: ", err)
@@ -81,7 +78,7 @@ func generateApplyManifestCmd() *cobra.Command {
 	applyManifestCmd.MarkPersistentFlagFilename("manifest")
 	applyManifestCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
 
-	applyManifestCmd.AddCommand(generateApplyManifestFsCmd(&m, &concurrency, download))
+	applyManifestCmd.AddCommand(generateApplyManifestFsCmd(&m, &concurrency))
 
 	return applyManifestCmd
 }

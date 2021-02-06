@@ -20,7 +20,9 @@ type ActionResult struct {
 	end bool
 }
 
-type GetDownloadHandle func(int, manifest.FileAction) (io.ReadCloser, int, string, error)
+type Downloader interface {
+	Download(int, manifest.FileAction) (io.ReadCloser, int, string, error)
+}
 
 func addFileAction(
 	gameId int, 
@@ -29,7 +31,7 @@ func addFileAction(
 	result chan ActionResult, 
 	actionErr chan error,
 	s storage.Storage,
-	fn GetDownloadHandle,
+	d Downloader,
 ) {
 	r := ActionResult{
 		gameId: gameId,
@@ -38,7 +40,7 @@ func addFileAction(
 		fileName: action.Name,
 		end: false,
 	}
-	handle, fSize, _, err := fn(gameId, action)
+	handle, fSize, _, err := d.Download(gameId, action)
 	if err != nil {
 		r.err = err
 		actionErr <- err
@@ -56,7 +58,7 @@ func addFileAction(
 	}
 }
 
-func launchActions(a *manifest.GameActions, s storage.Storage, concurrency int, fn GetDownloadHandle, result chan ActionResult, actionErrsChan chan []error) {
+func launchActions(a *manifest.GameActions, s storage.Storage, concurrency int, d Downloader, result chan ActionResult, actionErrsChan chan []error) {
 	errs := make([]error, 0)
 	var actionErr chan error
 	jobsRunning  := 0
@@ -106,7 +108,7 @@ func launchActions(a *manifest.GameActions, s storage.Storage, concurrency int, 
 						result,
 						actionErr,
 						s,
-						fn,
+						d,
 					)
 					concurrency--
 					jobsRunning++
@@ -159,12 +161,12 @@ func keepManifestUpdated(m *manifest.Manifest, s storage.Storage, result chan Ac
 	manifestErrsChan <- errs
 }
 
-func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s storage.Storage, concurrency int, fn GetDownloadHandle) []error {
+func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s storage.Storage, concurrency int, d Downloader) []error {
 	//Missing: keep game actions updated in storage
 	actionErrsChan := make(chan []error)
 	manifestErrsChan := make(chan []error)
 	result := make(chan ActionResult)
-	go launchActions(a.DeepCopy(), s, concurrency, fn, result, actionErrsChan)
+	go launchActions(a.DeepCopy(), s, concurrency, d, result, actionErrsChan)
 	go keepManifestUpdated(m, s, result, manifestErrsChan)
 	
 	actionErrs := <- actionErrsChan
@@ -181,7 +183,7 @@ func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s storage
 	return errs
 }
 
-func uploadManifest(m *manifest.Manifest, s storage.Storage, concurrency int, fn GetDownloadHandle) []error {
+func uploadManifest(m *manifest.Manifest, s storage.Storage, concurrency int, d Downloader) []error {
 	var hasActions bool
 	var actions *manifest.GameActions
 	var err error
@@ -214,7 +216,7 @@ func uploadManifest(m *manifest.Manifest, s storage.Storage, concurrency int, fn
 		os.Exit(1)	
 	}
 
-	errs := processGameActions(m, actions, s, concurrency, fn)
+	errs := processGameActions(m, actions, s, concurrency, d)
 	if len(errs) == 0 {
 		err := s.RemoveActions()
 		if err != nil {

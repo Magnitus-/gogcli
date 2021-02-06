@@ -76,7 +76,7 @@ func (f FileSystem) StoreManifest(m *manifest.Manifest) error {
 	output = buf.Bytes()
 
 	err = ioutil.WriteFile(path.Join(f.Path, "manifest.json"), output, 0644)
-	if err == nil {
+	if err == nil && f.debug {
 		f.logger.Println(fmt.Sprintf("StoreManifest(...) -> Stored manifest with %d games", len((*m).Games)))
 	}
 	return err
@@ -97,7 +97,7 @@ func (f FileSystem) StoreActions(a *manifest.GameActions) error {
 	output = buf.Bytes()
 
 	err = ioutil.WriteFile(path.Join(f.Path, "actions.json"), output, 0644)
-	if err == nil {
+	if err == nil && f.debug {
 		f.logger.Println(fmt.Sprintf("StoreActions(...) -> Stored actions on %d games", len(*a)))
 	}
 	return err
@@ -116,6 +116,9 @@ func (f FileSystem) LoadManifest() (*manifest.Manifest, error) {
 		return &m, err
 	}
 
+	if f.debug {
+		f.logger.Println(fmt.Sprintf("LoadManifest() -> Loaded manifest with %d games", len(m.Games)))
+	}
 	return &m, nil
 }
 
@@ -132,7 +135,25 @@ func (f FileSystem) LoadActions() (*manifest.GameActions, error) {
 		return a, err
 	}
 
+	if f.debug {
+		f.logger.Println(fmt.Sprintf("LoadActions() -> Loaded actions on %d games", len(*a)))
+	}
 	return a, nil
+}
+
+func (f FileSystem) RemoveActions() error {
+	has, err := f.HasActions()
+	if err != nil {
+		return err
+	}
+
+	if has {
+	    err = os.Remove(path.Join(f.Path, "actions.json"))
+	}
+	if err == nil && f.debug {
+		f.logger.Println("RemoveActions(...) -> Removed actions file")
+	}
+	return err
 }
 
 func (f FileSystem) AddGame(gameId int) error {
@@ -145,25 +166,33 @@ func (f FileSystem) AddGame(gameId int) error {
 		if os.IsNotExist(err) {
 			err = os.MkdirAll(instDir, 0755)
 			if err != nil {
-				return err
+				msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while creating installers directory exists: %s", gameId, err.Error())
+				return errors.New(msg)
 			}
 		} else {
-			return err
+			msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while checking if installers directory exists: %s", gameId, err.Error())
+			return errors.New(msg)
 		}
 	}
 
 	_, err = os.Stat(extrDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = os.Mkdir(instDir, 0755)
+			err = os.Mkdir(extrDir, 0755)
 			if err != nil {
-				return err
+				msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while creating extras directory exists: %s", gameId, err.Error())
+				return errors.New(msg)
 			}
 		} else {
-			return err
+			msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while checking if extras directory exists: %s", gameId, err.Error())
+			return errors.New(msg)
 		}
 	}
 
+	
+	if f.debug {
+		f.logger.Println(fmt.Sprintf("AddGame(gameId=%d) -> Created game directory", gameId))
+	}
 	return nil
 }
 
@@ -180,11 +209,11 @@ func (f FileSystem) RemoveGame(gameId int) error {
 	}
 
 	err = os.RemoveAll(gameDir)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	if err != nil && f.debug {
+		f.logger.Println(fmt.Sprintf("RemoveGame(gameId=%d) -> Removed game directory", gameId))
+	}
+	return err
 }
 
 func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, name string) ([]byte, error) {
@@ -208,6 +237,9 @@ func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, na
 	w := io.MultiWriter(dest, h)
 	io.Copy(w, source)
 
+	if f.debug {
+		f.logger.Println(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", gameId, kind, name))
+	}
 	return h.Sum(nil), nil
 }
 
@@ -222,5 +254,9 @@ func (f FileSystem) RemoveFile(gameId int, kind string, name string) error {
 	}
 
 	err := os.Remove(fPath)
+
+	if err != nil && f.debug {
+		f.logger.Println(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", gameId, kind, name))
+	}
 	return err
 }

@@ -214,6 +214,12 @@ func uploadManifest(m *manifest.Manifest, s storage.Storage, concurrency int, fn
 		os.Exit(1)	
 	}
 
-	return processGameActions(m, actions, s, concurrency, fn)
-	//TODO: Clear manifest
+	errs := processGameActions(m, actions, s, concurrency, fn)
+	if len(errs) == 0 {
+		err := s.RemoveActions()
+		if err != nil {
+			return []error{err}
+		}
+	}
+	return errs
 }

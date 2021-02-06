@@ -14,6 +14,7 @@ type Storage interface {
 	StoreActions(a *manifest.GameActions) error
 	LoadManifest() (*manifest.Manifest, error)
 	LoadActions() (*manifest.GameActions, error)
+	RemoveActions() error
 	AddGame(gameId int) error
 	RemoveGame(gameId int) error
 	UploadFile(source io.ReadCloser, gameId int, kind string, name string) ([]byte, error)

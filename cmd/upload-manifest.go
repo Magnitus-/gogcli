@@ -95,6 +95,8 @@ func launchActions(a *manifest.GameActions, s storage.Storage, concurrency int, 
 				id := gameIds[0]
 				if len(gameIds) > 1 {
 					gameIds = gameIds[1:]
+				} else {
+					gameIds = make([]int, 0)
 				}
 				delete((*a), id)
 			} else if len(errs) == 0 {

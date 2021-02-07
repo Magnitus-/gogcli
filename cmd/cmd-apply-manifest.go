@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int) *cobra.Command {
+func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int, manifestPath *string) *cobra.Command {
 	var path string
 
 	applyManifestFsCmd := &cobra.Command{
@@ -41,6 +41,13 @@ func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int) *cobra.C
 					fmt.Println(err)
 				}
 				os.Exit(1)
+			} else {
+				updatedManifest, _ := json.Marshal(*m)
+				err := ioutil.WriteFile((*manifestPath), updatedManifest, 0644)
+				if err != nil {
+					fmt.Println(err)
+					os.Exit(1)
+				}				
 			}
 		},
 	}
@@ -78,7 +85,7 @@ func generateApplyManifestCmd() *cobra.Command {
 	applyManifestCmd.MarkPersistentFlagFilename("manifest")
 	applyManifestCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
 
-	applyManifestCmd.AddCommand(generateApplyManifestFsCmd(&m, &concurrency))
+	applyManifestCmd.AddCommand(generateApplyManifestFsCmd(&m, &concurrency, &manifestPath))
 
 	return applyManifestCmd
 }

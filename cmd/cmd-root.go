@@ -40,6 +40,7 @@ func init() {
 	rootCmd.AddCommand(generateUrlPathFilenameCmd())
 	rootCmd.AddCommand(generatePlanManifestCmd())
 	rootCmd.AddCommand(generateApplyManifestCmd())
+	rootCmd.AddCommand(generateCopyStorageCmd())
 }
 
 func Execute() error {

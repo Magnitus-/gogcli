@@ -34,7 +34,7 @@ func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int, manifest
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := storage.GetFileSystem(path, debugMode)
+			fs := storage.GetFileSystem(path, debugMode, "")
 			errs := uploadManifest(m, fs, *concurrency, sdk.Downloader{sdkPtr})
 			if len(errs) > 0 {
 				for _, err := range errs {

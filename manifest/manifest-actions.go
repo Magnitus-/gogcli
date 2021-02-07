@@ -9,6 +9,7 @@ type FileAction struct {
 	Title        string
 	Name         string
 	Url          string
+	Kind         string
 	Action       string
 }
 
@@ -89,6 +90,7 @@ func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, er
 			Title:  i.Title,
 			Name:   i.Name,
 			Url:    i.Url,
+			Kind:   "installer",
 			Action: action,
 		}
 	}
@@ -98,6 +100,7 @@ func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, er
 			Title:  e.Title,
 			Name:   e.Name,
 			Url:    e.Url,
+			Kind:   "extra",
 			Action: action,
 		}
 	}
@@ -129,18 +132,18 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 		if val, ok := currentInstallers[name]; ok {
 			if !inst.isEquivalentTo(&val) {
 				//Overwrite
-				g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Action: "add"}
+				g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Kind: "installer", Action: "add"}
 			}
 		} else {
 			//Add missing file
-			g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Action: "add"}
+			g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Kind: "installer", Action: "add"}
 		}
 	}
 
 	for name, inst := range currentInstallers {
 		if _, ok := futureInstallers[name]; !ok {
 			//Remove dangling file
-			g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Action: "remove"}
+			g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Kind: "installer", Action: "remove"}
 		}
 	}
 
@@ -159,18 +162,18 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 		if val, ok := currentExtras[name]; ok {
 			if !extr.isEquivalentTo(&val) {
 				//Overwrite
-				g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Action: "add"}
+				g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Kind: "extra", Action: "add"}
 			}
 		} else {
 			//Add missing file
-			g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Action: "add"}
+			g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Kind: "extra", Action: "add"}
 		}
 	}
 
 	for name, extr := range currentExtras {
 		if _, ok := futureExtras[name]; !ok {
 			//Remove dangling file
-			g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Action: "remove"}
+			g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Kind: "extra", Action: "remove"}
 		}
 	}
 

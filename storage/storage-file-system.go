@@ -22,8 +22,14 @@ type FileSystem struct {
 	logger *log.Logger
 }
 
-func GetFileSystem(path string, debug bool) FileSystem {
-	return FileSystem{path, debug, log.New(os.Stdout, "FS STORE: ", log.Lshortfile)}
+func GetFileSystem(path string, debug bool, tag string) FileSystem {
+	var logPrefix string
+	if tag == "" {
+		logPrefix = "FS: "
+	} else {
+		logPrefix = fmt.Sprintf("FS-%s: ", tag)
+	}
+	return FileSystem{path, debug, log.New(os.Stdout, logPrefix, log.Lshortfile)}
 }
 
 func (f FileSystem) HasManifest() (bool, error) {
@@ -260,4 +266,31 @@ func (f FileSystem) RemoveFile(gameId int, kind string, name string) error {
 		f.logger.Println(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", gameId, kind, name))
 	}
 	return err
+}
+
+func (f FileSystem) DownloadFile(gameId int, kind string, name string) (io.ReadCloser, int, error) {
+	var fPath string
+	if kind == "installer" {
+		fPath = path.Join(f.Path, strconv.Itoa(gameId), "installers", name)
+	} else if kind == "extra" {
+		fPath = path.Join(f.Path, strconv.Itoa(gameId), "extras", name)
+	} else {
+		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Unknown kind of file", gameId, kind, name)
+		return nil, 0, errors.New(msg)
+	}
+
+	fi, err := os.Stat(fPath)
+	if err != nil {
+		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while retrieving file size: %s", gameId, kind, name, err.Error())
+		return nil, 0, errors.New(msg)
+	}
+	size := int(fi.Size())
+
+	downloadHandle, openErr := os.Open(fPath)
+	if openErr != nil {
+		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while opening file for download: %s", gameId, kind, name, openErr.Error())
+		return nil, 0, errors.New(msg)
+	}
+
+	return downloadHandle, size, nil
 }

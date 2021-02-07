@@ -60,7 +60,7 @@ func addFileAction(
 
 func launchActions(a *manifest.GameActions, s storage.Storage, concurrency int, d Downloader, result chan ActionResult, actionErrsChan chan []error) {
 	errs := make([]error, 0)
-	var actionErr chan error
+	actionErr := make(chan error)
 	jobsRunning  := 0
 	gameIds := make([]int, len(*a))
 	

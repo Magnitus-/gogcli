@@ -292,5 +292,8 @@ func (f FileSystem) DownloadFile(gameId int, kind string, name string) (io.ReadC
 		return nil, 0, errors.New(msg)
 	}
 
+	if f.debug {
+		f.logger.Println(fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Fetched file download handle", gameId, kind, name))
+	}
 	return downloadHandle, size, nil
 }

@@ -8,13 +8,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func generateCopyStorageFsToFsCmd(concurrency *int) *cobra.Command {
+func generateStorageCopyFsToFsCmd(concurrency *int) *cobra.Command {
 	var sourcePath string
 	var destinationPath string
 
-	copyStorageFsToFsCmd := &cobra.Command{
+	storageCopyFsToFsCmd := &cobra.Command{
 		Use:   "fs-to-fs",
-		Short: "Transfer the files stored in one filesystem to another",
+		Short: "The source storage is a file system and the destination storage is a file system",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			_, err := os.Stat(sourcePath)
 			if err != nil {
@@ -55,23 +55,23 @@ func generateCopyStorageFsToFsCmd(concurrency *int) *cobra.Command {
 		},
 	}
 
-	copyStorageFsToFsCmd.Flags().StringVarP(&sourcePath, "source-path", "s", "games", "Path to the directory where game files to copy are stored")
-	copyStorageFsToFsCmd.Flags().StringVarP(&destinationPath, "destination-path", "n", "games-copy", "Path to the directory where game files from source are to be copied")
+	storageCopyFsToFsCmd.Flags().StringVarP(&sourcePath, "source-path", "s", "games", "Path to the directory where game files to copy are stored")
+	storageCopyFsToFsCmd.Flags().StringVarP(&destinationPath, "destination-path", "n", "games-copy", "Path to the directory where game files from source are to be copied")
 
-	return copyStorageFsToFsCmd
+	return storageCopyFsToFsCmd
 }
 
-func generateCopyStorageCmd() *cobra.Command {
+func generateStorageCopyCmd() *cobra.Command {
 	var concurrency int
 
-	copyStorageCmd := &cobra.Command{
-		Use:   "copy-storage",
+	storageCopyCmd := &cobra.Command{
+		Use:   "copy",
 		Short: "Copy the game files from one storage to another",
 	}
 
-	copyStorageCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
+	storageCopyCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
 
-	copyStorageCmd.AddCommand(generateCopyStorageFsToFsCmd(&concurrency))
+	storageCopyCmd.AddCommand(generateStorageCopyFsToFsCmd(&concurrency))
 
-	return copyStorageCmd
+	return storageCopyCmd
 }

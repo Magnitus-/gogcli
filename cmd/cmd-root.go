@@ -33,10 +33,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&debugMode, "debug", "d", false, "Provide additional more detailed ouputs to help troubleshoot the tool")
 
 	rootCmd.AddCommand(generateGogApiCmd())
-	rootCmd.AddCommand(generateManifestGenerationCmd())
-	rootCmd.AddCommand(generatePlanManifestCmd())
-	rootCmd.AddCommand(generateApplyManifestCmd())
-	rootCmd.AddCommand(generateCopyStorageCmd())
+	rootCmd.AddCommand(generateManifestCmd())
+	rootCmd.AddCommand(generateStorageCmd())
 }
 
 func Execute() error {

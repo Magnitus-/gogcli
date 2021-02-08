@@ -12,12 +12,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int, manifestPath *string) *cobra.Command {
+func generateStorageApplyFsCmd(m *manifest.Manifest, concurrency *int, manifestPath *string) *cobra.Command {
 	var path string
 
-	applyManifestFsCmd := &cobra.Command{
+	storageApplyFsCmd := &cobra.Command{
 		Use:   "fs",
-		Short: "Apply the manifest on a file system",
+		Short: "Use a file system storage",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			_, err := os.Stat(path)
 			if err != nil {
@@ -52,18 +52,18 @@ func generateApplyManifestFsCmd(m *manifest.Manifest, concurrency *int, manifest
 		},
 	}
 
-	applyManifestFsCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to the directory where game files should be stored")
+	storageApplyFsCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to the directory where game files should be stored")
 
-	return applyManifestFsCmd
+	return storageApplyFsCmd
 }
 
-func generateApplyManifestCmd() *cobra.Command {
+func generateStorageApplyCmd() *cobra.Command {
 	var m manifest.Manifest
 	var manifestPath string
 	var concurrency int
 
-	applyManifestCmd := &cobra.Command{
-		Use:   "apply-manifest",
+	storageApplyCmd := &cobra.Command{
+		Use:   "apply",
 		Short: "Change the files in a given storage to match the content of a manifest, uploading and deleting files as necessary",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			callPersistentPreRun(cmd, args) 
@@ -81,11 +81,11 @@ func generateApplyManifestCmd() *cobra.Command {
 		},
 	}
 
-	applyManifestCmd.PersistentFlags().StringVarP(&manifestPath, "manifest", "m", "manifest.json", "Path were the manifest you want to apply is")
-	applyManifestCmd.MarkPersistentFlagFilename("manifest")
-	applyManifestCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
+	storageApplyCmd.PersistentFlags().StringVarP(&manifestPath, "manifest", "m", "manifest.json", "Path were the manifest you want to apply is")
+	storageApplyCmd.MarkPersistentFlagFilename("manifest")
+	storageApplyCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
 
-	applyManifestCmd.AddCommand(generateApplyManifestFsCmd(&m, &concurrency, &manifestPath))
+	storageApplyCmd.AddCommand(generateStorageApplyFsCmd(&m, &concurrency, &manifestPath))
 
-	return applyManifestCmd
+	return storageApplyCmd
 }

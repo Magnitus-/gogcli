@@ -14,12 +14,12 @@ import (
 
 type showActions func(*manifest.GameActions)
 
-func generatePlanManifestFsCmd(m *manifest.Manifest, fn showActions) *cobra.Command {
+func generateStoragePlanFsCmd(m *manifest.Manifest, fn showActions) *cobra.Command {
 	var path string
 
-	planManifestFsCmd := &cobra.Command{
+	storagePlanFsCmd := &cobra.Command{
 		Use:   "fs",
-		Short: "Plan the manifest on a file system store",
+		Short: "Use a file system storage",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			_, err := os.Stat(path)
 			if err != nil {
@@ -45,11 +45,11 @@ func generatePlanManifestFsCmd(m *manifest.Manifest, fn showActions) *cobra.Comm
 		},
 	}
 
-	planManifestFsCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to the directory where game files should be stored")
-	return planManifestFsCmd
+	storagePlanFsCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to the directory where game files should be stored")
+	return storagePlanFsCmd
 }
 
-func generatePlanManifestCmd() *cobra.Command {
+func generateStoragePlanCmd() *cobra.Command {
 	var m manifest.Manifest
 	var manifestPath string
 	var file string
@@ -74,9 +74,9 @@ func generatePlanManifestCmd() *cobra.Command {
 		}
 	}
 
-	planManifestCmd := &cobra.Command{
-		Use:   "plan-manifest",
-		Short: "Generate a plan of the actions that would be executed if the manifest was applied",
+	storagePlanCmd := &cobra.Command{
+		Use:   "plan",
+		Short: "Generate a plan of the actions that would be executed if a given manifest was applied to the storage",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			bs, err := ioutil.ReadFile(manifestPath)
 			if err != nil {
@@ -92,12 +92,12 @@ func generatePlanManifestCmd() *cobra.Command {
 		},
 	}
 
-	planManifestCmd.PersistentFlags().StringVarP(&manifestPath, "manifest", "m", "manifest.json", "Path were the manifest you want to apply is")
-	planManifestCmd.MarkPersistentFlagFilename("manifest")
-	planManifestCmd.PersistentFlags().StringVarP(&file, "file", "f", "actions.json", "File to output the plan in")
-	planManifestCmd.PersistentFlags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the plan will be output on the terminal instead of in a file")
+	storagePlanCmd.PersistentFlags().StringVarP(&manifestPath, "manifest", "m", "manifest.json", "Path were the manifest you want to apply is")
+	storagePlanCmd.MarkPersistentFlagFilename("manifest")
+	storagePlanCmd.PersistentFlags().StringVarP(&file, "file", "f", "actions.json", "File to output the plan in")
+	storagePlanCmd.PersistentFlags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the plan will be output on the terminal instead of in a file")
 
-	planManifestCmd.AddCommand(generatePlanManifestFsCmd(&m, show))
+	storagePlanCmd.AddCommand(generateStoragePlanFsCmd(&m, show))
 
-	return planManifestCmd
+	return storagePlanCmd
 }

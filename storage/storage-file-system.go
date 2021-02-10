@@ -40,9 +40,10 @@ func (f FileSystem) HasManifest() (bool, error) {
 				f.logger.Println("HasManifest() -> Manifest not found")
 			}
 			return false, nil
-		} else {
-			return true, err
 		}
+
+		msg := fmt.Sprintf("HasManifest() -> The following error occured while ascertaining manifest's existance: %s", err.Error())
+		return true, errors.New(msg)
 	}
 	if f.debug {
 		f.logger.Println("HasManifest() -> Manifest found")
@@ -58,9 +59,10 @@ func (f FileSystem) HasActions() (bool, error) {
 				f.logger.Println("HasActions() -> Actions not found")
 			}
 			return false, nil
-		} else {
-			return true, err
 		}
+
+		msg := fmt.Sprintf("HasActions() -> The following error occured while ascertaining actions' existance: %s", err.Error())
+		return true, errors.New(msg)
 	}
 	if f.debug {
 		f.logger.Println("HasActions() -> Actions found")

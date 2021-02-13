@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"crypto/sha256"
+	"crypto/md5"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -17,7 +17,7 @@ func validateFile(info manifest.FileInfo, s Storage, errChan chan error) {
 		return
 	}
 
-	h := sha256.New()
+	h := md5.New()
 	io.Copy(h, downloadHandle)
 	checksum := hex.EncodeToString(h.Sum(nil))
 

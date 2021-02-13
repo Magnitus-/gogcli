@@ -3,3 +3,7 @@ tests
 gogcli
 manifest.json
 actions.json
+copy-destination.json
+games/
+games-copy/
+TODO.txt

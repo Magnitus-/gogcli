@@ -67,7 +67,7 @@ func GetS3Store(endpoint string, region string, bucket string, accessKey string,
 	})
 
 	if err != nil {
-		msg := fmt.Sprintf("GetS3Store(endpoint=%s, ...) -> Error connecting to the s3 store: %s", err.Error())
+		msg := fmt.Sprintf("GetS3Store(endpoint=%s, ...) -> Error connecting to the s3 store: %s", endpoint, err.Error())
 		return S3Store{nil, "", "", "", false, nil}, errors.New(msg)
 	}
 
@@ -121,7 +121,7 @@ func (s S3Store) HasManifest() (bool, error) {
 	_, err := s.client.StatObject(context.Background(), s.bucket, "manifest.json", minio.StatObjectOptions{})
 	if err != nil {
 		errResponse := minio.ToErrorResponse(err)
-		if errResponse.Code == "NoSuchBucket" {
+		if errResponse.Code == "NoSuchKey" {
 			if s.debug {
 				s.logger.Println("HasManifest() -> Manifest not found")
 			}
@@ -143,7 +143,7 @@ func (s S3Store) HasActions() (bool, error) {
 	_, err := s.client.StatObject(context.Background(), s.bucket, "actions.json", minio.StatObjectOptions{})
 	if err != nil {
 		errResponse := minio.ToErrorResponse(err)
-		if errResponse.Code == "NoSuchBucket" {
+		if errResponse.Code == "NoSuchKey" {
 			if s.debug {
 				s.logger.Println("HasActions() -> Actions not found")
 			}

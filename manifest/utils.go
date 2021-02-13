@@ -9,16 +9,16 @@ import (
 )
 
 var estSizeRegex *regexp.Regexp
-var units map[string]int
+var units map[string]int64
 var unitsList []string
 
 func init() {
 	estSizeRegex = regexp.MustCompile(`^(?P<amount>\d+(?:.\d+)?)[ ]*(?P<unit>[a-zA-Z]+)$`)
-	units = map[string]int{"kb": 1000, "mb": 1000000, "gb": 1000000000, "tb": 1000000000000}
+	units = map[string]int64{"kb": 1000, "mb": 1000000, "gb": 1000000000, "tb": 1000000000000}
 	unitsList = []string{"kb", "mb", "gb", "tb"}
 }
 
-func GetEstimateToBytes(est string) (int, error) {
+func GetEstimateToBytes(est string) (int64, error) {
 	fn := fmt.Sprintf("getEstimateInBytes(est=%s)", est)
 	if !estSizeRegex.MatchString(est) {
 		return 0, errors.New(fmt.Sprintf("%s -> Could not parse input", fn))
@@ -32,13 +32,13 @@ func GetEstimateToBytes(est string) (int, error) {
 
 	unit := strings.ToLower(match[2])
 	if multiplier, ok := units[unit]; ok {
-		return int(float64(multiplier)*amount), nil
+		return int64(float64(multiplier)*amount), nil
 	} else {
 		return 0, errors.New(fmt.Sprintf("%s -> Could not recognize unit", fn))
 	}
 }
 
-func GetBytesToEstimate(size int) string {
+func GetBytesToEstimate(size int64) string {
 	unit := ""
 	for i, v := range unitsList {
 		if (float64(size)/float64(units[v])) < 1.0 {

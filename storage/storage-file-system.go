@@ -2,7 +2,7 @@ package storage
 
 import (
 	"bytes"
-	"crypto/sha256"
+	"crypto/md5"
 	"encoding/json"
 	"encoding/hex"
 	"errors"
@@ -30,6 +30,44 @@ func GetFileSystem(path string, debug bool, tag string) FileSystem {
 		logPrefix = fmt.Sprintf("FS-%s: ", tag)
 	}
 	return FileSystem{path, debug, log.New(os.Stdout, logPrefix, log.Lshortfile)}
+}
+
+func (f FileSystem) GetPrintableSummary() string {
+	return fmt.Sprintf("FileSystem{Path: %s}", f.Path)
+}
+
+func (f FileSystem) Exists() (bool, error) {
+	_, err := os.Stat(f.Path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if f.debug {
+				f.logger.Println("Exists() -> File system path not found")
+			}
+			return false, nil
+		} else {
+			msg := fmt.Sprintf("Exists() -> The following error occured while ascertaining existance of path %s: %s", f.Path, err.Error())
+			return true, errors.New(msg)
+		}
+	}
+
+	if f.debug {
+		f.logger.Println("Exists() -> File system path found")
+	}
+	return true, nil
+}
+
+func (f FileSystem) Initialize() error {
+	err := os.MkdirAll(f.Path, 0755)
+	if err != nil {
+		msg := fmt.Sprintf("Initialize() -> Failed to create a directory at the specified path: %s", err.Error())
+		return errors.New(msg)
+	}
+
+	if f.debug {
+		msg := fmt.Sprintf("Initialize() -> File system path %s created", f.Path)
+		f.logger.Println(msg)
+	}
+	return nil
 }
 
 func (f FileSystem) HasManifest() (bool, error) {
@@ -225,7 +263,7 @@ func (f FileSystem) RemoveGame(gameId int) error {
 	return err
 }
 
-func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, name string) (string, error) {
+func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, name string, expectedSize int64) (string, error) {
 	var fPath string
 	if kind == "installer" {
 		fPath = path.Join(f.Path, strconv.Itoa(gameId), "installers", name)
@@ -235,7 +273,7 @@ func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, na
 		return "", errors.New("Unknown kind of file")
 	}
 
-	h := sha256.New()
+	h := md5.New()
 
 	dest, err := os.Create(fPath)
 	if err != nil {
@@ -270,7 +308,7 @@ func (f FileSystem) RemoveFile(gameId int, kind string, name string) error {
 	return err
 }
 
-func (f FileSystem) DownloadFile(gameId int, kind string, name string) (io.ReadCloser, int, error) {
+func (f FileSystem) DownloadFile(gameId int, kind string, name string) (io.ReadCloser, int64, error) {
 	var fPath string
 	if kind == "installer" {
 		fPath = path.Join(f.Path, strconv.Itoa(gameId), "installers", name)
@@ -286,7 +324,7 @@ func (f FileSystem) DownloadFile(gameId int, kind string, name string) (io.ReadC
 		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while retrieving file size: %s", gameId, kind, name, err.Error())
 		return nil, 0, errors.New(msg)
 	}
-	size := int(fi.Size())
+	size := fi.Size()
 
 	downloadHandle, openErr := os.Open(fPath)
 	if openErr != nil {

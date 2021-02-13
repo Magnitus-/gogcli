@@ -8,6 +8,40 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func processErrors(errs []error) {
+	if len(errs) > 0 {
+		for _, err := range errs {
+			fmt.Println(err)
+		}
+		os.Exit(1)
+	}	
+}
+
+func generateStorageCopyFsToS3Cmd(concurrency *int) *cobra.Command {
+	var sourcePath string
+	var destinationConfigsPath string
+
+	storageCopyFsToS3Cmd := &cobra.Command{
+		Use:   "fs-to-s3",
+		Short: "The source storage is a file system and the destination storage is an s3 store",
+		Run: func(cmd *cobra.Command, args []string) {
+			source := storage.GetFileSystem(sourcePath, debugMode, "SOURCE")
+			destination, err := storage.GetS3StoreFromConfigFile(destinationConfigsPath, debugMode, "DESTINATION")
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			errs := storage.Copy(source, destination, storage.FileSystemDownloader{source}, *concurrency)
+			processErrors(errs)
+		},
+	}
+
+	storageCopyFsToS3Cmd.Flags().StringVarP(&sourcePath, "source-path", "s", "games", "Path to the directory where game files to copy are stored")
+	storageCopyFsToS3Cmd.Flags().StringVarP(&destinationConfigsPath, "destination-configs-path", "n", "copy-destination.json", "Path to a json configuration file for your S3 store. The following values are expected: Endpoint (string), Region (string), Bucket (string), Tls (boolean), AccessKey (string), SecretKey (string)")
+
+	return storageCopyFsToS3Cmd
+}
+
 func generateStorageCopyFsToFsCmd(concurrency *int) *cobra.Command {
 	var sourcePath string
 	var destinationPath string
@@ -15,43 +49,11 @@ func generateStorageCopyFsToFsCmd(concurrency *int) *cobra.Command {
 	storageCopyFsToFsCmd := &cobra.Command{
 		Use:   "fs-to-fs",
 		Short: "The source storage is a file system and the destination storage is a file system",
-		PreRun: func(cmd *cobra.Command, args []string) {
-			_, err := os.Stat(sourcePath)
-			if err != nil {
-				fmt.Println("An error occured while trying to gather info on the source path: ", err)
-				os.Exit(1)
-			}
-
-			_, err = os.Stat(destinationPath)
-			if err != nil {
-				if os.IsNotExist(err) {
-					err = os.MkdirAll(destinationPath, 0755)
-					if err != nil {
-						fmt.Println("Failed to create a directory for the destination path: ", err)
-						os.Exit(1)
-					}
-				} else {
-					fmt.Println("An error occured while trying to gather info on the destination path: ", err)
-					os.Exit(1)
-				}
-			}
-		},
 		Run: func(cmd *cobra.Command, args []string) {
-			sourceFs := storage.GetFileSystem(sourcePath, debugMode, "SOURCE")
-			destinationFs := storage.GetFileSystem(destinationPath, debugMode, "DESTINATION")
-			m, err := sourceFs.LoadManifest()
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-
-			errs := uploadManifest(m, destinationFs, *concurrency, storage.FileSystemDownloader{sourceFs})
-			if len(errs) > 0 {
-				for _, err := range errs {
-					fmt.Println(err)
-				}
-				os.Exit(1)
-			}
+			source := storage.GetFileSystem(sourcePath, debugMode, "SOURCE")
+			destination := storage.GetFileSystem(destinationPath, debugMode, "DESTINATION")
+			errs := storage.Copy(source, destination, storage.FileSystemDownloader{source}, *concurrency)
+			processErrors(errs)
 		},
 	}
 
@@ -72,6 +74,6 @@ func generateStorageCopyCmd() *cobra.Command {
 	storageCopyCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
 
 	storageCopyCmd.AddCommand(generateStorageCopyFsToFsCmd(&concurrency))
-
+	storageCopyCmd.AddCommand(generateStorageCopyFsToS3Cmd(&concurrency))
 	return storageCopyCmd
 }

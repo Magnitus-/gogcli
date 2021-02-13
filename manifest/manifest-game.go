@@ -14,7 +14,7 @@ type ManifestGame struct {
 	Installers    []ManifestGameInstaller
 	Extras        []ManifestGameExtra
 	EstimatedSize string
-	VerifiedSize  int
+	VerifiedSize  int64
 }
 
 func (g *ManifestGame) trimInstallers(oses []string, languages []string, keepAny bool) {
@@ -73,12 +73,12 @@ func (g *ManifestGame) isEmpty() bool {
 	return len((*g).Installers) == 0 && len((*g).Extras) == 0
 }
 
-func (g *ManifestGame) computeEstimatedSize() (int, error) {
-	accumulate := 0
+func (g *ManifestGame) computeEstimatedSize() (int64, error) {
+	accumulate := int64(0)
 	for _, inst := range (*g).Installers {
 		size, err := inst.getEstimatedSizeInBytes()
 		if err != nil {
-			return 0, err
+			return int64(0), err
 		}
 		accumulate += size
 	}
@@ -95,7 +95,7 @@ func (g *ManifestGame) computeEstimatedSize() (int, error) {
 	return accumulate, nil
 }
 
-func (g *ManifestGame) fillMissingFileInfo(fileKind string, fileName string, fileSize int, fileChecksum string) error {
+func (g *ManifestGame) fillMissingFileInfo(fileKind string, fileName string, fileSize int64, fileChecksum string) error {
 	if fileKind == "installer" {
 		for idx, _ := range (*g).Installers {
 			if (*g).Installers[idx].Name == fileName {

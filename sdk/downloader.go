@@ -10,6 +10,6 @@ type Downloader struct {
 	SdkPtrPtr *Sdk
 }
 
-func (d Downloader) Download(gameId int, add manifest.FileAction) (io.ReadCloser, int, string, error) {
+func (d Downloader) Download(gameId int, add manifest.FileAction) (io.ReadCloser, int64, string, error) {
 	return d.SdkPtrPtr.GetDownloadHandle(add.Url)
 }

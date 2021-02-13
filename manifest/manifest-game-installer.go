@@ -9,7 +9,7 @@ type ManifestGameInstaller struct {
 	Version       string
 	Date          string
 	EstimatedSize string
-	VerifiedSize  int
+	VerifiedSize  int64
 	Checksum      string
 }
 
@@ -40,6 +40,6 @@ func (i *ManifestGameInstaller) isEquivalentTo(o *ManifestGameInstaller) bool {
 	return sameName && sameTitle && sameUrl && sameVerifiedSize && sameChecksum
 }
 
-func (i *ManifestGameInstaller) getEstimatedSizeInBytes() (int, error) {
+func (i *ManifestGameInstaller) getEstimatedSizeInBytes() (int64, error) {
 	return GetEstimateToBytes((*i).EstimatedSize)
 }

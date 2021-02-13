@@ -9,7 +9,7 @@ type ManifestGameExtra struct {
 	Type          string
 	Info          int
 	EstimatedSize string
-	VerifiedSize  int
+	VerifiedSize  int64
 	Checksum      string
 }
 
@@ -31,6 +31,6 @@ func (e *ManifestGameExtra) isEquivalentTo(o *ManifestGameExtra) bool {
 	return sameName && sameTitle && sameUrl && sameVerifiedSize && sameChecksum
 }
 
-func (e *ManifestGameExtra) getEstimatedSizeInBytes() (int, error) {
+func (e *ManifestGameExtra) getEstimatedSizeInBytes() (int64, error) {
 	return GetEstimateToBytes((*e).EstimatedSize)
 }

@@ -8,7 +8,7 @@ import (
 type Manifest struct {
 	Games         []ManifestGame
 	EstimatedSize string
-	VerifiedSize  int
+	VerifiedSize  int64
 }
 
 func NewEmptyManifest() *Manifest {
@@ -95,13 +95,13 @@ func (m *Manifest) ReplaceGames(games []ManifestGame) {
 	(*m).Games = filteredGames
 }
 
-func (m *Manifest) ComputeEstimatedSize() (int, error) {
-	accumulate := 0
+func (m *Manifest) ComputeEstimatedSize() (int64, error) {
+	accumulate := int64(0)
 
 	for idx, _ := range (*m).Games {
 		size, err := (*m).Games[idx].computeEstimatedSize()
 		if err != nil {
-			return 0, err
+			return int64(0), err
 		}
 		accumulate += size
 	}
@@ -110,7 +110,7 @@ func (m *Manifest) ComputeEstimatedSize() (int, error) {
 	return accumulate, nil
 }
 
-func (m *Manifest) FillMissingFileInfo(gameId int, fileKind string, fileName string, fileSize int, fileChecksum string) error {
+func (m *Manifest) FillMissingFileInfo(gameId int, fileKind string, fileName string, fileSize int64, fileChecksum string) error {
 	fn := fmt.Sprintf(
 		"Manifest.FillMissingFileInfo(gameId=%d, fileKind=%s, fileName=%s, fileSize=%d, fileChecksum=%s)",
 		gameId,

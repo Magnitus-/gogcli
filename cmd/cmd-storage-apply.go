@@ -35,7 +35,7 @@ func generateStorageApplyFsCmd(m *manifest.Manifest, concurrency *int, manifestP
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			fs := storage.GetFileSystem(path, debugMode, "")
-			errs := uploadManifest(m, fs, *concurrency, sdk.Downloader{sdkPtr})
+			errs := storage.UploadManifest(m, fs, *concurrency, sdk.Downloader{sdkPtr})
 			if len(errs) > 0 {
 				for _, err := range errs {
 					fmt.Println(err)

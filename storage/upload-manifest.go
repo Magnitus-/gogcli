@@ -1,12 +1,9 @@
-package cmd
+package storage
 
 import (
 	"errors"
 	"fmt"
 	"gogcli/manifest"
-	"gogcli/storage"
-	"io"
-	"os"
 )
 
 type ActionResult struct {
@@ -14,14 +11,10 @@ type ActionResult struct {
 	fileKind string
 	action manifest.FileAction
 	fileName string
-	fileSize int
+	fileSize int64
 	fileChecksum string
 	err error
 	end bool
-}
-
-type Downloader interface {
-	Download(int, manifest.FileAction) (io.ReadCloser, int, string, error)
 }
 
 func addFileAction(
@@ -30,7 +23,7 @@ func addFileAction(
 	action manifest.FileAction, 
 	result chan ActionResult, 
 	actionErr chan error,
-	s storage.Storage,
+	s Storage,
 	d Downloader,
 ) {
 	r := ActionResult{
@@ -46,7 +39,7 @@ func addFileAction(
 		actionErr <- err
 	} else {
 		r.fileSize = fSize
-		fChecksum, uploadErr := s.UploadFile(handle, gameId, fileKind, action.Name)
+		fChecksum, uploadErr := s.UploadFile(handle, gameId, fileKind, action.Name, fSize)
 		if err != nil {
 			r.err = uploadErr
 			actionErr <- uploadErr
@@ -58,7 +51,7 @@ func addFileAction(
 	}
 }
 
-func launchActions(a *manifest.GameActions, s storage.Storage, concurrency int, d Downloader, result chan ActionResult, actionErrsChan chan []error) {
+func launchActions(a *manifest.GameActions, s Storage, concurrency int, d Downloader, result chan ActionResult, actionErrsChan chan []error) {
 	errs := make([]error, 0)
 	actionErr := make(chan error)
 	jobsRunning  := 0
@@ -142,7 +135,7 @@ func launchActions(a *manifest.GameActions, s storage.Storage, concurrency int, 
 	actionErrsChan <- errs
 }
 
-func keepManifestUpdated(m *manifest.Manifest, s storage.Storage, result chan ActionResult, manifestErrsChan chan []error) {
+func keepManifestUpdated(m *manifest.Manifest, s Storage, result chan ActionResult, manifestErrsChan chan []error) {
 	errs := make([]error, 0)
 	for true {
 		r := <- result
@@ -163,7 +156,7 @@ func keepManifestUpdated(m *manifest.Manifest, s storage.Storage, result chan Ac
 	manifestErrsChan <- errs
 }
 
-func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s storage.Storage, concurrency int, d Downloader) []error {
+func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage, concurrency int, d Downloader) []error {
 	//Missing: keep game actions updated in storage
 	actionErrsChan := make(chan []error)
 	manifestErrsChan := make(chan []error)
@@ -185,37 +178,32 @@ func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s storage
 	return errs
 }
 
-func uploadManifest(m *manifest.Manifest, s storage.Storage, concurrency int, d Downloader) []error {
+func UploadManifest(m *manifest.Manifest, s Storage, concurrency int, d Downloader) []error {
 	var hasActions bool
 	var actions *manifest.GameActions
 	var err error
 
 	hasActions, err = s.HasActions()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return []error{err}
 	}
 	if hasActions {
-		fmt.Println("An unfinished manifest apply is already in progress. Aborting.")
-		os.Exit(1)	
+		return []error{errors.New("An unfinished manifest apply is already in progress. Aborting.")}
 	}
 
-	actions, err = storage.PlanManifest(m, s)
+	actions, err = PlanManifest(m, s)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return []error{err}
 	}
 
 	err = s.StoreActions(actions)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)	
+		return []error{err}
 	}
 
 	err = s.StoreManifest(m)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)	
+		return []error{err}	
 	}
 
 	errs := processGameActions(m, actions, s, concurrency, d)

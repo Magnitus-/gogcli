@@ -5,7 +5,7 @@ type FileInfo struct {
 	Kind     string
 	Name     string
 	Checksum string
-	Size     int
+	Size     int64
 	Url      string
 }
 

@@ -6,6 +6,9 @@ import (
 )
 
 type Storage interface {
+	GetPrintableSummary() string
+	Exists() (bool, error)
+	Initialize() error
 	HasManifest() (bool, error)
 	HasActions() (bool, error)
 	StoreManifest(m *manifest.Manifest) error
@@ -15,7 +18,7 @@ type Storage interface {
 	RemoveActions() error
 	AddGame(gameId int) error
 	RemoveGame(gameId int) error
-	UploadFile(source io.ReadCloser, gameId int, kind string, name string) (string, error)
+	UploadFile(source io.ReadCloser, gameId int, kind string, name string, expectedSize int64) (string, error)
 	RemoveFile(gameId int, kind string, name string) error
-	DownloadFile(gameId int, kind string, name string) (io.ReadCloser, int, error)
+	DownloadFile(gameId int, kind string, name string) (io.ReadCloser, int64, error)
 }

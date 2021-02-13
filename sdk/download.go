@@ -57,12 +57,12 @@ func (s *Sdk) GetDownloadFilename(downloadPath string) (string, error) {
 	return path.Base(pathParam[0]), nil
 }
 
-func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int, string, error) {
+func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, string, error) {
 	fn := fmt.Sprintf("GetDownloadHandle(downloadPath=%s)", downloadPath)
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
 	var body io.ReadCloser
-	bodyLength := 0
+	bodyLength := int64(0)
 	filename := ""
 
 	c := (*s).getClient(true)
@@ -73,14 +73,14 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int, string
 	r, err := c.Get(u)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
-		return nil, 0, "", errors.New(msg)
+		return nil, int64(0), "", errors.New(msg)
 	}
 
 	body = r.Body
 
 	clHeader, ok := r.Header["Content-Length"]
 	if ok {
-		l, lErr := strconv.Atoi(clHeader[0])
+		l, lErr := strconv.ParseInt(clHeader[0], 10, 64)
 		if lErr != nil {
 			(*s).logger.Println(fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not parsable. Will set it to 0.", fn))
 		} else {

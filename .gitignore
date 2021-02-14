@@ -1,9 +1,7 @@
 cookie
 tests
 gogcli
-manifest.json
-actions.json
-copy-destination.json
+*.json
 games/
 games-copy/
 TODO.txt

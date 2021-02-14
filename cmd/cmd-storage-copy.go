@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"fmt"
 	"gogcli/storage"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -19,32 +17,8 @@ func generateStorageCopyCmd() *cobra.Command {
 		Use:   "copy",
 		Short: "Copy the game files from one storage to another",
 		Run: func(cmd *cobra.Command, args []string) {
-			var source storage.Storage
-			var destination storage.Storage
-			var downloader storage.Downloader
-			var err error
-
-			if sourceStorage == "fs" {
-				source = storage.GetFileSystem(sourcePath, debugMode, "SOURCE")
-				downloader = storage.FileSystemDownloader{source.(storage.FileSystem)}
-			} else if sourceStorage == "s3" {
-				source, err = storage.GetS3StoreFromConfigFile(sourcePath, debugMode, "SOURCE")
-				processError(err)
-				downloader = storage.S3StoreDownloader{source.(storage.S3Store)}
-			} else {
-				fmt.Println("Source storage type is invalid")
-				os.Exit(1)
-			}
-
-			if destinationStorage == "fs" {
-				destination = storage.GetFileSystem(destinationPath, debugMode, "DESTINATION")
-			} else if destinationStorage == "s3" {
-				destination, err = storage.GetS3StoreFromConfigFile(destinationPath, debugMode, "DESTINATION")
-				processError(err)
-			} else {
-				fmt.Println("Destination storage type is invalid")
-				os.Exit(1)
-			}
+			source, downloader := getStorage(sourcePath, sourceStorage, debugMode, "SOURCE")
+			destination, _ := getStorage(destinationPath, destinationStorage, debugMode, "DESTINATION")
 
 			errs := storage.Copy(source, destination, downloader, concurrency)
 			processErrors(errs)
@@ -52,10 +26,10 @@ func generateStorageCopyCmd() *cobra.Command {
 	}
 
 	storageCopyCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
-	storageCopyCmd.Flags().StringVarP(&sourcePath, "source-path", "s", "games", "Path to the source of your games (directory if it is of type fs, json configuration file if it is of type s3).")
-	storageCopyCmd.Flags().StringVarP(&sourceStorage, "source-storage", "t", "fs", "Kind of storage your source is. Can be 'fs' (for file system) or 's3' (for s3 store).")
-	storageCopyCmd.Flags().StringVarP(&destinationPath, "destination-path", "n", "games-copy", "Path to the destination of your games (directory if it is of type fs, json configuration file if it is of type s3).")
-	storageCopyCmd.Flags().StringVarP(&destinationStorage, "destination-storage", "o", "fs", "Kind of storage your destination is. Can be 'fs' (for file system) or 's3' (for s3 store).")
+	storageCopyCmd.Flags().StringVarP(&sourcePath, "source-path", "s", "games", "Path to the source of your games (directory if it is of type fs, json configuration file if it is of type s3)")
+	storageCopyCmd.Flags().StringVarP(&sourceStorage, "source-storage", "t", "fs", "Kind of storage your source is. Can be 'fs' (for file system) or 's3' (for s3 store)")
+	storageCopyCmd.Flags().StringVarP(&destinationPath, "destination-path", "n", "games-copy", "Path to the destination of your games (directory if it is of type fs, json configuration file if it is of type s3)")
+	storageCopyCmd.Flags().StringVarP(&destinationStorage, "destination-storage", "o", "fs", "Kind of storage your destination is. Can be 'fs' (for file system) or 's3' (for s3 store)")
 
 	return storageCopyCmd
 }

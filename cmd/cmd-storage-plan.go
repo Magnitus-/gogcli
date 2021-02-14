@@ -56,21 +56,11 @@ func generateStoragePlanCmd() *cobra.Command {
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			var gamesStorage storage.Storage
-			var err error
 			var actions *manifest.GameActions
 
-			if storageType == "fs" {
-				gamesStorage = storage.GetFileSystem(path, debugMode, "")
-			} else if storageType == "s3" {
-				gamesStorage, err = storage.GetS3StoreFromConfigFile(path, debugMode, "")
-				processError(err)
-			} else {
-				fmt.Println("Storage type is invalid")
-				os.Exit(1)
-			}
+			gamesStorage, _ := getStorage(path, storageType, debugMode, "")
 
-			err = storage.EnsureInitialization(gamesStorage)
+			err := storage.EnsureInitialization(gamesStorage)
 			processError(err)
 
 			actions, err = storage.PlanManifest(&m, storage.GetFileSystem(path, debugMode, ""))

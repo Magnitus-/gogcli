@@ -17,18 +17,7 @@ func generateStorageValidateCmd() *cobra.Command {
 		Use:   "validate",
 		Short: "Validate that all the game files in the storage match the size and checksum values in the manifest",
 		Run: func(cmd *cobra.Command, args []string) {
-			var gamesStorage storage.Storage
-			var err error
-
-			if storageType == "fs" {
-				gamesStorage = storage.GetFileSystem(path, debugMode, "")
-			} else if storageType == "s3" {
-				gamesStorage, err = storage.GetS3StoreFromConfigFile(path, debugMode, "")
-				processError(err)
-			} else {
-				fmt.Println("Storage type is invalid")
-				os.Exit(1)
-			}
+			gamesStorage, _ := getStorage(path, storageType, debugMode, "")
 			
 			errs := storage.ValidateManifest(gamesStorage, concurrency)
 			if len(errs) > 0 {

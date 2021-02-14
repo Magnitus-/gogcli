@@ -37,15 +37,9 @@ The above is needed, because GOG.com does not yet have an official api for third
 
 So, any tool wishing to get some kind of api token or cookie programatically without a lot of user-involvement will need to scrape information from the login page and circumvent the recaptcha. At best, this functionality would be flaky and subject to frequent malfunction, so I opted not to go that direction, at the risk of being less user-friendly.
 
-2. Get golang: https://golang.org/dl/
+2. Go download a binary for your platform and put it in the same directory as your cookie file: https://github.com/Magnitus-/gogcli/releases
 
-3. Build the binary by running:
-
-```
-go build
-```
-
-4. See what commands currently supported.
+3. See what commands currently supported.
 
 For Linux, you can run the following on the command prompt:
 
@@ -74,6 +68,8 @@ If you use an s3 store, you need to provide a path to a configuration file in js
 }
 ```
 
-# Note
+# Building The Binaries Yourself
 
-There will be a pipeline later on to generate and publish the binaries once the tool is more stable, so usage step 2 & 3 will no longer be required.
+If you prefer, you can build the binary locally:
+- Get golang: https://golang.org/dl/
+- Run: ```go build```

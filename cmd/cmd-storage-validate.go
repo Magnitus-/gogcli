@@ -8,14 +8,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func generateStorageValidateFsCmd(concurrency *int) *cobra.Command {
+func generateStorageValidateCmd() *cobra.Command {
+	var concurrency int
 	var path string
+	var storageType string
 
-	storageValidateFsCmd := &cobra.Command{
-		Use:   "fs",
-		Short: "Use a file system storage",
+	storageValidateCmd := &cobra.Command{
+		Use:   "validate",
+		Short: "Validate that all the game files in the storage match the size and checksum values in the manifest",
 		Run: func(cmd *cobra.Command, args []string) {
-			errs := storage.ValidateManifest(storage.GetFileSystem(path, debugMode, ""), (*concurrency))
+			var gamesStorage storage.Storage
+			var err error
+
+			if storageType == "fs" {
+				gamesStorage = storage.GetFileSystem(path, debugMode, "")
+			} else if storageType == "s3" {
+				gamesStorage, err = storage.GetS3StoreFromConfigFile(path, debugMode, "")
+				processError(err)
+			} else {
+				fmt.Println("Storage type is invalid")
+				os.Exit(1)
+			}
+			
+			errs := storage.ValidateManifest(gamesStorage, concurrency)
 			if len(errs) > 0 {
 				for _, err := range errs {
 					fmt.Println(err)
@@ -25,21 +40,9 @@ func generateStorageValidateFsCmd(concurrency *int) *cobra.Command {
 		},
 	}
 
-	storageValidateFsCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to the directory where game files are stored")
-	return storageValidateFsCmd
-}
-
-func generateStorageValidateCmd() *cobra.Command {
-	var concurrency int
-
-	storageValidateCmd := &cobra.Command{
-		Use:   "validate",
-		Short: "Validate that all the game files in the storage match the size and checksum values in the manifest",
-	}
-
-	storageValidateCmd.PersistentFlags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
-
-	storageValidateCmd.AddCommand(generateStorageValidateFsCmd(&concurrency))
+	storageValidateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
+	storageValidateCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to your games' storage (directory if it is of type fs, json configuration file if it is of type s3)")
+	storageValidateCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
 
 	return storageValidateCmd
 }

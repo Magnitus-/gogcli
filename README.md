@@ -55,6 +55,25 @@ For Linux, you can run the following on the command prompt:
 
 Not yet sure what the Windows/MacOS equivalent are, but you should have a runable binary that you can use.
 
+# Supported Storage Solutions
+
+The client supports both the filesystem and s3-compatible object stores (tested with Minio, but should be compatible with Ceph, Swift, Amazon S3, Digital Ocean Spaces and others).
+
+If you use the local filesystem, you just need to provided a path to commands.
+
+If you use an s3 store, you need to provide a path to a configuration file in json format which is as follows:
+
+```
+{
+    "Endpoint": "<The S3 endpoint of your object store>",
+    "Region": "<The S3 region your bucket should be in>",
+    "Bucket": "<The bucket in which your manifest and game files should be stored>",
+    "Tls": true|false,
+    "AccessKey": "<Your access key>",
+    "SecretKey": "<Your secret key>"
+}
+```
+
 # Note
 
 There will be a pipeline later on to generate and publish the binaries once the tool is more stable, so usage step 2 & 3 will no longer be required.

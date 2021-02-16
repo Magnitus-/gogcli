@@ -33,6 +33,11 @@ jobs:
           mkdir windows-amd64
           env GOOS=windows GOARCH=amd64 go build -o windows-amd64/gogcli.exe 
           zip -r windows-amd64.zip windows-amd64
+      - name: Build Windows 386 Binary
+        run: |
+          mkdir windows-386
+          env GOOS=windows GOARCH=386 go build -o windows-386/gogcli.exe 
+          zip -r windows-386.zip windows-386
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -78,4 +83,13 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./windows-amd64.zip
           asset_name: windows-amd64.zip
+          asset_content_type: application/zip
+      - name: Upload Windows 386 Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./windows-386.zip
+          asset_name: windows-386.zip
           asset_content_type: application/zip

@@ -5,6 +5,11 @@ import (
 	"gogcli/manifest"
 )
 
+type DoneAction struct {
+	action manifest.Action
+	end bool
+}
+
 type ActionResult struct {
 	gameId int
 	fileKind string
@@ -20,7 +25,7 @@ func addFileAction(
 	gameId int, 
 	fileKind string, 
 	action manifest.FileAction, 
-	result chan ActionResult, 
+	actionResult chan ActionResult,
 	actionErr chan error,
 	s Storage,
 	d Downloader,
@@ -44,13 +49,13 @@ func addFileAction(
 			actionErr <- uploadErr
 		} else {
 			r.fileChecksum = fChecksum
-			result <- r
+			actionResult <- r
 			actionErr <- nil
 		}
 	}
 }
 
-func launchActions(a *manifest.GameActions, s Storage, concurrency int, d Downloader, result chan ActionResult, actionErrsChan chan []error) {
+func launchActions(a *manifest.GameActions, s Storage, concurrency int, d Downloader, result chan ActionResult, doneAction chan DoneAction, actionErrsChan chan []error) {
 	errs := make([]error, 0)
 	actionErr := make(chan error)
 	jobsRunning  := 0
@@ -65,11 +70,15 @@ func launchActions(a *manifest.GameActions, s Storage, concurrency int, d Downlo
 					err := s.AddGame(action.GameId)
 					if err != nil {
 						errs = append(errs, err)
+					} else {
+						doneAction <- DoneAction{action: action, end: false}
 					}
 				} else if action.GameAction == "remove" {
 					err := s.RemoveGame(action.GameId)
 					if err != nil {
 						errs = append(errs, err)
+					} else {
+						doneAction <- DoneAction{action: action, end: false}
 					}
 				}
 			} else {
@@ -90,6 +99,8 @@ func launchActions(a *manifest.GameActions, s Storage, concurrency int, d Downlo
 					err := s.RemoveFile(action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name)
 					if err != nil {
 						errs = append(errs, err)
+					} else {
+						doneAction <- DoneAction{action: action, end: false}
 					}
 				}
 			}
@@ -111,7 +122,7 @@ func launchActions(a *manifest.GameActions, s Storage, concurrency int, d Downlo
 	actionErrsChan <- errs
 }
 
-func keepManifestUpdated(m *manifest.Manifest, s Storage, result chan ActionResult, manifestErrsChan chan []error) {
+func keepManifestUpdated(m *manifest.Manifest, s Storage, result chan ActionResult, doneAction chan DoneAction, errsChan chan []error) {
 	errs := make([]error, 0)
 	for true {
 		r := <- result
@@ -125,35 +136,61 @@ func keepManifestUpdated(m *manifest.Manifest, s Storage, result chan ActionResu
 			err = s.StoreManifest(m)
 			if err != nil {
 				errs = append(errs, err)
+			} else {
+				action := manifest.Action{
+					GameId: r.gameId,
+					IsFileAction: true,
+					FileActionPtr: &r.action,
+					GameAction: "",
+				}
+				doneAction <- DoneAction{action: action, end: false}
 			}
 		}
 	}
 
-	manifestErrsChan <- errs
+	errsChan <- errs
 }
 
-func KeepActionsUpdated(g *manifest.GameActions, s Storage, action chan manifest.Action, actionErrsChan chan []error) {
-
+func KeepActionsUpdated(g *manifest.GameActions, s Storage, doneAction chan DoneAction, errsChan chan []error) {
+	errs := make([]error, 0)
+	for true {
+		d := <- doneAction
+		if d.end {
+			break
+		}
+		g.ApplyAction(d.action)
+		err := s.StoreActions(g)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	errsChan <- errs
 }
 
 func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage, concurrency int, d Downloader) []error {
-	//Missing: keep game actions updated in storage
 	actionErrsChan := make(chan []error)
-	manifestErrsChan := make(chan []error)
-	result := make(chan ActionResult)
-	go launchActions(a.DeepCopy(), s, concurrency, d, result, actionErrsChan)
-	go keepManifestUpdated(m, s, result, manifestErrsChan)
+	actionResult := make(chan ActionResult)
+	manifestUpdateErrsChan := make(chan []error)
+	actionsUpdateErrsChan := make(chan []error)
+	doneAction := make(chan DoneAction)
 	
+	go launchActions(a, s, concurrency, d, actionResult, doneAction, actionErrsChan)
+	go keepManifestUpdated(m, s, actionResult, doneAction, manifestUpdateErrsChan)
+	go KeepActionsUpdated(a.DeepCopy(), s, doneAction, actionsUpdateErrsChan)
 	actionErrs := <- actionErrsChan
-	result <- ActionResult{end: true}
-	manifestErrs := <- manifestErrsChan
-
-	errs := make([]error, len(actionErrs) + len(manifestErrs))
+	actionResult <- ActionResult{end: true}
+	manifestUpdateErrs := <- manifestUpdateErrsChan
+	doneAction <- DoneAction{end: true}
+	actionsUpdateErrs := <- actionsUpdateErrsChan
+	errs := make([]error, len(actionErrs) + len(manifestUpdateErrs) + len(actionsUpdateErrs))
 	for idx, err := range actionErrs {
 		errs[idx] = err
 	}
-	for idx, err := range manifestErrs {
+	for idx, err := range manifestUpdateErrs {
 		errs[idx + len(actionErrs)] = err
+	}
+	for idx, err := range actionsUpdateErrs {
+		errs[idx + len(actionErrs) + len(manifestUpdateErrs)] = err	
 	}
 	return errs
 }

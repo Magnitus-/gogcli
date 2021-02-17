@@ -70,6 +70,10 @@ func (g *GameAction) ExtractFileAction() (FileAction, string, error) {
 
 type GameActions map[int]GameAction
 
+func (g *GameActions) ApplyAction(a Action) {
+	//TODO
+}
+
 func (g *GameActions) GetGameIds() []int {
 	gameIds := make([]int, len(*g))
 

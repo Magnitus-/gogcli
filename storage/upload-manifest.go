@@ -2,7 +2,6 @@ package storage
 
 import (
 	"errors"
-	"fmt"
 	"gogcli/manifest"
 )
 
@@ -55,72 +54,49 @@ func launchActions(a *manifest.GameActions, s Storage, concurrency int, d Downlo
 	errs := make([]error, 0)
 	actionErr := make(chan error)
 	jobsRunning  := 0
-	gameIds := make([]int, len(*a))
-	
-	idx := 0
-	for id, _ := range (*a) {
-		gameIds[idx] = id
-		idx++
-	}
+
+	iterator := manifest.NewActionsInterator(*a)
 	
 	for true {
-		if len(gameIds) > 0 {
-			ga := (*a)[gameIds[0]]
-			if (*a)[gameIds[0]].Action == "add" && len(errs) == 0 {
-				err := s.AddGame(gameIds[0])
-				if err != nil {
-					errs = append(errs, err)
-				}
-				ga.Action = "added"
-				(*a)[gameIds[0]] = ga
-			}
-
-			if (!ga.HasFileActions()) && len(errs) == 0 {
-				if (*a)[gameIds[0]].Action == "remove" {
-					err := s.RemoveGame(gameIds[0])
+		if iterator.HasMore() && len(errs) == 0 {
+			action := iterator.Next()
+			if (!action.IsFileAction) {
+				if action.GameAction == "add" {
+					err := s.AddGame(action.GameId)
 					if err != nil {
 						errs = append(errs, err)
 					}
-					ga.Action = "removed"
-					(*a)[gameIds[0]] = ga
+				} else if action.GameAction == "remove" {
+					err := s.RemoveGame(action.GameId)
+					if err != nil {
+						errs = append(errs, err)
+					}
 				}
-
-				id := gameIds[0]
-				if len(gameIds) > 1 {
-					gameIds = gameIds[1:]
-				} else {
-					gameIds = make([]int, 0)
-				}
-				delete((*a), id)
-			} else if len(errs) == 0 {
-				fileAction, fileKind, _ := ga.ExtractFileAction()
-				(*a)[gameIds[0]] = ga
-				if fileAction.Action == "add" {
+			} else {
+				fileActionPtr := action.FileActionPtr
+				if (*fileActionPtr).Action == "add" {
+					concurrency--
+					jobsRunning++
 					go addFileAction(
-						gameIds[0],
-						fileKind,
-						fileAction,
+						action.GameId,
+						(*fileActionPtr).Kind,
+						(*fileActionPtr),
 						result,
 						actionErr,
 						s,
 						d,
 					)
-					concurrency--
-					jobsRunning++
-				} else if fileAction.Action == "remove" {
-					err := s.RemoveFile(gameIds[0], fileKind, fileAction.Name)
+				} else if (*fileActionPtr).Action == "remove" {
+					err := s.RemoveFile(action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name)
 					if err != nil {
 						errs = append(errs, err)
 					}
-				} else {
-					msg := fmt.Sprintf("launchActions(...) -> %s is not a valid type for file actions", fileAction.Action)
-					errs = append(errs, errors.New(msg))
 				}
 			}
 		}		
 
-		allDone := (len(gameIds) == 0 && jobsRunning == 0) || len(errs) > 0
-		waitOnLingeringJobs := (len(gameIds) == 0 || len(errs) > 0) && jobsRunning > 0
+		allDone := ((!iterator.HasMore()) && jobsRunning == 0) || len(errs) > 0
+		waitOnLingeringJobs := ((!iterator.HasMore()) || len(errs) > 0) && jobsRunning > 0
 		if allDone {
 			break
 		} else if concurrency <= 0 || waitOnLingeringJobs {
@@ -154,6 +130,10 @@ func keepManifestUpdated(m *manifest.Manifest, s Storage, result chan ActionResu
 	}
 
 	manifestErrsChan <- errs
+}
+
+func KeepActionsUpdated(g *manifest.GameActions, s Storage, action chan manifest.Action, actionErrsChan chan []error) {
+
 }
 
 func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage, concurrency int, d Downloader) []error {

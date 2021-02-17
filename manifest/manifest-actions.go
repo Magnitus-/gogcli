@@ -21,6 +21,30 @@ type GameAction struct {
 	ExtraActions     map[string]FileAction
 }
 
+func (g *GameAction) GetInstallerNames() []string {
+	installerNames := make([]string, len((*g).InstallerActions))
+	
+	idx := 0
+	for name, _ := range (*g).InstallerActions {
+		installerNames[idx] = name
+		idx++
+	}
+
+	return installerNames
+}
+
+func (g *GameAction) GetExtraNames() []string {
+	extraNames := make([]string, len((*g).ExtraActions))
+	
+	idx := 0
+	for name, _ := range (*g).ExtraActions {
+		extraNames[idx] = name
+		idx++
+	}
+
+	return extraNames
+}
+
 func (g *GameAction) HasFileActions() bool {
 	return len((*g).InstallerActions) > 0 || len((*g).ExtraActions) > 0
 }
@@ -45,6 +69,18 @@ func (g *GameAction) ExtractFileAction() (FileAction, string, error) {
 }
 
 type GameActions map[int]GameAction
+
+func (g *GameActions) GetGameIds() []int {
+	gameIds := make([]int, len(*g))
+
+	idx := 0
+	for id, _ := range *g {
+		gameIds[idx] = id
+		idx++
+	}
+
+	return gameIds
+}
 
 func (g *GameActions) DeepCopy() (*GameActions) {
 	new := GameActions(make(map[int]GameAction))

@@ -320,7 +320,7 @@ func (s S3Store) RemoveFile(gameId int, kind string, name string) error {
 
 	err := s.client.RemoveObject(context.Background(), s.bucket, oPath, minio.RemoveObjectOptions{})
 
-	if err != nil && s.debug {
+	if err == nil && s.debug {
 		s.logger.Println(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", gameId, kind, name))
 	}
 	return err

@@ -257,7 +257,7 @@ func (f FileSystem) RemoveGame(gameId int) error {
 
 	err = os.RemoveAll(gameDir)
 
-	if err != nil && f.debug {
+	if err == nil && f.debug {
 		f.logger.Println(fmt.Sprintf("RemoveGame(gameId=%d) -> Removed game directory", gameId))
 	}
 	return err
@@ -302,7 +302,7 @@ func (f FileSystem) RemoveFile(gameId int, kind string, name string) error {
 
 	err := os.Remove(fPath)
 
-	if err != nil && f.debug {
+	if err == nil && f.debug {
 		f.logger.Println(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", gameId, kind, name))
 	}
 	return err

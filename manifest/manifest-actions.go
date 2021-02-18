@@ -71,7 +71,23 @@ func (g *GameAction) ExtractFileAction() (FileAction, string, error) {
 type GameActions map[int]GameAction
 
 func (g *GameActions) ApplyAction(a Action) {
-	//TODO
+	if a.IsFileAction {
+		game := (*g)[a.GameId]
+		if (*a.FileActionPtr).Kind == "installer" { 
+			delete(game.InstallerActions, (*a.FileActionPtr).Name)
+		} else {
+			delete(game.ExtraActions, (*a.FileActionPtr).Name)
+		}
+		(*g)[a.GameId] = game
+	} else {
+		if a.GameAction == "add" {
+			game := (*g)[a.GameId]
+			game.Action = "update"
+			(*g)[a.GameId] = game
+		} else {
+			delete((*g), a.GameId)
+		}
+	}
 }
 
 func (g *GameActions) GetGameIds() []int {

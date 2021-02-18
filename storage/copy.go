@@ -32,6 +32,6 @@ func Copy(source Storage, destination Storage, sourceDownloader Downloader, conc
 		return errs
 	}
 
-	errs = UploadManifest(m, destination, concurrency, sourceDownloader)
+	errs = UploadManifest(m, destination, concurrency, sourceDownloader, -1)
 	return errs
 }

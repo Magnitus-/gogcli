@@ -55,15 +55,13 @@ func addFileAction(
 	}
 }
 
-func launchActions(a *manifest.GameActions, s Storage, concurrency int, d Downloader, result chan ActionResult, doneAction chan DoneAction, actionErrsChan chan []error) {
+func launchActions(iterator *manifest.ActionsIterator, s Storage, concurrency int, d Downloader, result chan ActionResult, doneAction chan DoneAction, actionErrsChan chan []error) {
 	errs := make([]error, 0)
 	actionErr := make(chan error)
 	jobsRunning  := 0
-
-	iterator := manifest.NewActionsInterator(*a)
 	
 	for true {
-		if iterator.HasMore() && len(errs) == 0 {
+		if iterator.ShouldContinue() && len(errs) == 0 {
 			action := iterator.Next()
 			if (!action.IsFileAction) {
 				if action.GameAction == "add" {
@@ -106,8 +104,8 @@ func launchActions(a *manifest.GameActions, s Storage, concurrency int, d Downlo
 			}
 		}		
 
-		allDone := ((!iterator.HasMore()) && jobsRunning == 0) || len(errs) > 0
-		waitOnLingeringJobs := ((!iterator.HasMore()) || len(errs) > 0) && jobsRunning > 0
+		allDone := ((!iterator.ShouldContinue()) && jobsRunning == 0) || len(errs) > 0
+		waitOnLingeringJobs := ((!iterator.ShouldContinue()) || len(errs) > 0) && jobsRunning > 0
 		if allDone {
 			break
 		} else if concurrency <= 0 || waitOnLingeringJobs {
@@ -167,14 +165,15 @@ func KeepActionsUpdated(g *manifest.GameActions, s Storage, doneAction chan Done
 	errsChan <- errs
 }
 
-func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage, concurrency int, d Downloader) []error {
+func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage, concurrency int, d Downloader, gamesMax int) []error {
 	actionErrsChan := make(chan []error)
 	actionResult := make(chan ActionResult)
 	manifestUpdateErrsChan := make(chan []error)
 	actionsUpdateErrsChan := make(chan []error)
 	doneAction := make(chan DoneAction)
 	
-	go launchActions(a, s, concurrency, d, actionResult, doneAction, actionErrsChan)
+	iterator := manifest.NewActionsInterator(*a, gamesMax)
+	go launchActions(iterator, s, concurrency, d, actionResult, doneAction, actionErrsChan)
 	go keepManifestUpdated(m, s, actionResult, doneAction, manifestUpdateErrsChan)
 	go KeepActionsUpdated(a.DeepCopy(), s, doneAction, actionsUpdateErrsChan)
 	actionErrs := <- actionErrsChan
@@ -192,10 +191,18 @@ func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage
 	for idx, err := range actionsUpdateErrs {
 		errs[idx + len(actionErrs) + len(manifestUpdateErrs)] = err	
 	}
+
+	if len(errs) == 0 && (!iterator.HasMore()) {
+		err := s.RemoveActions()
+		if err != nil {
+			return []error{err}
+		}
+	}
+
 	return errs
 }
 
-func UploadManifest(m *manifest.Manifest, s Storage, concurrency int, d Downloader) []error {
+func UploadManifest(m *manifest.Manifest, s Storage, concurrency int, d Downloader, gamesMax int) []error {
 	var hasActions bool
 	var actions *manifest.GameActions
 	var err error
@@ -223,12 +230,6 @@ func UploadManifest(m *manifest.Manifest, s Storage, concurrency int, d Download
 		return []error{err}	
 	}
 
-	errs := processGameActions(m, actions, s, concurrency, d)
-	if len(errs) == 0 {
-		err := s.RemoveActions()
-		if err != nil {
-			return []error{err}
-		}
-	}
+	errs := processGameActions(m, actions, s, concurrency, d, gamesMax)
 	return errs
 }

@@ -19,6 +19,7 @@ func generateStorageApplyCmd() *cobra.Command {
 	var concurrency int
 	var path string
 	var storageType string
+	var gamesMax int
 
 	storageApplyCmd := &cobra.Command{
 		Use:   "apply",
@@ -44,7 +45,7 @@ func generateStorageApplyCmd() *cobra.Command {
 			err := storage.EnsureInitialization(gamesStorage)
 			processError(err)
 
-			errs := storage.UploadManifest(&m, gamesStorage, concurrency, downlader)
+			errs := storage.UploadManifest(&m, gamesStorage, concurrency, downlader, gamesMax)
 			processErrors(errs)
 
 			output, _ := json.Marshal(&m)
@@ -60,6 +61,7 @@ func generateStorageApplyCmd() *cobra.Command {
 	storageApplyCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
 	storageApplyCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to the directory where game files should be stored")
 	storageApplyCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
+	storageApplyCmd.Flags().IntVarP(&gamesMax, "maximum", "x", -1, "The maximum number of games to upload into storage.")
 
 	return storageApplyCmd
 }

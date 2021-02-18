@@ -13,9 +13,11 @@ type ActionsIterator struct {
 	currentGameActionDone bool
 	installerNames        []string
 	extraNames            []string
+	maxGames              int
+	processedGames        int
 }
 
-func NewActionsInterator(a GameActions) *ActionsIterator {
+func NewActionsInterator(a GameActions, maxGames int) *ActionsIterator {
 	gameIds := a.GetGameIds()
 	currentGameAction := a[gameIds[0]]
 	new := &ActionsIterator{
@@ -24,9 +26,15 @@ func NewActionsInterator(a GameActions) *ActionsIterator {
 		currentGameActionDone: false,
 		installerNames: currentGameAction.GetInstallerNames(),
 		extraNames: currentGameAction.GetExtraNames(),
+		maxGames: maxGames,
+		processedGames: 0,
 	}
 
 	return new
+}
+
+func (i *ActionsIterator) ShouldContinue() bool {
+	return i.HasMore() && (i.maxGames == -1 || i.processedGames < i.maxGames)
 }
 
 func (i *ActionsIterator) HasMore() bool {
@@ -102,5 +110,6 @@ func (i *ActionsIterator) Next() Action {
 	currentGameAction := i.gameActions[i.gameIds[0]]
 	i.installerNames = currentGameAction.GetInstallerNames()
 	i.extraNames = currentGameAction.GetExtraNames()
+	i.processedGames++
 	return i.Next()
 }

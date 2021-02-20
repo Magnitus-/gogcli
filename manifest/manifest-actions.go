@@ -21,6 +21,10 @@ type GameAction struct {
 	ExtraActions     map[string]FileAction
 }
 
+func (g *GameAction) IsNoOp() bool {
+	return (*g).Action == "update" && (!(*g).HasFileActions())
+}
+
 func (g *GameAction) GetInstallerNames() []string {
 	installerNames := make([]string, len((*g).InstallerActions))
 	
@@ -78,7 +82,11 @@ func (g *GameActions) ApplyAction(a Action) {
 		} else {
 			delete(game.ExtraActions, (*a.FileActionPtr).Name)
 		}
-		(*g)[a.GameId] = game
+		if game.IsNoOp() {
+			delete((*g), game.Id)
+		} else {
+			(*g)[a.GameId] = game
+		}
 	} else {
 		if a.GameAction == "add" {
 			game := (*g)[a.GameId]

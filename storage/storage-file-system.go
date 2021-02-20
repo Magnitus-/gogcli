@@ -177,7 +177,7 @@ func (f FileSystem) LoadActions() (*manifest.GameActions, error) {
 		return a, err
 	}
 
-	err = json.Unmarshal(bs, a)
+	err = json.Unmarshal(bs, &a)
 	if err != nil {
 		return a, err
 	}

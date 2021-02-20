@@ -53,26 +53,28 @@ func (g *GameAction) HasFileActions() bool {
 	return len((*g).InstallerActions) > 0 || len((*g).ExtraActions) > 0
 }
 
-func (g *GameAction) ExtractFileAction() (FileAction, string, error) {
-	var fetchedAction FileAction
-	if len((*g).InstallerActions) > 0 {
-		for k, _ := range (*g).InstallerActions {
-			fetchedAction = (*g).InstallerActions[k]
-			delete((*g).InstallerActions, k)
-			return fetchedAction, "installer", nil
-		}
-	} else if len((*g).ExtraActions) > 0 {
-		for k, _ := range (*g).ExtraActions {
-			fetchedAction = (*g).ExtraActions[k]
-			delete((*g).ExtraActions, k)
-			return fetchedAction, "extra", nil
-		}
-	}
+func (g *GameAction) CountFileActions() int {
+	return len((*g).InstallerActions) + len((*g).ExtraActions)
+}
 
-	return fetchedAction, "", errors.New("ExtractFileAction() -> No action left to extract")
+func (g *GameAction) ActionsLeft() int {
+	actionsCount := g.CountFileActions()
+	if (*g).Action != "update" {
+		actionsCount++
+	}
+	return actionsCount
 }
 
 type GameActions map[int]GameAction
+
+func (g *GameActions) ActionsLeft() int {
+	actionsCount := 0
+	for id, _ := range *g {
+		gameAction := (*g)[id]
+		actionsCount += gameAction.ActionsLeft()
+	}
+	return actionsCount
+}
 
 func (g *GameActions) ApplyAction(a Action) {
 	if a.IsFileAction {

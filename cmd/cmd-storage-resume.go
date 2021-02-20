@@ -19,7 +19,7 @@ func generateStorageResumeCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			downloader := sdk.Downloader{sdkPtr}
 			gamesStorage, _ := getStorage(path, storageType, debugMode, "")
-			errs := storage.ResumeUpload(gamesStorage, concurrency, downloader, gamesMax)
+			errs := storage.ResumeUploadManifest(gamesStorage, concurrency, downloader, gamesMax)
 			processErrors(errs)
 		},
 	}

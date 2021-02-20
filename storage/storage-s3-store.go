@@ -240,7 +240,7 @@ func (s S3Store) LoadActions() (*manifest.GameActions, error) {
 		return a, bErr
 	}
 
-	err = json.Unmarshal(bs, a)
+	err = json.Unmarshal(bs, &a)
 	if err != nil {
 		return a, err
 	}

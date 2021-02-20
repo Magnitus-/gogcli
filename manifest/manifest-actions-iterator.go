@@ -61,7 +61,16 @@ func (i *ActionsIterator) Next() Action {
 	}
 
 	currentGameId := i.gameIds[0]
-	if (!i.currentGameActionDone) && i.gameActions[currentGameId].Action == "add" {
+	currentGame := i.gameActions[currentGameId]
+	
+	remainingFileActions := currentGame.CountFileActions()
+	onlyOneFileActionRemains := i.currentGameActionDone && remainingFileActions == 1
+	onlyOneGameActionRemains := (!i.currentGameActionDone) && remainingFileActions == 0
+	if onlyOneFileActionRemains || onlyOneGameActionRemains {
+		i.processedGames++
+	}
+
+	if (!i.currentGameActionDone) && currentGame.Action == "add" {
 		i.currentGameActionDone = true
 		return Action{
 			GameId: currentGameId,
@@ -74,7 +83,7 @@ func (i *ActionsIterator) Next() Action {
 	if len(i.installerNames) > 0 {
 		name := i.installerNames[0]
 		i.installerNames = i.installerNames[1:]
-		fileAction := i.gameActions[currentGameId].InstallerActions[name]
+		fileAction := currentGame.InstallerActions[name]
 		return Action{
 			GameId: currentGameId,
 			IsFileAction: true,
@@ -86,7 +95,7 @@ func (i *ActionsIterator) Next() Action {
 	if len(i.extraNames) > 0 {
 		name := i.extraNames[0]
 		i.extraNames = i.extraNames[1:]
-		fileAction := i.gameActions[currentGameId].ExtraActions[name]
+		fileAction := currentGame.ExtraActions[name]
 		return Action{
 			GameId: currentGameId,
 			IsFileAction: true,
@@ -95,7 +104,7 @@ func (i *ActionsIterator) Next() Action {
 		}
 	}
 
-	if (!i.currentGameActionDone) && i.gameActions[currentGameId].Action == "remove" {
+	if (!i.currentGameActionDone) && currentGame.Action == "remove" {
 		i.currentGameActionDone = true
 		return Action{
 			GameId: currentGameId,
@@ -110,6 +119,5 @@ func (i *ActionsIterator) Next() Action {
 	currentGameAction := i.gameActions[i.gameIds[0]]
 	i.installerNames = currentGameAction.GetInstallerNames()
 	i.extraNames = currentGameAction.GetExtraNames()
-	i.processedGames++
 	return i.Next()
 }

@@ -5,21 +5,26 @@ import (
 	"gogcli/manifest"
 )
 
-func UploadManifest(m *manifest.Manifest, s Storage, concurrency int, d Downloader, gamesMax int) []error {
-	var hasActions bool
+func UploadManifest(m *manifest.Manifest, s Storage, src Source, concurrency int, d Downloader, gamesMax int) []error {
+	var hasSource bool
 	var actions *manifest.GameActions
 	var err error
 
-	hasActions, err = s.HasActions()
+	hasSource, err = s.HasSource()
 	if err != nil {
 		return []error{err}
 	}
 	
-	if hasActions {
-		return []error{errors.New("An unfinished manifest apply is already in progress. Aborting.")}
+	if hasSource {
+		return []error{errors.New("Unfinished actions are pending in the storage. Aborting.")}
 	}
 
 	actions, err = PlanManifest(m, s)
+	if err != nil {
+		return []error{err}
+	}
+
+	err = s.StoreSource(&src)
 	if err != nil {
 		return []error{err}
 	}

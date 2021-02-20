@@ -17,9 +17,30 @@ func generateStorageResumeCmd() *cobra.Command {
 		Use:   "resume",
 		Short: "Resume a manifest apply operation that didn't complete on a storage",
 		Run: func(cmd *cobra.Command, args []string) {
-			downloader := sdk.Downloader{sdkPtr}
-			gamesStorage, _ := getStorage(path, storageType, debugMode, "")
-			errs := storage.ResumeUploadManifest(gamesStorage, concurrency, downloader, gamesMax)
+			var downloader storage.Downloader
+			gamesStorage, _ := getStorage(path, storageType, debugMode, "DESTINATION")
+			
+			source, err := gamesStorage.LoadSource()
+			if err != nil {
+				processError(err)
+			}
+			if source.Type == "gog" {
+				downloader = sdk.Downloader{sdkPtr}
+			} else if source.Type == "fs" {
+				fs, sourceErr := storage.GetFileSystemFromSource(*source ,debugMode, "SOURCE")
+				if sourceErr != nil {
+					processError(sourceErr)
+				}
+				downloader = storage.FileSystemDownloader{fs}
+			} else {
+				s3, sourceErr := storage.GetS3StoreFromSource(*source ,debugMode, "SOURCE")
+				if sourceErr != nil {
+					processError(sourceErr)
+				}
+				downloader = storage.S3StoreDownloader{s3}
+			}
+			
+			errs := storage.ResumeActions(gamesStorage, concurrency, downloader, gamesMax)
 			processErrors(errs)
 		},
 	}

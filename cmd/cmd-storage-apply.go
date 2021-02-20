@@ -45,7 +45,7 @@ func generateStorageApplyCmd() *cobra.Command {
 			err := storage.EnsureInitialization(gamesStorage)
 			processError(err)
 
-			errs := storage.UploadManifest(&m, gamesStorage, concurrency, downloader, gamesMax)
+			errs := storage.UploadManifest(&m, gamesStorage, storage.Source{Type: "gog"}, concurrency, downloader, gamesMax)
 			processErrors(errs)
 
 			output, _ := json.Marshal(&m)

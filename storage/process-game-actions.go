@@ -194,6 +194,10 @@ func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage
 		if err != nil {
 			return []error{err}
 		}
+		err = s.RemoveSource()
+		if err != nil {
+			return []error{err}
+		}
 	}
 
 	return errs

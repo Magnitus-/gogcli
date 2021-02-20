@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func ResumeUploadManifest(s Storage, concurrency int, d Downloader, gamesMax int) []error {
+func ResumeActions(s Storage, concurrency int, d Downloader, gamesMax int) []error {
 	exists, err := s.Exists()
 	if err != nil {
 		return []error{err}

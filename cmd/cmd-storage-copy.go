@@ -12,6 +12,7 @@ func generateStorageCopyCmd() *cobra.Command {
 	var destinationPath string
 	var sourceStorage string
 	var destinationStorage string
+	var gamesMax int
 
 	storageCopyCmd := &cobra.Command{
 		Use:   "copy",
@@ -20,7 +21,7 @@ func generateStorageCopyCmd() *cobra.Command {
 			source, downloader := getStorage(sourcePath, sourceStorage, debugMode, "SOURCE")
 			destination, _ := getStorage(destinationPath, destinationStorage, debugMode, "DESTINATION")
 
-			errs := storage.Copy(source, destination, downloader, concurrency)
+			errs := storage.Copy(source, destination, downloader, concurrency, gamesMax)
 			processErrors(errs)
 		},
 	}
@@ -30,6 +31,7 @@ func generateStorageCopyCmd() *cobra.Command {
 	storageCopyCmd.Flags().StringVarP(&sourceStorage, "source-storage", "t", "fs", "Kind of storage your source is. Can be 'fs' (for file system) or 's3' (for s3 store)")
 	storageCopyCmd.Flags().StringVarP(&destinationPath, "destination-path", "n", "games-copy", "Path to the destination of your games (directory if it is of type fs, json configuration file if it is of type s3)")
 	storageCopyCmd.Flags().StringVarP(&destinationStorage, "destination-storage", "o", "fs", "Kind of storage your destination is. Can be 'fs' (for file system) or 's3' (for s3 store)")
+	storageCopyCmd.Flags().IntVarP(&gamesMax, "maximum", "x", -1, "The maximum number of games to copy into storage.")
 
 	return storageCopyCmd
 }

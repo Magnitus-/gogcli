@@ -22,6 +22,14 @@ type FileSystem struct {
 	logger *log.Logger
 }
 
+func GetFileSystemFromSource(s Source, debug bool, tag string) (FileSystem, error) {
+	if s.Type != "fs" {
+		msg := fmt.Sprintf("Cannot load file system from source of type %s", s.Type)
+		return FileSystem{"", false, nil}, errors.New(msg)
+	}
+	return GetFileSystem(s.FsPath, debug, tag), nil
+}
+
 func GetFileSystem(path string, debug bool, tag string) FileSystem {
 	var logPrefix string
 	if tag == "" {
@@ -30,6 +38,11 @@ func GetFileSystem(path string, debug bool, tag string) FileSystem {
 		logPrefix = fmt.Sprintf("FS-%s: ", tag)
 	}
 	return FileSystem{path, debug, log.New(os.Stdout, logPrefix, log.Lshortfile)}
+}
+
+func (f FileSystem) GenerateSource() *Source {
+	src := Source{Type: "fs", FsPath: f.Path}
+	return &src
 }
 
 func (f FileSystem) GetPrintableSummary() string {
@@ -108,6 +121,25 @@ func (f FileSystem) HasActions() (bool, error) {
 	return true, nil
 }
 
+func (f FileSystem) HasSource() (bool, error) {
+	_, err := os.Stat(path.Join(f.Path, "source.json"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			if f.debug {
+				f.logger.Println("HasSource() -> Source not found")
+			}
+			return false, nil
+		}
+
+		msg := fmt.Sprintf("HasSource() -> The following error occured while ascertaining source's existance: %s", err.Error())
+		return true, errors.New(msg)
+	}
+	if f.debug {
+		f.logger.Println("HasSource() -> Source found")
+	}
+	return true, nil
+}
+
 func (f FileSystem) StoreManifest(m *manifest.Manifest) error {
 	var err error
 	var buf bytes.Buffer
@@ -150,6 +182,27 @@ func (f FileSystem) StoreActions(a *manifest.GameActions) error {
 	return err
 }
 
+func (f FileSystem) StoreSource(s *Source) error {
+	var err error
+	var buf bytes.Buffer
+	var output []byte
+
+	output, err = json.Marshal(*s)
+
+	if err != nil {
+		return err
+	}
+
+	json.Indent(&buf, output, "", "  ")
+	output = buf.Bytes()
+
+	err = ioutil.WriteFile(path.Join(f.Path, "source.json"), output, 0644)
+	if err == nil && f.debug {
+		f.logger.Println(fmt.Sprintf("StoreSource(...) -> Stored source of type %s", s.Type))
+	}
+	return err
+}
+
 func (f FileSystem) LoadManifest() (*manifest.Manifest, error) {
 	var m manifest.Manifest
 
@@ -188,6 +241,25 @@ func (f FileSystem) LoadActions() (*manifest.GameActions, error) {
 	return a, nil
 }
 
+func (f FileSystem) LoadSource() (*Source, error) {
+	var s *Source
+
+	bs, err := ioutil.ReadFile(path.Join(f.Path, "source.json"))
+	if err != nil {
+		return s, err
+	}
+
+	err = json.Unmarshal(bs, &s)
+	if err != nil {
+		return s, err
+	}
+
+	if f.debug {
+		f.logger.Println(fmt.Sprintf("LoadSource() -> Loaded source of type %s", (*s).Type))
+	}
+	return s, nil
+}
+
 func (f FileSystem) RemoveActions() error {
 	has, err := f.HasActions()
 	if err != nil {
@@ -199,6 +271,21 @@ func (f FileSystem) RemoveActions() error {
 	}
 	if err == nil && f.debug {
 		f.logger.Println("RemoveActions(...) -> Removed actions file")
+	}
+	return err
+}
+
+func (f FileSystem) RemoveSource() error {
+	has, err := f.HasSource()
+	if err != nil {
+		return err
+	}
+
+	if has {
+	    err = os.Remove(path.Join(f.Path, "source.json"))
+	}
+	if err == nil && f.debug {
+		f.logger.Println("RemoveSource(...) -> Removed source file")
 	}
 	return err
 }

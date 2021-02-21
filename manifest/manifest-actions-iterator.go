@@ -1,5 +1,10 @@
 package manifest
 
+import (
+	"errors"
+	"fmt"
+)
+
 type Action struct {
 	GameId int
 	IsFileAction bool
@@ -22,7 +27,7 @@ func NewActionsInterator(a GameActions, maxGames int) *ActionsIterator {
 	currentGameAction := a[gameIds[0]]
 	new := &ActionsIterator{
 		gameActions: a,
-		gameIds: a.GetGameIds(),
+		gameIds: gameIds,
 		currentGameActionDone: false,
 		installerNames: currentGameAction.GetInstallerNames(),
 		extraNames: currentGameAction.GetExtraNames(),
@@ -31,6 +36,18 @@ func NewActionsInterator(a GameActions, maxGames int) *ActionsIterator {
 	}
 
 	return new
+}
+
+func (i *ActionsIterator) Stringify() string {
+	return fmt.Sprintf(
+		"{'gameId': %d, 'gameActionDone': %t, 'installersLeft': %d, 'extrasLeft': %d, 'processedGames': %d, 'maxGames': %d}",
+		(*i).gameIds[0],
+		(*i).currentGameActionDone,
+		len((*i).installerNames),
+		len((*i).extraNames),
+		(*i).processedGames,
+		(*i).maxGames,
+	)
 }
 
 func (i *ActionsIterator) ShouldContinue() bool {
@@ -50,20 +67,20 @@ func (i *ActionsIterator) HasMore() bool {
 	return !i.currentGameActionDone
 }
 
-func (i *ActionsIterator) Next() Action {
-	if !i.HasMore() {
+func (i *ActionsIterator) Next() (Action, error) {
+	if !i.ShouldContinue() {
 		return Action{
 			GameId: -1,
 			IsFileAction: false,
 			FileActionPtr: nil,
 			GameAction: "",
-		}
+		}, errors.New("*ActionsIterator.Next() -> End of iterator, cannot fetch anymore")
 	}
 
 	currentGameId := i.gameIds[0]
 	currentGame := i.gameActions[currentGameId]
 	
-	remainingFileActions := currentGame.CountFileActions()
+	remainingFileActions := len(i.extraNames) + len(i.installerNames)
 	onlyOneFileActionRemains := i.currentGameActionDone && remainingFileActions == 1
 	onlyOneGameActionRemains := (!i.currentGameActionDone) && remainingFileActions == 0
 	if onlyOneFileActionRemains || onlyOneGameActionRemains {
@@ -77,7 +94,7 @@ func (i *ActionsIterator) Next() Action {
 			IsFileAction: false,
 			FileActionPtr: nil,
 			GameAction: "add",
-		}
+		}, nil
 	}
 
 	if len(i.installerNames) > 0 {
@@ -89,7 +106,7 @@ func (i *ActionsIterator) Next() Action {
 			IsFileAction: true,
 			FileActionPtr: &fileAction,
 			GameAction: "",
-		}
+		}, nil
 	}
 
 	if len(i.extraNames) > 0 {
@@ -101,7 +118,7 @@ func (i *ActionsIterator) Next() Action {
 			IsFileAction: true,
 			FileActionPtr: &fileAction,
 			GameAction: "",
-		}
+		}, nil
 	}
 
 	if (!i.currentGameActionDone) && currentGame.Action == "remove" {
@@ -111,7 +128,7 @@ func (i *ActionsIterator) Next() Action {
 			IsFileAction: false,
 			FileActionPtr: nil,
 			GameAction: "remove",
-		}
+		}, nil
 	}
 
 	i.gameIds = i.gameIds[1:]

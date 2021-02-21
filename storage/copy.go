@@ -6,8 +6,6 @@ import (
 )
 
 func Copy(source Storage, destination Storage, sourceDownloader Downloader, concurrency int, gamesMax int) []error {
-	errs := make([]error, 0)
-
 	exists, err := source.Exists()
 	if err != nil {
 		return []error{err}
@@ -43,10 +41,8 @@ func Copy(source Storage, destination Storage, sourceDownloader Downloader, conc
 
 	m, loadErr := source.LoadManifest()
 	if loadErr != nil {
-		errs := append(errs, loadErr)
-		return errs
+		return []error{loadErr}
 	}
 
-	errs = UploadManifest(m, destination, *source.GenerateSource(), concurrency, sourceDownloader, gamesMax)
-	return errs
+	return UploadManifest(m, destination, *source.GenerateSource(), concurrency, sourceDownloader, gamesMax)
 }

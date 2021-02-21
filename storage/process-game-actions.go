@@ -59,8 +59,10 @@ func launchActions(iterator *manifest.ActionsIterator, s Storage, concurrency in
 	
 	for true {
 		if iterator.ShouldContinue() && len(errs) == 0 {
-			action := iterator.Next()
-			if (!action.IsFileAction) {
+			action, nextErr := iterator.Next()
+			if nextErr != nil {
+				errs = append(errs, nextErr)
+			} else if (!action.IsFileAction) {
 				if action.GameAction == "add" {
 					err := s.AddGame(action.GameId)
 					if err != nil {
@@ -100,12 +102,12 @@ func launchActions(iterator *manifest.ActionsIterator, s Storage, concurrency in
 				}
 			}
 		}		
-
-		allDone := ((!iterator.ShouldContinue()) && jobsRunning == 0) || len(errs) > 0
-		waitOnLingeringJobs := ((!iterator.ShouldContinue()) || len(errs) > 0) && jobsRunning > 0
+		endWhenPossible := (!iterator.ShouldContinue()) || (len(errs) > 0)
+		allDone := endWhenPossible && jobsRunning == 0
+		waitOnLingeringJobs := endWhenPossible && jobsRunning > 0
 		if allDone {
 			break
-		} else if concurrency <= 0 || waitOnLingeringJobs {
+		} else if concurrency <= 0 && waitOnLingeringJobs {
 			err := <- actionErr
 			if err != nil {
 				errs = append(errs, err)

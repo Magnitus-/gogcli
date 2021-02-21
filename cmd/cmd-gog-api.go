@@ -17,6 +17,7 @@ func generateGogApiCmd() *cobra.Command {
 	gogApiCmd.AddCommand(generateGameDetailsCmd())
 	gogApiCmd.AddCommand(generateUserInfoCmd())
 	gogApiCmd.AddCommand(generateDownloadUrlPathCmd())
+	gogApiCmd.AddCommand(generateUrlPathInfoCmd())
 	gogApiCmd.AddCommand(generateUrlPathFilenameCmd())
 
 	return gogApiCmd

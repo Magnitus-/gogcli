@@ -159,12 +159,16 @@ func (s *Sdk) GetManifest(search string, concurrency int, pause int) (manifest.M
 		idx++;
 	}
 
-	downloadFilenames, filenameErrs := s.GetManyDownloadFilename(installerUrls, concurrency, pause)
-	if len(filenameErrs) > 0 {
-		return m, filenameErrs
+	downloadInfos, fileInfoErrs := s.GetManyDownloadFileInfo(installerUrls, concurrency, pause)
+	if len(fileInfoErrs) > 0 {
+		return m, fileInfoErrs
 	}
-	for _, downloadFilename := range downloadFilenames {
-		(*installersMap[downloadFilename.url]).Name = downloadFilename.filename
+	for _, downloadFileInfo := range downloadInfos {
+		(*installersMap[downloadFileInfo.url]).Name = downloadFileInfo.name
+		if downloadFileInfo.size != -1 {
+			(*installersMap[downloadFileInfo.url]).Checksum = downloadFileInfo.checksum
+			(*installersMap[downloadFileInfo.url]).VerifiedSize = downloadFileInfo.size
+		}
 	} 
 
 	extrasMap := m.GetUrlMappedExtras()
@@ -175,12 +179,16 @@ func (s *Sdk) GetManifest(search string, concurrency int, pause int) (manifest.M
 		idx++;
 	}
 
-	downloadFilenames, filenameErrs = s.GetManyDownloadFilename(extraUrls, concurrency, pause)
-	if len(filenameErrs) > 0 {
-		return m, filenameErrs
+	downloadInfos, fileInfoErrs = s.GetManyDownloadFileInfo(extraUrls, concurrency, pause)
+	if len(fileInfoErrs) > 0 {
+		return m, fileInfoErrs
 	}
-	for _, downloadFilename := range downloadFilenames {
-		(*extrasMap[downloadFilename.url]).Name = downloadFilename.filename
+	for _, downloadFileInfo := range downloadInfos {
+		(*extrasMap[downloadFileInfo.url]).Name = downloadFileInfo.name
+		if downloadFileInfo.size != -1 {
+			(*extrasMap[downloadFileInfo.url]).Checksum = downloadFileInfo.checksum
+			(*extrasMap[downloadFileInfo.url]).VerifiedSize = downloadFileInfo.size
+		}
 	} 
 
 	return m, nil

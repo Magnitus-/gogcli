@@ -12,17 +12,17 @@ func generateUrlPathInfoCmd() *cobra.Command {
 
 	urlPathInfoCmd := &cobra.Command{
 		Use:   "url-path-info",
-		Short: "Given a download path, retrieve the filename and checksum of the file that would be downloaded. Valid paths can be obtained from the manifest.",
+		Short: "Given a download path, retrieve the filename, size and checksum of the file that would be downloaded. Valid paths can be obtained from the manifest.",
 		Run: func(cmd *cobra.Command, args []string) {
-			filename, checksum, size, err := sdkPtr.GetDownloadInfo(path)
+			filename, checksum, size, err := sdkPtr.GetDownloadFileInfo(path)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)
 			}
 
-			fmt.Println(filename)
-			fmt.Println(checksum)
-			fmt.Println(size)
+			fmt.Println("File Name: ", filename)
+			fmt.Println("Checksum:", checksum)
+			fmt.Println("Size:", size)
 		},
 	}
 

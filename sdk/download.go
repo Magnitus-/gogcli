@@ -43,44 +43,44 @@ type XmlFile struct {
 	XMLName  xml.Name `xml:"file"`
 	Name     string `xml:"name,attr"`
 	Checksum string `xml:"md5,attr"`
-	Size     int `xml:"total_size,attr"`
+	Size     int64 `xml:"total_size,attr"`
 	Chunks   []XmlFileChunk
 }
 
 type XmlFileChunk struct {
 	Id   int `xml:"id,attr"`
-	From int `xml:"from,attr"`
-	To   int `xml:"to,attr"`
+	From int64 `xml:"from,attr"`
+	To   int64 `xml:"to,attr"`
 	Checksum string `xml:",chardata"`
 }
 
-func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (bool, string, string, int, error) {
+func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (bool, string, string, int64, error) {
 	fileInfo := XmlFile{Chunks: make([]XmlFileChunk, 0)}
 
 	r, err := c.Get(metadataUrl)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
-		return true, "", "", -1, errors.New(msg)
+		return true, "", "", int64(-1), errors.New(msg)
 	}
 	if r.StatusCode != 200 {
-		if r.StatusCode == 404 {
-			return false, "", "", -1, nil
+		if r.StatusCode == 404 || r.StatusCode == 403 {
+			return false, "", "", int64(-1), nil
 		} else {
 			msg := fmt.Sprintf("%s -> Expected response status code of 200, but got %d", fn, r.StatusCode)
-			return true, "", "", -1, errors.New(msg)
+			return true, "", "", int64(-1), errors.New(msg)
 		}
 	}
 
 	b, bErr := ioutil.ReadAll(r.Body)
 	if bErr != nil {
 		msg := fmt.Sprintf("%s -> retrieval body error: %s", fn, bErr.Error())
-		return true, "", "", -1, errors.New(msg)
+		return true, "", "", int64(-1), errors.New(msg)
 	}
 
 	err = xml.Unmarshal(b, &fileInfo)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> Could not parse file metadata: %s", fn, err.Error())
-		return true, "", "", -1, errors.New(msg)
+		return true, "", "", int64(-1), errors.New(msg)
 	}
 
 	return true, fileInfo.Name, fileInfo.Checksum, fileInfo.Size, nil
@@ -110,7 +110,7 @@ func retrieveUrlRedirectLocation(c http.Client, redirectingUrl string, fn string
 }
 
 //Gets the filename and checksum of the url path, requires 3 requests
-func (s *Sdk) GetDownloadInfo(downloadPath string) (string, string, int, error) {
+func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, error) {
 	var filenameLoc string
 	var downloadLoc string
 	var err error
@@ -124,29 +124,29 @@ func (s *Sdk) GetDownloadInfo(downloadPath string) (string, string, int, error) 
 
 	filenameLoc, err = retrieveUrlRedirectLocation(c, u, fn)
 	if err != nil {
-		return "", "", -1, err
+		return "", "", int64(-1), err
 	}
 	downloadLoc, err = retrieveUrlRedirectLocation(c, filenameLoc, fn)
 	if err != nil {
-		return "", "", -1, err
+		return "", "", int64(-1), err
 	}
 
 	//Finally, retrieve the metadata
 	metadataUrl, metadataUrlErr := convertDownloadUrlToMetadataUrl(downloadLoc)
 	if metadataUrlErr != nil {
-		return "", "", -1, metadataUrlErr
+		return "", "", int64(-1), metadataUrlErr
 	}
 
 	found, filename, checksum, size, retrieveMetaErr := retrieveDownloadMetadata(c, metadataUrl, fn)
 	if retrieveMetaErr != nil {
-		return "", "", -1, retrieveMetaErr
+		return "", "", int64(-1), retrieveMetaErr
 	}
 	if !found {
 		filename, err = getFilenameFromUrl(filenameLoc, fn)
 		if err != nil {
-			return "", "", -1, err
+			return "", "", int64(-1), err
 		}
-		return filename, "", -1, nil
+		return filename, "", int64(-1), nil
 	} else {
 		return filename, checksum, size, nil
 	}

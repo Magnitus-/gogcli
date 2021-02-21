@@ -2,33 +2,37 @@ package sdk
 
 import "time"
 
-type DownloadFilename struct {
+type DownloadFileInfo struct {
 	url      string
-	filename string
+	name     string
+	checksum string
+	size     int64
 }
 
-type DownloadFilenameReturn struct {
+type DownloadFileInfoReturn struct {
 	url      string
-	filename string
+	name     string
+	checksum string
+	size     int64
 	err      error
 }
 
-func (s *Sdk) GetDownloadFilenameAsync(downloadPath string, returnVal chan DownloadFilenameReturn) {
-	filename, err := s.GetDownloadFilename(downloadPath)
-	returnVal <- DownloadFilenameReturn{url: downloadPath, filename: filename, err: err}
+func (s *Sdk) GetDownloadFilenInfoAsync(downloadPath string, returnVal chan DownloadFileInfoReturn) {
+	name, checksum, size, err := s.GetDownloadFileInfo(downloadPath)
+	returnVal <- DownloadFileInfoReturn{url: downloadPath, name: name, checksum: checksum, size: size, err: err}
 }
 
-func (s *Sdk) GetManyDownloadFilename(downloadPaths []string, concurrency int, pause int) ([]DownloadFilename, []error) {
+func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, pause int) ([]DownloadFileInfo, []error) {
 	var errs []error
-	var downloadFilenames []DownloadFilename
-	c := make(chan DownloadFilenameReturn)
+	var downloadFileInfos []DownloadFileInfo
+	c := make(chan DownloadFileInfoReturn)
 
 	i := 0
 	for i < len(downloadPaths) {
 		beginning := i
 		target := min(len(downloadPaths), i+concurrency)
 		for i < target {
-			go s.GetDownloadFilenameAsync(downloadPaths[i], c)
+			go s.GetDownloadFilenInfoAsync(downloadPaths[i], c)
 			i++
 		}
 
@@ -38,13 +42,13 @@ func (s *Sdk) GetManyDownloadFilename(downloadPaths []string, concurrency int, p
 			if returnVal.err != nil {
 				errs = append(errs, returnVal.err)
 			} else {
-				downloadFilenames = append(downloadFilenames, DownloadFilename{url: returnVal.url, filename: returnVal.filename})
+				downloadFileInfos = append(downloadFileInfos, DownloadFileInfo{url: returnVal.url, name: returnVal.name, checksum: returnVal.checksum, size: returnVal.size})
 			}
 			y++
 		}
 
 		if len(errs) > 0 {
-			return downloadFilenames, errs
+			return downloadFileInfos, errs
 		}
 
 		if i < len(downloadPaths) {
@@ -52,5 +56,5 @@ func (s *Sdk) GetManyDownloadFilename(downloadPaths []string, concurrency int, p
 		}
 	}
 
-	return downloadFilenames, nil
+	return downloadFileInfos, nil
 }

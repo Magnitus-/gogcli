@@ -77,10 +77,14 @@ func ValidateManifest(s Storage, concurrency int) []error {
 			break
 		}
 		if iterator.HasMore() {
-			file := iterator.Next()
-			go validateFile(file, s, errChan)
-			jobsRunning++
-			concurrency--
+			file, err := iterator.Next()
+			if err != nil {
+				errs = append(errs, err)
+			} else {
+				go validateFile(file, s, errChan)
+				jobsRunning++
+				concurrency--
+			}
 		}
 	}
 

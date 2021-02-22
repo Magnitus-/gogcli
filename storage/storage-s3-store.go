@@ -414,6 +414,11 @@ func (s S3Store) UploadFile(source io.ReadCloser, gameId int, kind string, name 
 		return "", statErr
 	}
 
+	if info.Size != expectedSize {
+		msg := fmt.Sprintf("Object %s has a size of %d which doesn't match expected size of %d", fPath, info.Size, expectedSize)
+		return "", errors.New(msg)
+	}
+
 	if s.debug {
 		s.logger.Println(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", gameId, kind, name))
 	}

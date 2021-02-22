@@ -17,6 +17,28 @@ type ManifestGame struct {
 	VerifiedSize  int64
 }
 
+func (g *ManifestGame) getInstallerNamed(name string) (ManifestGameInstaller, error) {
+	for idx, _ := range (*g).Installers {
+		if (*g).Installers[idx].Name == name {
+			return (*g).Installers[idx], nil
+		}
+	}
+
+	msg := fmt.Sprintf("*ManifestGame.getInstallerNamed(name=%) -> No installer by that name", name)
+	return ManifestGameInstaller{}, errors.New(msg)
+}
+
+func (g *ManifestGame) getExtraNamed(name string) (ManifestGameExtra, error) {
+	for idx, _ := range (*g).Extras {
+		if (*g).Extras[idx].Name == name {
+			return (*g).Extras[idx], nil
+		}
+	}
+
+	msg := fmt.Sprintf("*ManifestGame.getExtraNamed(name=%) -> No extra by that name", name)
+	return ManifestGameExtra{}, errors.New(msg)
+}
+
 func (g *ManifestGame) trimInstallers(oses []string, languages []string, keepAny bool) {
 	filteredInstallers := make([]ManifestGameInstaller, 0)
 

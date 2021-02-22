@@ -366,10 +366,18 @@ func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, na
 	if err != nil {
 		return "", err
 	}
-	defer dest.Close()
 
 	w := io.MultiWriter(dest, h)
 	io.Copy(w, source)
+	dest.Close()
+
+	info, infoErr := os.Stat(fPath)
+	if infoErr != nil {
+		return "", infoErr
+	} else if info.Size() != expectedSize {
+		msg := fmt.Sprintf("Created file at %d has size %d which doesn't match expected size %s", fPath, info.Size(), expectedSize)
+		return "", errors.New(msg)
+	}
 
 	if f.debug {
 		f.logger.Println(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", gameId, kind, name))

@@ -1,6 +1,10 @@
 package storage
 
-import "gogcli/manifest"
+import (
+	"errors"
+	"fmt"
+	"gogcli/manifest"
+)
 
 type DoneAction struct {
 	action manifest.Action
@@ -19,14 +23,16 @@ type ActionResult struct {
 }
 
 func addFileAction(
-	gameId int, 
-	fileKind string, 
+	gameId int,
+	fileKind string,
+	fileInfo manifest.FileInfo,
 	action manifest.FileAction, 
 	actionResult chan ActionResult,
 	actionErr chan error,
 	s Storage,
 	d Downloader,
 ) {
+	fn := fmt.Sprintf("addFileAction(gameId=%d, fileInfo={Kind=%s, Name=%s, ...}, ...)", gameId, fileInfo.Kind, fileInfo.Name)
 	r := ActionResult{
 		gameId: gameId,
 		fileKind: fileKind,
@@ -39,20 +45,32 @@ func addFileAction(
 		r.err = err
 		actionErr <- err
 	} else {
-		r.fileSize = fSize
-		fChecksum, uploadErr := s.UploadFile(handle, gameId, fileKind, action.Name, fSize)
-		if err != nil {
-			r.err = uploadErr
-			actionErr <- uploadErr
+		if fileInfo.Size > 0 && fileInfo.Size != fSize {
+			msg := fmt.Sprintf("%s -> Download file size of %d does not match expected file size of %d", fn, fSize, fileInfo.Size)  
+			r.err = errors.New(msg)
+			actionErr <- errors.New(msg)
 		} else {
-			r.fileChecksum = fChecksum
-			actionResult <- r
-			actionErr <- nil
+			r.fileSize = fSize
+			fChecksum, uploadErr := s.UploadFile(handle, gameId, fileKind, action.Name, fSize)
+			if err != nil {
+				r.err = uploadErr
+				actionErr <- uploadErr
+			} else {
+				if fileInfo.Checksum != "" && fileInfo.Checksum != fChecksum {
+					msg := fmt.Sprintf("%s -> Download file checksum of %s does not match expected file checksum of %s", fn, fChecksum, fileInfo.Checksum)  
+					r.err = errors.New(msg)
+					actionErr <- errors.New(msg)
+				} else {
+					r.fileChecksum = fChecksum
+					actionResult <- r
+					actionErr <- nil
+				}
+			}
 		}
 	}
 }
 
-func launchActions(iterator *manifest.ActionsIterator, s Storage, concurrency int, d Downloader, result chan ActionResult, doneAction chan DoneAction, actionErrsChan chan []error) {
+func launchActions(m *manifest.Manifest, iterator *manifest.ActionsIterator, s Storage, concurrency int, d Downloader, result chan ActionResult, doneAction chan DoneAction, actionErrsChan chan []error) {
 	errs := make([]error, 0)
 	actionErr := make(chan error)
 	jobsRunning  := 0
@@ -81,17 +99,23 @@ func launchActions(iterator *manifest.ActionsIterator, s Storage, concurrency in
 			} else {
 				fileActionPtr := action.FileActionPtr
 				if (*fileActionPtr).Action == "add" {
-					concurrency--
-					jobsRunning++
-					go addFileAction(
-						action.GameId,
-						(*fileActionPtr).Kind,
-						(*fileActionPtr),
-						result,
-						actionErr,
-						s,
-						d,
-					)
+					fileInfo, err := (*m).GetFileActionFileInfo(action.GameId, (*fileActionPtr))
+					if err != nil {
+						errs = append(errs, err)
+					} else {
+						concurrency--
+						jobsRunning++
+						go addFileAction(
+							action.GameId,
+							(*fileActionPtr).Kind,
+							fileInfo,
+							(*fileActionPtr),
+							result,
+							actionErr,
+							s,
+							d,
+						)
+					}
 				} else if (*fileActionPtr).Action == "remove" {
 					err := s.RemoveFile(action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name)
 					if err != nil {
@@ -172,7 +196,7 @@ func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage
 	doneAction := make(chan DoneAction)
 	
 	iterator := manifest.NewActionsInterator(*a, gamesMax)
-	go launchActions(iterator, s, concurrency, d, actionResult, doneAction, actionErrsChan)
+	go launchActions(m, iterator, s, concurrency, d, actionResult, doneAction, actionErrsChan)
 	go keepManifestUpdated(m, s, actionResult, doneAction, manifestUpdateErrsChan)
 	go KeepActionsUpdated(a.DeepCopy(), s, doneAction, actionsUpdateErrsChan)
 	actionErrs := <- actionErrsChan

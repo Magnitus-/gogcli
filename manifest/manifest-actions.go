@@ -275,3 +275,41 @@ func (curr *Manifest) Plan(next *Manifest) *GameActions {
 
 	return &actions
 }
+
+func (m *Manifest) GetFileActionFileInfo(gameId int, action FileAction) (FileInfo, error) {
+	for idx, _ := range (*m).Games {
+		if (*m).Games[idx].Id == gameId {
+			game := (*m).Games[idx]
+			if action.Kind == "installer" {
+				installer, err := game.getInstallerNamed(action.Name)
+				if err != nil {
+					return FileInfo{}, err
+				}
+				return FileInfo{
+					GameId: gameId,
+					Kind: "installer",
+					Name: installer.Name,
+					Checksum: installer.Checksum,
+					Size: installer.VerifiedSize,
+					Url: installer.Url,
+				}, nil
+			} else {
+				extra, err := game.getExtraNamed(action.Name)
+				if err != nil {
+					return FileInfo{}, err
+				}
+				return FileInfo{
+					GameId: gameId,
+					Kind: "extra",
+					Name: extra.Name,
+					Checksum: extra.Checksum,
+					Size: extra.VerifiedSize,
+					Url: extra.Url,	
+				}, err
+			}
+		}
+	}
+
+	msg := fmt.Sprintf("*Manifest.GetFileActionFileInfo(gameId=%d, ...) -> Game with given id not found in manifest", gameId)
+	return FileInfo{}, errors.New(msg)
+}

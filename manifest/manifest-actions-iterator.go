@@ -28,7 +28,7 @@ func NewActionsInterator(a GameActions, maxGames int) *ActionsIterator {
 	new := &ActionsIterator{
 		gameActions: a,
 		gameIds: gameIds,
-		currentGameActionDone: false,
+		currentGameActionDone: currentGameAction.Action == "update",
 		installerNames: currentGameAction.GetInstallerNames(),
 		extraNames: currentGameAction.GetExtraNames(),
 		maxGames: maxGames,

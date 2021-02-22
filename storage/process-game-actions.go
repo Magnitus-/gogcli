@@ -128,10 +128,9 @@ func launchActions(m *manifest.Manifest, iterator *manifest.ActionsIterator, s S
 		}		
 		endWhenPossible := (!iterator.ShouldContinue()) || (len(errs) > 0)
 		allDone := endWhenPossible && jobsRunning == 0
-		waitOnLingeringJobs := endWhenPossible && jobsRunning > 0
 		if allDone {
 			break
-		} else if concurrency <= 0 && waitOnLingeringJobs {
+		} else if (concurrency <= 0 && jobsRunning > 0) || (endWhenPossible && jobsRunning > 0) {
 			err := <- actionErr
 			if err != nil {
 				errs = append(errs, err)

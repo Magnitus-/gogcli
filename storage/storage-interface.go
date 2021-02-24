@@ -6,6 +6,7 @@ import (
 )
 
 type Storage interface {
+	SupportsReaderAt() bool
 	GenerateSource() *Source
 	GetPrintableSummary() string
 	Exists() (bool, error)

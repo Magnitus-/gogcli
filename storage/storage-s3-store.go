@@ -85,6 +85,10 @@ func getS3Store(configs *S3Configs, debug bool, tag string) (S3Store, error) {
 	}, nil
 }
 
+func (s S3Store) SupportsReaderAt() bool {
+	return true
+}
+
 func (s S3Store) GenerateSource() *Source {
 	src := Source{
 		Type: "s3",

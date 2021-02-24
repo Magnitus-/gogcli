@@ -40,6 +40,10 @@ func GetFileSystem(path string, debug bool, tag string) FileSystem {
 	return FileSystem{path, debug, log.New(os.Stdout, logPrefix, log.Lshortfile)}
 }
 
+func (f FileSystem) SupportsReaderAt() bool {
+	return true
+}
+
 func (f FileSystem) GenerateSource() *Source {
 	src := Source{Type: "fs", FsPath: f.Path}
 	return &src

@@ -95,6 +95,20 @@ func (g *ManifestGame) isEmpty() bool {
 	return len((*g).Installers) == 0 && len((*g).Extras) == 0
 }
 
+func (g *ManifestGame) computeVerifiedSize() int64 {
+	accumulate := int64(0)
+	for _, inst := range (*g).Installers {
+		accumulate += inst.VerifiedSize
+	}
+
+	for _, extr := range (*g).Extras {
+		accumulate += extr.VerifiedSize
+	}
+
+	(*g).VerifiedSize = accumulate
+	return accumulate
+}
+
 func (g *ManifestGame) computeEstimatedSize() (int64, error) {
 	accumulate := int64(0)
 	for _, inst := range (*g).Installers {

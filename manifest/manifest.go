@@ -95,6 +95,17 @@ func (m *Manifest) ReplaceGames(games []ManifestGame) {
 	(*m).Games = filteredGames
 }
 
+func (m *Manifest) ComputeVerifiedSize() int64 {
+	accumulate := int64(0)
+
+	for idx, _ := range (*m).Games {
+		accumulate += (*m).Games[idx].computeVerifiedSize()
+	}
+
+	(*m).VerifiedSize = accumulate
+	return accumulate
+}
+
 func (m *Manifest) ComputeEstimatedSize() (int64, error) {
 	accumulate := int64(0)
 

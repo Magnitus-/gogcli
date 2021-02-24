@@ -49,6 +49,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 				m.TrimInstallers(oses, languages, downloads)
 				m.TrimExtras(extraTypeFilters, extras)
 				m.ComputeEstimatedSize()
+				m.ComputeVerifiedSize()
 				output, _ = json.Marshal(m)
 			}
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"gogcli/manifest"
+	"strings"
 )
 
 type DoneAction struct {
@@ -40,34 +41,49 @@ func addFileAction(
 		fileName: action.Name,
 		end: false,
 	}
+
 	handle, fSize, _, err := d.Download(gameId, action)
 	if err != nil {
 		r.err = err
 		actionErr <- err
-	} else {
-		if fileInfo.Size > 0 && fileInfo.Size != fSize {
-			msg := fmt.Sprintf("%s -> Download file size of %d does not match expected file size of %d", fn, fSize, fileInfo.Size)  
+		return 
+	}
+
+	if fileInfo.Size > 0 && fileInfo.Size != fSize {
+		msg := fmt.Sprintf("%s -> Download file size of %d does not match expected file size of %d", fn, fSize, fileInfo.Size)  
+		r.err = errors.New(msg)
+		actionErr <- errors.New(msg)
+		return
+	}
+	
+	r.fileSize = fSize
+	fChecksum, uploadErr := s.UploadFile(handle, gameId, fileKind, action.Name, fSize)
+	if err != nil {
+		r.err = uploadErr
+		actionErr <- uploadErr
+		return
+	}
+
+	if fileInfo.Checksum != "" && fileInfo.Checksum != fChecksum {
+		msg := fmt.Sprintf("%s -> Download file checksum of %s does not match expected file checksum of %s", fn, fChecksum, fileInfo.Checksum)  
+		r.err = errors.New(msg)
+		actionErr <- errors.New(msg)
+		return
+	}
+
+	if fileInfo.Checksum == "" && strings.HasSuffix(fileInfo.Name, ".zip") {
+		err = ValidateZipArchive(s, gameId, fileKind, fileInfo.Name)
+		if err != nil {
+			msg := fmt.Sprintf("%s -> Error occured while validating Zip archive %s: %s", fn, fileInfo.Name, err.Error())  
 			r.err = errors.New(msg)
 			actionErr <- errors.New(msg)
-		} else {
-			r.fileSize = fSize
-			fChecksum, uploadErr := s.UploadFile(handle, gameId, fileKind, action.Name, fSize)
-			if err != nil {
-				r.err = uploadErr
-				actionErr <- uploadErr
-			} else {
-				if fileInfo.Checksum != "" && fileInfo.Checksum != fChecksum {
-					msg := fmt.Sprintf("%s -> Download file checksum of %s does not match expected file checksum of %s", fn, fChecksum, fileInfo.Checksum)  
-					r.err = errors.New(msg)
-					actionErr <- errors.New(msg)
-				} else {
-					r.fileChecksum = fChecksum
-					actionResult <- r
-					actionErr <- nil
-				}
-			}
+			return
 		}
 	}
+
+	r.fileChecksum = fChecksum
+	actionResult <- r
+	actionErr <- nil
 }
 
 func launchActions(m *manifest.Manifest, iterator *manifest.ActionsIterator, s Storage, concurrency int, d Downloader, result chan ActionResult, doneAction chan DoneAction, actionErrsChan chan []error) {

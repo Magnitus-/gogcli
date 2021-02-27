@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 )
 
-func ValidateZipArchive(s Storage, gameId int, fileKind string, fileName string) error {
+func ValidateZipArchive(s Storage, gameId int64, fileKind string, fileName string) error {
 	fn := fmt.Sprintf("ValidateZipArchive(.., gameId=%d, fileKind=%s, fileName=%s)", gameId, fileKind, fileName)
 	if !s.SupportsReaderAt() {
 		msg := fmt.Sprintf("%s -> Provided storage doesn't support downloading fixed length subset of file from a given offset", fn)

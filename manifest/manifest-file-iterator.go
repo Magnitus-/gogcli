@@ -3,7 +3,7 @@ package manifest
 import "errors"
 
 type FileInfo struct {
-	GameId   int
+	GameId   int64
 	Kind     string
 	Name     string
 	Checksum string

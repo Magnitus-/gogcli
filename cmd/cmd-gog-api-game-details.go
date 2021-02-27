@@ -8,7 +8,7 @@ import (
 )
 
 func generateGameDetailsCmd() *cobra.Command {
-	var gameId int
+	var gameId int64
 
 	gameDetailsCmd := &cobra.Command{
 		Use:   "game-details",
@@ -23,7 +23,7 @@ func generateGameDetailsCmd() *cobra.Command {
 		},
 	}
 
-	gameDetailsCmd.Flags().IntVarP(&gameId, "id", "i", 0, "Id of the game to get details from")
+	gameDetailsCmd.Flags().Int64VarP(&gameId, "id", "i", 0, "Id of the game to get details from")
 	gameDetailsCmd.MarkFlagRequired("id")
 
 	return gameDetailsCmd

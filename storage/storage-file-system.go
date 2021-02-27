@@ -294,8 +294,8 @@ func (f FileSystem) RemoveSource() error {
 	return err
 }
 
-func (f FileSystem) AddGame(gameId int) error {
-	gameDir := path.Join(f.Path, strconv.Itoa(gameId))
+func (f FileSystem) AddGame(gameId int64) error {
+	gameDir := path.Join(f.Path, strconv.FormatInt(gameId, 10))
 	instDir := path.Join(gameDir, "installers")
 	extrDir := path.Join(gameDir, "extras")
 
@@ -334,8 +334,8 @@ func (f FileSystem) AddGame(gameId int) error {
 	return nil
 }
 
-func (f FileSystem) RemoveGame(gameId int) error {
-	gameDir := path.Join(f.Path, strconv.Itoa(gameId))
+func (f FileSystem) RemoveGame(gameId int64) error {
+	gameDir := path.Join(f.Path, strconv.FormatInt(gameId, 10))
 
 	_, err := os.Stat(gameDir)
 	if err != nil {
@@ -354,12 +354,12 @@ func (f FileSystem) RemoveGame(gameId int) error {
 	return err
 }
 
-func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, name string, expectedSize int64) (string, error) {
+func (f FileSystem) UploadFile(source io.ReadCloser, gameId int64, kind string, name string, expectedSize int64) (string, error) {
 	var fPath string
 	if kind == "installer" {
-		fPath = path.Join(f.Path, strconv.Itoa(gameId), "installers", name)
+		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "installers", name)
 	} else if kind == "extra" {
-		fPath = path.Join(f.Path, strconv.Itoa(gameId), "extras", name)
+		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "extras", name)
 	} else {
 		return "", errors.New("Unknown kind of file")
 	}
@@ -389,12 +389,12 @@ func (f FileSystem) UploadFile(source io.ReadCloser, gameId int, kind string, na
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
-func (f FileSystem) RemoveFile(gameId int, kind string, name string) error {
+func (f FileSystem) RemoveFile(gameId int64, kind string, name string) error {
 	var fPath string
 	if kind == "installer" {
-		fPath = path.Join(f.Path, strconv.Itoa(gameId), "installers", name)
+		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "installers", name)
 	} else if kind == "extra" {
-		fPath = path.Join(f.Path, strconv.Itoa(gameId), "extras", name)
+		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "extras", name)
 	} else {
 		return errors.New("Unknown kind of file")
 	}
@@ -407,12 +407,12 @@ func (f FileSystem) RemoveFile(gameId int, kind string, name string) error {
 	return err
 }
 
-func (f FileSystem) DownloadFile(gameId int, kind string, name string) (io.ReadCloser, int64, error) {
+func (f FileSystem) DownloadFile(gameId int64, kind string, name string) (io.ReadCloser, int64, error) {
 	var fPath string
 	if kind == "installer" {
-		fPath = path.Join(f.Path, strconv.Itoa(gameId), "installers", name)
+		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "installers", name)
 	} else if kind == "extra" {
-		fPath = path.Join(f.Path, strconv.Itoa(gameId), "extras", name)
+		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "extras", name)
 	} else {
 		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Unknown kind of file", gameId, kind, name)
 		return nil, 0, errors.New(msg)

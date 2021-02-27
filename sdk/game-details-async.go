@@ -4,21 +4,21 @@ import "time"
 
 type GamesDetailsReturn struct {
 	game GameDetails
-	id   int
+	id   int64
 	err  error
 }
 
-func (s *Sdk) GetGameDetailsAsync(gameId int, returnVal chan GamesDetailsReturn) {
+func (s *Sdk) GetGameDetailsAsync(gameId int64, returnVal chan GamesDetailsReturn) {
 	g, err := s.GetGameDetails(gameId)
 	returnVal <- GamesDetailsReturn{game: g, id: gameId, err: err}
 }
 
 type GameDetailsWithId struct {
 	game GameDetails
-	id   int
+	id   int64
 }
 
-func (s *Sdk) GetManyGameDetails(gameIds []int, concurrency int, pause int) ([]GameDetailsWithId, []error) {
+func (s *Sdk) GetManyGameDetails(gameIds []int64, concurrency int, pause int) ([]GameDetailsWithId, []error) {
 	var errs []error
 	var games []GameDetailsWithId
 	c := make(chan GamesDetailsReturn)

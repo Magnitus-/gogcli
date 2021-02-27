@@ -15,7 +15,7 @@ type FileAction struct {
 
 type GameAction struct {
 	Title            string
-	Id               int
+	Id               int64
 	Action           string
 	InstallerActions map[string]FileAction
 	ExtraActions     map[string]FileAction
@@ -65,7 +65,7 @@ func (g *GameAction) ActionsLeft() int {
 	return actionsCount
 }
 
-type GameActions map[int]GameAction
+type GameActions map[int64]GameAction
 
 func (g *GameActions) ActionsLeft() int {
 	actionsCount := 0
@@ -100,8 +100,8 @@ func (g *GameActions) ApplyAction(a Action) {
 	}
 }
 
-func (g *GameActions) GetGameIds() []int {
-	gameIds := make([]int, len(*g))
+func (g *GameActions) GetGameIds() []int64 {
+	gameIds := make([]int64, len(*g))
 
 	idx := 0
 	for id, _ := range *g {
@@ -113,7 +113,7 @@ func (g *GameActions) GetGameIds() []int {
 }
 
 func (g *GameActions) DeepCopy() (*GameActions) {
-	new := GameActions(make(map[int]GameAction))
+	new := GameActions(make(map[int64]GameAction))
 
 	for id, _ := range (*g) {
 		newGame := GameAction{
@@ -247,9 +247,9 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 }
 
 func (curr *Manifest) Plan(next *Manifest) *GameActions {
-	actions := GameActions(make(map[int]GameAction))
-	currentGames := make(map[int]ManifestGame)
-	futureGames := make(map[int]ManifestGame)
+	actions := GameActions(make(map[int64]GameAction))
+	currentGames := make(map[int64]ManifestGame)
+	futureGames := make(map[int64]ManifestGame)
 
 	for _, g := range (*curr).Games {
 		currentGames[g.Id] = g
@@ -276,7 +276,7 @@ func (curr *Manifest) Plan(next *Manifest) *GameActions {
 	return &actions
 }
 
-func (m *Manifest) GetFileActionFileInfo(gameId int, action FileAction) (FileInfo, error) {
+func (m *Manifest) GetFileActionFileInfo(gameId int64, action FileAction) (FileInfo, error) {
 	for idx, _ := range (*m).Games {
 		if (*m).Games[idx].Id == gameId {
 			game := (*m).Games[idx]

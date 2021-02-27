@@ -126,7 +126,7 @@ func (g GameDetails) Print() {
 	}
 }
 
-func (s *Sdk) GetGameDetails(gameId int) (GameDetails, error) {
+func (s *Sdk) GetGameDetails(gameId int64) (GameDetails, error) {
 	var g GameDetails
 
 	fn := fmt.Sprintf("GetGameDetails(gameId=%d)", gameId)

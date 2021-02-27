@@ -78,7 +78,7 @@ func (m *Manifest) AddGames(games []ManifestGame) {
 //For game updates
 func (m *Manifest) ReplaceGames(games []ManifestGame) {
 	filteredGames := make([]ManifestGame, 0)
-	replaceMap := make(map[int]ManifestGame)
+	replaceMap := make(map[int64]ManifestGame)
 
 	for _, game := range games {
 		replaceMap[game.Id] = game
@@ -121,7 +121,7 @@ func (m *Manifest) ComputeEstimatedSize() (int64, error) {
 	return accumulate, nil
 }
 
-func (m *Manifest) FillMissingFileInfo(gameId int, fileKind string, fileName string, fileSize int64, fileChecksum string) error {
+func (m *Manifest) FillMissingFileInfo(gameId int64, fileKind string, fileName string, fileSize int64, fileChecksum string) error {
 	fn := fmt.Sprintf(
 		"Manifest.FillMissingFileInfo(gameId=%d, fileKind=%s, fileName=%s, fileSize=%d, fileChecksum=%s)",
 		gameId,

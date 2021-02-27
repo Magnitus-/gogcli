@@ -13,7 +13,7 @@ type DoneAction struct {
 }
 
 type ActionResult struct {
-	gameId int
+	gameId int64
 	fileKind string
 	action manifest.FileAction
 	fileName string
@@ -24,7 +24,7 @@ type ActionResult struct {
 }
 
 func addFileAction(
-	gameId int,
+	gameId int64,
 	fileKind string,
 	fileInfo manifest.FileInfo,
 	action manifest.FileAction, 

@@ -380,7 +380,7 @@ func (s S3Store) RemoveSource() error {
 	return err
 }
 
-func (s S3Store) AddGame(gameId int) error {
+func (s S3Store) AddGame(gameId int64) error {
 	if s.debug {
 		s.logger.Println(fmt.Sprintf("AddGame(gameId=%d) -> No-op as s3 store doesn't have a real directory structure", gameId))
 	}
@@ -388,7 +388,7 @@ func (s S3Store) AddGame(gameId int) error {
 	return nil
 }
 
-func (s S3Store) RemoveGame(gameId int) error {
+func (s S3Store) RemoveGame(gameId int64) error {
 	if s.debug {
 		s.logger.Println(fmt.Sprintf("RemoveGame(gameId=%d) -> No-op as s3 store doesn't have a real directory structure", gameId))
 	}
@@ -396,14 +396,14 @@ func (s S3Store) RemoveGame(gameId int) error {
 	return nil
 }
 
-func (s S3Store) UploadFile(source io.ReadCloser, gameId int, kind string, name string, expectedSize int64) (string, error) {
+func (s S3Store) UploadFile(source io.ReadCloser, gameId int64, kind string, name string, expectedSize int64) (string, error) {
 	configs := *s.configs
 
 	var fPath string
 	if kind == "installer" {
-		fPath = path.Join(strconv.Itoa(gameId), "installers", name)
+		fPath = path.Join(strconv.FormatInt(gameId, 10), "installers", name)
 	} else if kind == "extra" {
-		fPath = path.Join(strconv.Itoa(gameId), "extras", name)
+		fPath = path.Join(strconv.FormatInt(gameId, 10), "extras", name)
 	} else {
 		return "", errors.New("Unknown kind of file")
 	}
@@ -429,14 +429,14 @@ func (s S3Store) UploadFile(source io.ReadCloser, gameId int, kind string, name 
 	return info.ETag, nil
 }
 
-func (s S3Store) RemoveFile(gameId int, kind string, name string) error {
+func (s S3Store) RemoveFile(gameId int64, kind string, name string) error {
 	configs := *s.configs
 	
 	var oPath string
 	if kind == "installer" {
-		oPath = path.Join(strconv.Itoa(gameId), "installers", name)
+		oPath = path.Join(strconv.FormatInt(gameId, 10), "installers", name)
 	} else if kind == "extra" {
-		oPath = path.Join(strconv.Itoa(gameId), "extras", name)
+		oPath = path.Join(strconv.FormatInt(gameId, 10), "extras", name)
 	} else {
 		return errors.New("Unknown kind of file")
 	}
@@ -449,14 +449,14 @@ func (s S3Store) RemoveFile(gameId int, kind string, name string) error {
 	return err
 }
 
-func (s S3Store) DownloadFile(gameId int, kind string, name string) (io.ReadCloser, int64, error) {
+func (s S3Store) DownloadFile(gameId int64, kind string, name string) (io.ReadCloser, int64, error) {
 	configs := *s.configs
 
 	var fPath string
 	if kind == "installer" {
-		fPath = path.Join(strconv.Itoa(gameId), "installers", name)
+		fPath = path.Join(strconv.FormatInt(gameId, 10), "installers", name)
 	} else if kind == "extra" {
-		fPath = path.Join(strconv.Itoa(gameId), "extras", name)
+		fPath = path.Join(strconv.FormatInt(gameId, 10), "extras", name)
 	} else {
 		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Unknown kind of file", gameId, kind, name)
 		return nil, 0, errors.New(msg)

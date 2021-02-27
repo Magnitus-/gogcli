@@ -139,7 +139,7 @@ func (s *Sdk) GetManifest(search string, concurrency int, pause int) (manifest.M
 
 	addOwnedGamesPagesToManifest(&m, pages)
 
-	gameIds := make([]int, len(m.Games))
+	gameIds := make([]int64, len(m.Games))
 	for i := 0; i < len(m.Games); i++ {
 		gameIds[i] = m.Games[i].Id
 	}

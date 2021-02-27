@@ -6,7 +6,7 @@ import (
 )
 
 type Action struct {
-	GameId int
+	GameId int64
 	IsFileAction bool
 	FileActionPtr *FileAction
 	GameAction string
@@ -14,7 +14,7 @@ type Action struct {
 
 type ActionsIterator struct {
 	gameActions           GameActions
-	gameIds               []int
+	gameIds               []int64
 	currentGameActionDone bool
 	installerNames        []string
 	extraNames            []string

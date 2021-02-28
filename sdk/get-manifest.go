@@ -6,30 +6,30 @@ import (
 )
 
 var LANGUAGE_MAP map[string]string
-
-func init() {
-	LANGUAGE_MAP = make(map[string]string)
-	LANGUAGE_MAP["english"] = "English"
-	LANGUAGE_MAP["french"] = "fran\\u00e7ais"
-	LANGUAGE_MAP["dutch"] = "nederlands"
-	LANGUAGE_MAP["spanish"] = "espa\\u00f1ol"
-	LANGUAGE_MAP["portuguese_brazilian"] = "Portugu\\u00eas do Brasil"
-	LANGUAGE_MAP["russian"] = "\\u0440\\u0443\\u0441\\u0441\\u043a\\u0438\\u0439"
-	LANGUAGE_MAP["korean"] = "\\ud55c\\uad6d\\uc5b4"
-	LANGUAGE_MAP["chinese_simplified"] = "\\u4e2d\\u6587(\\u7b80\\u4f53)"
-	LANGUAGE_MAP["japanese"] = "\\u65e5\u672c\\u8a9e"
-	LANGUAGE_MAP["polish"] = "polski"
-	LANGUAGE_MAP["italian"] = "italiano"
-	LANGUAGE_MAP["german"] = "Deutsch"
-	LANGUAGE_MAP["czech"] = "\\u010desk\\u00fd"
-	LANGUAGE_MAP["hungarian"] = "magyar"
-	LANGUAGE_MAP["portuguese"] = "portugu\\u00eas"
-	LANGUAGE_MAP["danish"] = "Dansk"
-	LANGUAGE_MAP["finnish"] = "suomi"
-	LANGUAGE_MAP["swedish"] = "svenska"
-	LANGUAGE_MAP["turkish"] = "T\\u00fcrk\\u00e7e"
-	LANGUAGE_MAP["arabic"] = "\\u0627\\u0644\\u0639\\u0631\\u0628\\u064a\\u0629"
-	LANGUAGE_MAP["romanian"] = "rom\\u00e2n\\u0103"
+func getLanguageMap() map[string]string {
+	langMap := make(map[string]string)
+	langMap["english"] = "English"
+	langMap["french"] = "fran\\u00e7ais"
+	langMap["dutch"] = "nederlands"
+	langMap["spanish"] = "espa\\u00f1ol"
+	langMap["portuguese_brazilian"] = "Portugu\\u00eas do Brasil"
+	langMap["russian"] = "\\u0440\\u0443\\u0441\\u0441\\u043a\\u0438\\u0439"
+	langMap["korean"] = "\\ud55c\\uad6d\\uc5b4"
+	langMap["chinese_simplified"] = "\\u4e2d\\u6587(\\u7b80\\u4f53)"
+	langMap["japanese"] = "\\u65e5\u672c\\u8a9e"
+	langMap["polish"] = "polski"
+	langMap["italian"] = "italiano"
+	langMap["german"] = "Deutsch"
+	langMap["czech"] = "\\u010desk\\u00fd"
+	langMap["hungarian"] = "magyar"
+	langMap["portuguese"] = "portugu\\u00eas"
+	langMap["danish"] = "Dansk"
+	langMap["finnish"] = "suomi"
+	langMap["swedish"] = "svenska"
+	langMap["turkish"] = "T\\u00fcrk\\u00e7e"
+	langMap["arabic"] = "\\u0627\\u0644\\u0639\\u0631\\u0628\\u064a\\u0629"
+	langMap["romanian"] = "rom\\u00e2n\\u0103"
+	return langMap
 }
 
 func languageToAscii(unicodeRepresentation string) string {

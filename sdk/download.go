@@ -8,7 +8,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
+	"regexp"
 	"strconv"
+	"strings"
 	"net/url"
 )
 
@@ -54,6 +56,12 @@ type XmlFileChunk struct {
 	Checksum string `xml:",chardata"`
 }
 
+var DOWNLOAD_METADATA_REGEX *regexp.Regexp
+func getDownloadMetadataRegex() *regexp.Regexp {
+	//ex: <file name="planescape_torment_pl_2.0.0.14.pkg" available="1" notavailablemsg="" md5="4fd4855bc907665c964aebe457dd39eb" chunks="144" timestamp="2016-10-06 11:30:44" total_size="1506711017">
+	return regexp.MustCompile(`^<file name="(?P<name>.+)" available="(?:1|0)" notavailablemsg="(?:.*)" md5="(?P<checksum>[0-9a-z]+)" chunks="(?:\d+)" timestamp="(?:.+)" total_size="(?P<size>\d+)">$`)
+}
+
 func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (bool, string, string, int64, error) {
 	fileInfo := XmlFile{Chunks: make([]XmlFileChunk, 0)}
 
@@ -81,8 +89,16 @@ func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (boo
 
 	err = xml.Unmarshal(b, &fileInfo)
 	if err != nil {
-		msg := fmt.Sprintf("%s -> Could not parse file metadata: %s", fn, err.Error())
-		return true, "", "", int64(-1), errors.New(msg)
+		//Fallback to applying a regex on the first line as a last resort
+		first_line := strings.Split(string(b), "\n")[0]
+		if !DOWNLOAD_METADATA_REGEX.MatchString(first_line) {
+			msg := fmt.Sprintf("%s -> Could not parse file xml metadata and the first line was not the expected format: %s", fn, err.Error())
+			return true, "", "", int64(-1), errors.New(msg)
+		}
+
+		match := DOWNLOAD_METADATA_REGEX.FindStringSubmatch(first_line)
+		size, _ := strconv.ParseInt(match[3], 10, 64)
+		return true, match[1], match[2], size, nil
 	}
 
 	return true, fileInfo.Name, fileInfo.Checksum, fileInfo.Size, nil

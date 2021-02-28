@@ -32,6 +32,7 @@ func init() {
 	rootCmd.MarkPersistentFlagFilename("cookiefile")
 	rootCmd.PersistentFlags().BoolVarP(&debugMode, "debug", "d", false, "Provide additional more detailed ouputs to help troubleshoot the tool")
 
+	rootCmd.AddCommand(generateUpdateCmd())
 	rootCmd.AddCommand(generateGogApiCmd())
 	rootCmd.AddCommand(generateManifestCmd())
 	rootCmd.AddCommand(generateStorageCmd())

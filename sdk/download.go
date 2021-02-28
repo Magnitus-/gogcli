@@ -62,6 +62,8 @@ func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (boo
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
 		return true, "", "", int64(-1), errors.New(msg)
 	}
+	defer r.Body.Close()
+
 	if r.StatusCode != 200 {
 		if r.StatusCode == 404 || r.StatusCode == 403 {
 			return false, "", "", int64(-1), nil
@@ -93,6 +95,7 @@ func retrieveUrlRedirectLocation(c http.Client, redirectingUrl string, fn string
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
 		return "", errors.New(msg)
 	}
+	defer r.Body.Close()
 
 	if r.StatusCode != 302 {
 		msg := fmt.Sprintf("%s -> Expected response status code of 302, but got %d", fn, r.StatusCode)
@@ -115,6 +118,7 @@ func retrieveUrlContentLength(c http.Client, downloadUrl string, fn string) (int
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
 		return int64(0), errors.New(msg)
 	}
+	defer r.Body.Close()
 
 	if r.StatusCode != 200 {
 		msg := fmt.Sprintf("%s -> Expected response status code of 200, but got %d", fn, r.StatusCode)

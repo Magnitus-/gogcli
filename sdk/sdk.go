@@ -66,6 +66,7 @@ func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, error) {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fnCall, err.Error())
 		return nil, errors.New(msg)
 	}
+	defer r.Body.Close()
 
 	b, bErr := ioutil.ReadAll(r.Body)
 	if bErr != nil {

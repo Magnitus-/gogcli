@@ -1,18 +1,8 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"os"
-
 	"github.com/spf13/cobra"
 )
-
-type Errors struct {
-	Errors []string
-}
 
 func generateManifestGenerateCmd() *cobra.Command {
 	var oses []string
@@ -31,43 +21,8 @@ func generateManifestGenerateCmd() *cobra.Command {
 		Use:   "generate",
 		Short: "Generate a games manifest from the GOG Api, which can then be applied to a storage",
 		Run: func(cmd *cobra.Command, args []string) {
-			hasErr := false
-			var buf bytes.Buffer
-			var output []byte
-			var e Errors
 			m, errs := sdkPtr.GetManifest(gameTitleFilter, concurrency, pause)
-
-			if len(errs) > 0 {
-				for _, err := range errs {
-					e.Errors = append(e.Errors, err.Error())
-				}
-				output, _ = json.Marshal(e)
-				hasErr = true
-			} else {
-				m.TrimGames("", gameTagFilters)
-				m.TrimInstallers(oses, languages, downloads)
-				m.TrimExtras(extraTypeFilters, extras)
-				m.ComputeEstimatedSize()
-				m.ComputeVerifiedSize()
-				output, _ = json.Marshal(m)
-			}
-
-			json.Indent(&buf, output, "", "  ")
-			output = buf.Bytes()
-
-			if terminalOutput {
-				fmt.Println(string(output))
-			} else {
-				err := ioutil.WriteFile(file, output, 0644)
-				if err != nil {
-					fmt.Println(err)
-					hasErr = true
-				}
-			}
-
-			if hasErr {
-				os.Exit(1)
-			}
+			processSerializableOutput(m, errs, terminalOutput, file)
 		},
 	}
 

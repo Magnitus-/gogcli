@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
     "fmt"
     "gogcli/storage"
+    "io/ioutil"
     "os"
     
 	"github.com/spf13/cobra"
@@ -39,6 +42,44 @@ func processErrors(errs []error) {
 func processError(err error) {
     if err != nil {
         fmt.Println(err)
+        os.Exit(1)
+    }
+}
+
+type Errors struct {
+	Errors []string
+}
+
+func processSerializableOutput(serializable interface{}, errs []error, terminal bool, file string) {
+    hasErr := false
+    var buf bytes.Buffer
+    var output []byte
+    var e Errors
+
+    if len(errs) > 0 {
+        for _, err := range errs {
+            e.Errors = append(e.Errors, err.Error())
+        }
+        output, _ = json.Marshal(e)
+        hasErr = true
+    } else {
+        output, _ = json.Marshal(serializable)
+    }
+
+    json.Indent(&buf, output, "", "  ")
+    output = buf.Bytes()
+
+    if terminal {
+        fmt.Println(string(output))
+    } else {
+        err := ioutil.WriteFile(file, output, 0644)
+        if err != nil {
+            fmt.Println(err)
+            hasErr = true
+        }
+    }
+
+    if hasErr {
         os.Exit(1)
     }
 }

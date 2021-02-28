@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"gogcli/manifest"
+
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +23,18 @@ func generateManifestGenerateCmd() *cobra.Command {
 		Use:   "generate",
 		Short: "Generate a games manifest from the GOG Api, which can then be applied to a storage",
 		Run: func(cmd *cobra.Command, args []string) {
-			m, errs := sdkPtr.GetManifest(gameTitleFilter, concurrency, pause)
+			f := manifest.NewManifestFilter(
+				gameTitleFilter,
+				oses,
+				languages,
+				gameTagFilters, 
+				downloads,
+				extras,
+				extraTypeFilters,
+			)
+			m, errs := sdkPtr.GetManifest(f, concurrency, pause)
+			m.ComputeEstimatedSize()	
+			m.ComputeVerifiedSize()
 			processSerializableOutput(m, errs, terminalOutput, file)
 		},
 	}

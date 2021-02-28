@@ -5,6 +5,34 @@ import (
 	"fmt"
 )
 
+type ManifestFilter struct {
+	Title string
+	Oses []string
+	Languages []string
+	Tags []string
+	Downloads bool
+	Extras bool
+	ExtraTypes []string
+}
+
+func NewManifestFilter (title string, oses []string, languages []string, tags []string, downloads bool, extras bool, extraTypes []string) ManifestFilter {
+	return ManifestFilter{
+		Title: title,
+		Oses: oses,
+		Languages: languages,
+		Tags: tags,
+		Downloads: downloads,
+		Extras: extras,
+		ExtraTypes: extraTypes,
+	}
+}
+
+func (m *Manifest) ApplyFilter(f ManifestFilter) {
+	m.TrimGames(f.Title, f.Tags)	
+	m.TrimInstallers(f.Oses, f.Languages, f.Downloads)	
+	m.TrimExtras(f.ExtraTypes, f.Extras)
+}
+
 type Manifest struct {
 	Games         []ManifestGame
 	EstimatedSize string

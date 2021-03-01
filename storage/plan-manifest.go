@@ -22,7 +22,7 @@ func PlanManifest(m *manifest.Manifest, s Storage) (*manifest.GameActions, error
 			return nil, errors.New(msg)
 		}
 	} else {
-	    storedManifest = manifest.NewEmptyManifest()
+	    storedManifest = manifest.NewEmptyManifest((*m).Filter)
 	}
 
 	return storedManifest.Plan(m), nil

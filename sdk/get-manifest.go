@@ -130,15 +130,15 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 }
 
 func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int) (manifest.Manifest, []error) {
-	var m manifest.Manifest
+	m := manifest.NewEmptyManifest(f)
 
 	pages, errs := s.GetAllOwnedGamesPages("", concurrency, pause)
 	if len(errs) > 0 {
-		return m, errs
+		return *m, errs
 	}
 
-	addOwnedGamesPagesToManifest(&m, pages)
-	m.TrimGames(f.Title, f.Tags)
+	addOwnedGamesPagesToManifest(m, pages)
+	m.TrimGames()
 
 	gameIds := make([]int64, len(m.Games))
 	for i := 0; i < len(m.Games); i++ {
@@ -147,10 +147,10 @@ func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int)
 
 	details, detailsErrs := s.GetManyGameDetails(gameIds, concurrency, pause)
 	if len(detailsErrs) > 0 {
-		return m, detailsErrs
+		return *m, detailsErrs
 	}
 
-	addGameDetailsToManifest(&m, details)
+	addGameDetailsToManifest(m, details)
 
 	installersMap := m.GetUrlMappedInstallers()
 	installerUrls := make([]string, len(installersMap))
@@ -160,11 +160,11 @@ func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int)
 		idx++;
 	}
 
-	m.ApplyFilter(f)
+	m.Trim()
 
 	downloadInfos, fileInfoErrs := s.GetManyDownloadFileInfo(installerUrls, concurrency, pause)
 	if len(fileInfoErrs) > 0 {
-		return m, fileInfoErrs
+		return *m, fileInfoErrs
 	}
 	for _, downloadFileInfo := range downloadInfos {
 		(*installersMap[downloadFileInfo.url]).Name = downloadFileInfo.name
@@ -182,7 +182,7 @@ func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int)
 
 	downloadInfos, fileInfoErrs = s.GetManyDownloadFileInfo(extraUrls, concurrency, pause)
 	if len(fileInfoErrs) > 0 {
-		return m, fileInfoErrs
+		return *m, fileInfoErrs
 	}
 	for _, downloadFileInfo := range downloadInfos {
 		(*extrasMap[downloadFileInfo.url]).Name = downloadFileInfo.name
@@ -190,5 +190,5 @@ func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int)
 		(*extrasMap[downloadFileInfo.url]).VerifiedSize = downloadFileInfo.size
 	} 
 
-	return m, nil
+	return *m, nil
 }

@@ -10,7 +10,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 	var oses []string
 	var languages []string
 	var gameTagFilters []string
-	var gameTitleFilter string
+	var gameTitleFilters []string
 	var downloads bool
 	var extras bool
 	var extraTypeFilters []string
@@ -24,7 +24,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 		Short: "Generate a games manifest from the GOG Api, which can then be applied to a storage",
 		Run: func(cmd *cobra.Command, args []string) {
 			f := manifest.NewManifestFilter(
-				gameTitleFilter,
+				gameTitleFilters,
 				oses,
 				languages,
 				gameTagFilters, 
@@ -33,8 +33,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 				extraTypeFilters,
 			)
 			m, errs := sdkPtr.GetManifest(f, concurrency, pause)
-			m.ComputeEstimatedSize()	
-			m.ComputeVerifiedSize()
+			m.Finalize()
 			processSerializableOutput(m, errs, terminalOutput, file)
 		},
 	}
@@ -42,7 +41,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 	manifestGenerateCmd.Flags().StringArrayVarP(&oses, "os", "o", []string{}, "If you want to include only specific oses. Valid values: windows, mac, linux")
 	manifestGenerateCmd.Flags().StringArrayVarP(&languages, "lang", "l", []string{}, "If you want to include only specific languages. Valid values: english, french, spanish, dutch, portuguese_brazilian, russian, korean, chinese_simplified, japanese, polish, italian, german, czech, hungarian, portuguese, danish, finnish, swedish, turkish, arabic, romanian, unknown")
 	manifestGenerateCmd.Flags().StringArrayVarP(&gameTagFilters, "tag", "a", []string{}, "If you want to include only games having specific tags")
-	manifestGenerateCmd.Flags().StringVarP(&gameTitleFilter, "title", "i", "", "If you want to include only games with title that contain the given string")
+	manifestGenerateCmd.Flags().StringArrayVarP(&gameTitleFilters, "title", "i", []string{}, "If you want to include only games with title that contain at least one of the given strings")
 	manifestGenerateCmd.Flags().BoolVarP(&downloads, "installers", "n", true, "Whether to incluse installer downloads")
 	manifestGenerateCmd.Flags().BoolVarP(&extras, "extras", "e", true, "Whether to incluse extras")
 	manifestGenerateCmd.Flags().StringArrayVarP(&extraTypeFilters, "extratype", "x", []string{}, "If you want to include only extras whole type contain one of the given strings. Look at full generated manifest without this flag to figure out valid types")

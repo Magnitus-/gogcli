@@ -6,53 +6,74 @@ import (
 )
 
 type ManifestFilter struct {
-	Title string
+	Titles []string
 	Oses []string
 	Languages []string
 	Tags []string
-	Downloads bool
+	Installers bool
 	Extras bool
 	ExtraTypes []string
 }
 
-func NewManifestFilter (title string, oses []string, languages []string, tags []string, downloads bool, extras bool, extraTypes []string) ManifestFilter {
+func NewManifestFilter (titles []string, oses []string, languages []string, tags []string, installers bool, extras bool, extraTypes []string) ManifestFilter {
 	return ManifestFilter{
-		Title: title,
+		Titles: titles,
 		Oses: oses,
 		Languages: languages,
 		Tags: tags,
-		Downloads: downloads,
+		Installers: installers,
 		Extras: extras,
 		ExtraTypes: extraTypes,
 	}
 }
 
-func (m *Manifest) ApplyFilter(f ManifestFilter) {
-	m.TrimGames(f.Title, f.Tags)	
-	m.TrimInstallers(f.Oses, f.Languages, f.Downloads)	
-	m.TrimExtras(f.ExtraTypes, f.Extras)
+func (m *Manifest) Trim() {
+	m.TrimGames()	
+	m.TrimInstallers()	
+	m.TrimExtras()
 }
 
 type Manifest struct {
 	Games         []ManifestGame
 	EstimatedSize string
 	VerifiedSize  int64
+	Filter ManifestFilter
 }
 
-func NewEmptyManifest() *Manifest {
-	return &Manifest{Games: make([]ManifestGame, 0), EstimatedSize: "0 MB"}
+func NewEmptyManifest(f ManifestFilter) *Manifest {
+	return &Manifest{
+		Games: make([]ManifestGame, 0), 
+		EstimatedSize: "0 MB",
+		VerifiedSize: 0,
+		Filter: f,
+	}
 }
 
-func (m *Manifest) TrimGames(titleTerm string, tags []string) {
+func (m *Manifest) Finalize() {
+	filteredGames := make([]ManifestGame, 0)
+	for _, g := range (*m).Games {
+		if !g.isEmpty() {
+			filteredGames = append(filteredGames, g)
+		}
+	}
+	(*m).Games = filteredGames
+
+	m.ComputeEstimatedSize()	
+	m.ComputeVerifiedSize()
+}
+
+func (m *Manifest) TrimGames() {
+	titles := (*m).Filter.Titles
+	tags := (*m).Filter.Tags
 	filteredGames := make([]ManifestGame, 0)
 
-	if titleTerm == "" && len(tags) == 0 {
+	if len(titles) == 0 && len(tags) == 0 {
 		//Save some needless computation
 		return
 	}
 
 	for _, g := range (*m).Games {
-		hasTitleTerm := titleTerm == "" || g.hasTitleTerm(titleTerm)
+		hasTitleTerm := len(titles) == 0 || g.hasTitleTerms(titles)
 		hasOneOfTags := len(tags) == 0 || g.hasOneOfTags(tags)
 		if hasTitleTerm && hasOneOfTags {
 			filteredGames = append(filteredGames, g)
@@ -62,7 +83,10 @@ func (m *Manifest) TrimGames(titleTerm string, tags []string) {
 	(*m).Games = filteredGames
 }
 
-func (m *Manifest) TrimInstallers(oses []string, languages []string, keepAny bool) {
+func (m *Manifest) TrimInstallers() {
+	oses := (*m).Filter.Oses
+	languages := (*m).Filter.Languages
+	keepAny := (*m).Filter.Installers
 	filteredGames := make([]ManifestGame, 0)
 
 	if len(oses) == 0 && len(languages) == 0 && keepAny {
@@ -80,7 +104,9 @@ func (m *Manifest) TrimInstallers(oses []string, languages []string, keepAny boo
 	(*m).Games = filteredGames
 }
 
-func (m *Manifest) TrimExtras(typeTerms []string, keepAny bool) {
+func (m *Manifest) TrimExtras() {
+	typeTerms := (*m).Filter.ExtraTypes
+	keepAny := (*m).Filter.Extras
 	filteredGames := make([]ManifestGame, 0)
 
 	if len(typeTerms) == 0 && keepAny {

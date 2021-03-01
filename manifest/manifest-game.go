@@ -76,8 +76,18 @@ func (g *ManifestGame) trimExtras(typeTerms []string, keepAny bool) {
 	(*g).Extras = filteredExtras
 }
 
-func (g *ManifestGame) hasTitleTerm(titleTerm string) bool {
-	return titleTerm == "" || strings.Contains((*g).Title, titleTerm)
+func (g *ManifestGame) hasTitleTerms(titleTerms []string) bool {
+	if len(titleTerms) == 0 {
+		return true
+	}
+
+	for idx, _ := range titleTerms {
+		if strings.Contains(strings.ToLower((*g).Title), strings.ToLower(titleTerms[idx])) {
+			return true
+		}
+	}
+	
+	return false
 }
 
 func (g *ManifestGame) hasOneOfTags(tags []string) bool {

@@ -128,39 +128,40 @@ func retrieveUrlRedirectLocation(c http.Client, redirectingUrl string, fn string
 	return location, nil
 }
 
-func retrieveUrlContentLength(c http.Client, downloadUrl string, fn string) (int64, error) {
+func retrieveUrlContentLength(c http.Client, downloadUrl string, fn string) (int64, error, bool) {
 	r, err := c.Head(downloadUrl)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
-		return int64(0), errors.New(msg)
+		return int64(0), errors.New(msg), false
 	}
 	defer r.Body.Close()
 
 	if r.StatusCode != 200 {
 		msg := fmt.Sprintf("%s -> Expected response status code of 200, but got %d", fn, r.StatusCode)
-		return int64(0), errors.New(msg)
+		return int64(0), errors.New(msg), (r.StatusCode == 404 || r.StatusCode == 403)
 	}
 
 	clHeader, ok := r.Header["Content-Length"]
 	if !ok {
 		msg := fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not found.", fn)
-		return int64(0), errors.New(msg)
+		return int64(0), errors.New(msg), false
 	}
 	
 	length, lErr := strconv.ParseInt(clHeader[0], 10, 64)
 	if lErr != nil {
 		msg := fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not parsable.", fn)
-		return int64(0), errors.New(msg)
+		return int64(0), errors.New(msg), false
 	}
 
-	return length, nil
+	return length, nil, false
 }
 
 //Gets the filename and checksum of the url path, requires 3 requests
-func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, error) {
+func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, error, bool) {
 	var filenameLoc string
 	var downloadLoc string
 	var err error
+	var dangling bool
 	fn := fmt.Sprintf("GetDownloadInfo(downloadPath=%s)", downloadPath)
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
@@ -171,37 +172,37 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 
 	filenameLoc, err = retrieveUrlRedirectLocation(c, u, fn)
 	if err != nil {
-		return "", "", int64(0), err
+		return "", "", int64(0), err, false
 	}
 	downloadLoc, err = retrieveUrlRedirectLocation(c, filenameLoc, fn)
 	if err != nil {
-		return "", "", int64(0), err
+		return "", "", int64(0), err, false
 	}
 
 	//Finally, retrieve the metadata
 	metadataUrl, metadataUrlErr := convertDownloadUrlToMetadataUrl(downloadLoc)
 	if metadataUrlErr != nil {
-		return "", "", int64(0), metadataUrlErr
+		return "", "", int64(0), metadataUrlErr, false
 	}
 
 	found, filename, checksum, size, retrieveMetaErr := retrieveDownloadMetadata(c, metadataUrl, fn)
 	if retrieveMetaErr != nil {
-		return "", "", int64(0), retrieveMetaErr
+		return "", "", int64(0), retrieveMetaErr, false
 	}
 	if !found {
 		filename, err = getFilenameFromUrl(filenameLoc, fn)
 		if err != nil {
-			return "", "", int64(0), err
+			return "", "", int64(0), err, false
 		}
 
-		size, err = retrieveUrlContentLength(c, downloadLoc, fn)
+		size, err, dangling = retrieveUrlContentLength(c, downloadLoc, fn)
 		if err != nil {
-			return "", "", int64(0), err
+			return "", "", int64(0), err, dangling
 		}
 
-		return filename, "", size, nil
+		return filename, "", size, nil, false
 	} else {
-		return filename, checksum, size, nil
+		return filename, checksum, size, nil, false
 	}
 }
 

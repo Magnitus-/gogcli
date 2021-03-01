@@ -15,15 +15,17 @@ type DownloadFileInfoReturn struct {
 	checksum string
 	size     int64
 	err      error
+	dangling bool
 }
 
 func (s *Sdk) GetDownloadFilenInfoAsync(downloadPath string, returnVal chan DownloadFileInfoReturn) {
-	name, checksum, size, err := s.GetDownloadFileInfo(downloadPath)
-	returnVal <- DownloadFileInfoReturn{url: downloadPath, name: name, checksum: checksum, size: size, err: err}
+	name, checksum, size, err, dangling := s.GetDownloadFileInfo(downloadPath)
+	returnVal <- DownloadFileInfoReturn{url: downloadPath, name: name, checksum: checksum, size: size, err: err, dangling: dangling}
 }
 
-func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, pause int) ([]DownloadFileInfo, []error) {
+func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, pause int, tolerateDangles bool) ([]DownloadFileInfo, []error, []error) {
 	var errs []error
+	var danglingErrs []error
 	var downloadFileInfos []DownloadFileInfo
 	c := make(chan DownloadFileInfoReturn)
 
@@ -40,7 +42,11 @@ func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, p
 		for y < target {
 			returnVal := <-c
 			if returnVal.err != nil {
-				errs = append(errs, returnVal.err)
+				if returnVal.dangling && tolerateDangles {
+					danglingErrs = append(danglingErrs, returnVal.err)
+				} else {
+					errs = append(errs, returnVal.err)
+				}
 			} else {
 				downloadFileInfos = append(downloadFileInfos, DownloadFileInfo{url: returnVal.url, name: returnVal.name, checksum: returnVal.checksum, size: returnVal.size})
 			}
@@ -48,7 +54,7 @@ func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, p
 		}
 
 		if len(errs) > 0 {
-			return downloadFileInfos, errs
+			return downloadFileInfos, errs, danglingErrs
 		}
 
 		if i < len(downloadPaths) {
@@ -56,5 +62,5 @@ func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, p
 		}
 	}
 
-	return downloadFileInfos, nil
+	return downloadFileInfos, nil, danglingErrs
 }

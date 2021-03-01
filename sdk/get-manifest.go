@@ -129,12 +129,12 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 	}
 }
 
-func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int) (manifest.Manifest, []error) {
+func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int, tolerateDangles bool) (manifest.Manifest, []error, []error) {
 	m := manifest.NewEmptyManifest(f)
 
 	pages, errs := s.GetAllOwnedGamesPages("", concurrency, pause)
 	if len(errs) > 0 {
-		return *m, errs
+		return *m, errs, []error{}
 	}
 
 	addOwnedGamesPagesToManifest(m, pages)
@@ -147,10 +147,11 @@ func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int)
 
 	details, detailsErrs := s.GetManyGameDetails(gameIds, concurrency, pause)
 	if len(detailsErrs) > 0 {
-		return *m, detailsErrs
+		return *m, detailsErrs, []error{}
 	}
 
 	addGameDetailsToManifest(m, details)
+	m.Trim()
 
 	installersMap := m.GetUrlMappedInstallers()
 	installerUrls := make([]string, len(installersMap))
@@ -160,11 +161,9 @@ func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int)
 		idx++;
 	}
 
-	m.Trim()
-
-	downloadInfos, fileInfoErrs := s.GetManyDownloadFileInfo(installerUrls, concurrency, pause)
+	downloadInfos, fileInfoErrs, danglingInstallerErrs := s.GetManyDownloadFileInfo(installerUrls, concurrency, pause, tolerateDangles)
 	if len(fileInfoErrs) > 0 {
-		return *m, fileInfoErrs
+		return *m, fileInfoErrs, danglingInstallerErrs
 	}
 	for _, downloadFileInfo := range downloadInfos {
 		(*installersMap[downloadFileInfo.url]).Name = downloadFileInfo.name
@@ -180,9 +179,10 @@ func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int)
 		idx++;
 	}
 
-	downloadInfos, fileInfoErrs = s.GetManyDownloadFileInfo(extraUrls, concurrency, pause)
+	var danglingExtraErrs []error
+	downloadInfos, fileInfoErrs, danglingExtraErrs = s.GetManyDownloadFileInfo(extraUrls, concurrency, pause, tolerateDangles)
 	if len(fileInfoErrs) > 0 {
-		return *m, fileInfoErrs
+		return *m, fileInfoErrs, append(danglingInstallerErrs, danglingExtraErrs...)
 	}
 	for _, downloadFileInfo := range downloadInfos {
 		(*extrasMap[downloadFileInfo.url]).Name = downloadFileInfo.name
@@ -190,5 +190,5 @@ func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int)
 		(*extrasMap[downloadFileInfo.url]).VerifiedSize = downloadFileInfo.size
 	} 
 
-	return *m, nil
+	return *m, []error{}, append(danglingInstallerErrs, danglingExtraErrs...)
 }

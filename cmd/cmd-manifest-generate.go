@@ -18,6 +18,8 @@ func generateManifestGenerateCmd() *cobra.Command {
 	var pause int
 	var file string
 	var terminalOutput bool
+	var tolerateDangles bool
+	var warningFile string
 
 	manifestGenerateCmd := &cobra.Command{
 		Use:   "generate",
@@ -32,9 +34,12 @@ func generateManifestGenerateCmd() *cobra.Command {
 				extras,
 				extraTypeFilters,
 			)
-			m, errs := sdkPtr.GetManifest(f, concurrency, pause)
+			m, errs, errs404 := sdkPtr.GetManifest(f, concurrency, pause, tolerateDangles)
 			m.Finalize()
 			processSerializableOutput(m, errs, terminalOutput, file)
+			if len(errs404) > 0 {
+				processSerializableOutput(errs404, []error{}, false, warningFile)
+			}
 		},
 	}
 
@@ -49,5 +54,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 	manifestGenerateCmd.Flags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")
 	manifestGenerateCmd.Flags().StringVarP(&file, "file", "f", "manifest.json", "File to output the manifest in")
 	manifestGenerateCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the manifest will be output on the terminal instead of in a file")
+	manifestGenerateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "g", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent manifest generation")
+	manifestGenerateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-404-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
 	return manifestGenerateCmd
 }

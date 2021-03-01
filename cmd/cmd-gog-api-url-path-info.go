@@ -22,7 +22,7 @@ func generateUrlPathInfoCmd() *cobra.Command {
 		Use:   "url-path-info",
 		Short: "Given a download path, retrieve the filename, size and checksum of the file that would be downloaded. Valid paths can be obtained from the manifest.",
 		Run: func(cmd *cobra.Command, args []string) {
-			filename, checksum, size, err := sdkPtr.GetDownloadFileInfo(path)
+			filename, checksum, size, err, _ := sdkPtr.GetDownloadFileInfo(path)
 			if !jsonOutput {
 				processError(err) 
 				fmt.Println("File Name:", filename)

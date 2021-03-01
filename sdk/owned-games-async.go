@@ -35,7 +35,7 @@ func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int) (
 
 	pages = append(pages, callVal.page)
 	pageCount = callVal.page.TotalPages
-	currentPage = callVal.page.Page + 1
+	currentPage = callVal.page.Page
 
 	for currentPage < pageCount {
 		maxPage := min(currentPage+concurrency, pageCount)

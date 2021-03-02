@@ -18,6 +18,7 @@ func generateStorageCmd() *cobra.Command {
 	storageCmd.AddCommand(generateStorageCopyCmd())
 	storageCmd.AddCommand(generateStorageValidateCmd())
 	storageCmd.AddCommand(generateStorageResumeCmd())
+	storageCmd.AddCommand(generateStorageDownloadCmd())
 
 	return storageCmd
 }

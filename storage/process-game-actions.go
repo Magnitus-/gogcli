@@ -48,6 +48,7 @@ func addFileAction(
 		actionErr <- err
 		return 
 	}
+	defer handle.Close()
 
 	if fileInfo.Size > 0 && fileInfo.Size != fSize {
 		msg := fmt.Sprintf("%s -> Download file size of %d does not match expected file size of %d", fn, fSize, fileInfo.Size)  

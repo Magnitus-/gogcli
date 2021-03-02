@@ -38,7 +38,11 @@ func generateManifestGenerateCmd() *cobra.Command {
 			m.Finalize()
 			processSerializableOutput(m, errs, terminalOutput, file)
 			if len(errs404) > 0 {
-				processSerializableOutput(errs404, []error{}, false, warningFile)
+				errs404Output := Errors{make([]string, len(errs404))}
+				for idx, _ := range errs404 {
+					errs404Output.Errors[idx] = errs404[idx].Error()
+				}
+				processSerializableOutput(errs404Output, []error{}, false, warningFile)
 			}
 		},
 	}

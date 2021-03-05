@@ -124,13 +124,7 @@ func (m *Manifest) TrimExtras() {
 	(*m).Games = filteredGames
 }
 
-//For new games
-func (m *Manifest) AddGames(games []ManifestGame) {
-	(*m).Games = append((*m).Games, games...)
-}
-
-//For game updates
-func (m *Manifest) ReplaceGames(games []ManifestGame) {
+func (m *Manifest) OverwriteGames(games []ManifestGame) {
 	filteredGames := make([]ManifestGame, 0)
 	replaceMap := make(map[int64]ManifestGame)
 

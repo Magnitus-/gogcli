@@ -56,7 +56,7 @@ func addOwnedGamesPagesToManifest(m *manifest.Manifest, pages []OwnedGamesPage) 
 	}
 }
 
-func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWithId) {
+func updateManifestWithGameDetails(m *manifest.Manifest, gameDetails []GameDetailsWithId) {
 	for _, gd := range gameDetails {
 		for gidx, _ := range (*m).Games {
 			if gd.id == (*m).Games[gidx].Id {
@@ -150,45 +150,9 @@ func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int,
 		return *m, detailsErrs, []error{}
 	}
 
-	addGameDetailsToManifest(m, details)
+	updateManifestWithGameDetails(m, details)
 	m.Trim()
 
-	installersMap := m.GetUrlMappedInstallers()
-	installerUrls := make([]string, len(installersMap))
-	idx := 0
-	for k, _ := range installersMap {
-		installerUrls[idx] = k
-		idx++;
-	}
-
-	downloadInfos, fileInfoErrs, danglingInstallerErrs := s.GetManyDownloadFileInfo(installerUrls, concurrency, pause, tolerateDangles)
-	if len(fileInfoErrs) > 0 {
-		return *m, fileInfoErrs, danglingInstallerErrs
-	}
-	for _, downloadFileInfo := range downloadInfos {
-		(*installersMap[downloadFileInfo.url]).Name = downloadFileInfo.name
-		(*installersMap[downloadFileInfo.url]).Checksum = downloadFileInfo.checksum
-		(*installersMap[downloadFileInfo.url]).VerifiedSize = downloadFileInfo.size
-	} 
-
-	extrasMap := m.GetUrlMappedExtras()
-	extraUrls := make([]string, len(extrasMap))
-	idx = 0
-	for k, _ := range extrasMap {
-		extraUrls[idx] = k
-		idx++;
-	}
-
-	var danglingExtraErrs []error
-	downloadInfos, fileInfoErrs, danglingExtraErrs = s.GetManyDownloadFileInfo(extraUrls, concurrency, pause, tolerateDangles)
-	if len(fileInfoErrs) > 0 {
-		return *m, fileInfoErrs, append(danglingInstallerErrs, danglingExtraErrs...)
-	}
-	for _, downloadFileInfo := range downloadInfos {
-		(*extrasMap[downloadFileInfo.url]).Name = downloadFileInfo.name
-		(*extrasMap[downloadFileInfo.url]).Checksum = downloadFileInfo.checksum
-		(*extrasMap[downloadFileInfo.url]).VerifiedSize = downloadFileInfo.size
-	} 
-
-	return *m, []error{}, append(danglingInstallerErrs, danglingExtraErrs...)
+	errs, warnings := s.fillManifestFiles(m, concurrency, pause, tolerateDangles)
+	return *m, errs, warnings
 }

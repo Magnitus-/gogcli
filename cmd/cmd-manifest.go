@@ -16,6 +16,7 @@ func generateManifestCmd() *cobra.Command {
 	manifestCmd.AddCommand(generateManifestGenerateCmd())
 	manifestCmd.AddCommand(generateManifestSummaryCmd())
 	manifestCmd.AddCommand(generateManifestSearchCmd())
+	manifestCmd.AddCommand(generateManifestUpdateCmd())
 
 	return manifestCmd
 }

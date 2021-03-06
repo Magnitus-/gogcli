@@ -24,7 +24,7 @@ func (g *ManifestGame) getInstallerNamed(name string) (ManifestGameInstaller, er
 		}
 	}
 
-	msg := fmt.Sprintf("*ManifestGame.getInstallerNamed(name=%) -> No installer by that name", name)
+	msg := fmt.Sprintf("*ManifestGame.getInstallerNamed(name=%s) -> No installer by that name", name)
 	return ManifestGameInstaller{}, errors.New(msg)
 }
 
@@ -35,7 +35,7 @@ func (g *ManifestGame) getExtraNamed(name string) (ManifestGameExtra, error) {
 		}
 	}
 
-	msg := fmt.Sprintf("*ManifestGame.getExtraNamed(name=%) -> No extra by that name", name)
+	msg := fmt.Sprintf("*ManifestGame.getExtraNamed(name=%s) -> No extra by that name", name)
 	return ManifestGameExtra{}, errors.New(msg)
 }
 

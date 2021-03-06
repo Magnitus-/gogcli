@@ -18,6 +18,7 @@ func generateStorageApplyCmd() *cobra.Command {
 	var path string
 	var storageType string
 	var gamesMax int
+	var allowEmptyCheckum bool
 
 	storageApplyCmd := &cobra.Command{
 		Use:   "apply",
@@ -35,7 +36,7 @@ func generateStorageApplyCmd() *cobra.Command {
 			err := storage.EnsureInitialization(gamesStorage)
 			processError(err)
 
-			errs := storage.UploadManifest(&m, gamesStorage, storage.Source{Type: "gog"}, concurrency, downloader, gamesMax)
+			errs := storage.UploadManifest(&m, gamesStorage, storage.Source{Type: "gog"}, concurrency, downloader, gamesMax, allowEmptyCheckum)
 			processErrors(errs)
 
 			output, _ := json.Marshal(&m)
@@ -52,6 +53,7 @@ func generateStorageApplyCmd() *cobra.Command {
 	storageApplyCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to the directory where game files should be stored")
 	storageApplyCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
 	storageApplyCmd.Flags().IntVarP(&gamesMax, "maximum", "x", -1, "The maximum number of games to upload into storage.")
+	storageApplyCmd.Flags().BoolVarP(&allowEmptyCheckum, "empty-checksum", "s", false, "If set to true, manifest files with empty checksums will count as already uploaded if everything else matches")
 
 	return storageApplyCmd
 }

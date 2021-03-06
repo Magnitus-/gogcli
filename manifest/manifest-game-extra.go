@@ -22,13 +22,14 @@ func (e *ManifestGameExtra) hasOneOfTypeTerms(typeTerms []string) bool {
 	return false
 }
 
-func (e *ManifestGameExtra) isEquivalentTo(o *ManifestGameExtra) bool {
+func (e *ManifestGameExtra) isEquivalentTo(o *ManifestGameExtra, emptyChecksumOk bool) bool {
 	sameName := (*e).Name == (*o).Name
 	sameTitle := (*e).Title == (*o).Title
 	sameUrl := (*e).Url == (*o).Url
 	sameVerifiedSize := (*o).VerifiedSize != 0 && (*e).VerifiedSize == (*o).VerifiedSize
+	checksumIsEmptyAndItsOk := emptyChecksumOk && ((*e).Checksum == "" || (*o).Checksum == "")
 	sameChecksum := (*o).Checksum != "" && (*e).Checksum == (*o).Checksum
-	return sameName && sameTitle && sameUrl && sameVerifiedSize && sameChecksum
+	return sameName && sameTitle && sameUrl && sameVerifiedSize && (sameChecksum || checksumIsEmptyAndItsOk)
 }
 
 func (e *ManifestGameExtra) getEstimatedSizeInBytes() (int64, error) {

@@ -6,7 +6,7 @@ import (
 	"gogcli/manifest"
 )
 
-func PlanManifest(m *manifest.Manifest, s Storage) (*manifest.GameActions, error) {
+func PlanManifest(m *manifest.Manifest, s Storage, emptyChecksumOk bool) (*manifest.GameActions, error) {
 	var storedManifest *manifest.Manifest
 	hasManifest, err := s.HasManifest()
 
@@ -25,5 +25,5 @@ func PlanManifest(m *manifest.Manifest, s Storage) (*manifest.GameActions, error
 	    storedManifest = manifest.NewEmptyManifest((*m).Filter)
 	}
 
-	return storedManifest.Plan(m), nil
+	return storedManifest.Plan(m, emptyChecksumOk), nil
 }

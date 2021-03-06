@@ -44,5 +44,5 @@ func Copy(source Storage, destination Storage, sourceDownloader Downloader, conc
 		return []error{loadErr}
 	}
 
-	return UploadManifest(m, destination, *source.GenerateSource(), concurrency, sourceDownloader, gamesMax)
+	return UploadManifest(m, destination, *source.GenerateSource(), concurrency, sourceDownloader, gamesMax, false)
 }

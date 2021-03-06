@@ -174,7 +174,7 @@ func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, er
 	return g, nil
 }
 
-func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
+func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksumOk bool) GameAction {
 	g := GameAction{
 		Title:            (*curr).Title,
 		Id:               (*curr).Id,
@@ -196,7 +196,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 
 	for name, inst := range futureInstallers {
 		if val, ok := currentInstallers[name]; ok {
-			if !inst.isEquivalentTo(&val) {
+			if !inst.isEquivalentTo(&val, emptyChecksumOk) {
 				//Overwrite
 				g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Kind: "installer", Action: "add"}
 			}
@@ -226,7 +226,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 
 	for name, extr := range futureExtras {
 		if val, ok := currentExtras[name]; ok {
-			if !extr.isEquivalentTo(&val) {
+			if !extr.isEquivalentTo(&val, emptyChecksumOk) {
 				//Overwrite
 				g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Kind: "extra", Action: "add"}
 			}
@@ -246,7 +246,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame) GameAction {
 	return g
 }
 
-func (curr *Manifest) Plan(next *Manifest) *GameActions {
+func (curr *Manifest) Plan(next *Manifest, emptyChecksumOk bool) *GameActions {
 	actions := GameActions(make(map[int64]GameAction))
 	currentGames := make(map[int64]ManifestGame)
 	futureGames := make(map[int64]ManifestGame)
@@ -263,7 +263,7 @@ func (curr *Manifest) Plan(next *Manifest) *GameActions {
 		if val, ok := currentGames[id]; !ok {
 			actions[id], _ = planManifestGameAddOrRemove(&game, "add")
 		} else {
-			actions[id] = planManifestGameUpdate(&val, &game)
+			actions[id] = planManifestGameUpdate(&val, &game, emptyChecksumOk)
 		}
 	}
 

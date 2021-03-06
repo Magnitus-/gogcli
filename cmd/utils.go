@@ -4,12 +4,28 @@ import (
 	"bytes"
 	"encoding/json"
     "fmt"
+    "gogcli/manifest"
     "gogcli/storage"
     "io/ioutil"
     "os"
     
 	"github.com/spf13/cobra"
 )
+
+func loadManifestFromFile(path string) (manifest.Manifest, error) {
+    var m manifest.Manifest
+    bs, err := ioutil.ReadFile(path)
+    if err != nil {
+        return manifest.Manifest{}, err
+    }
+
+    err = json.Unmarshal(bs, &m)
+    if err != nil {
+        return manifest.Manifest{}, err
+    }
+
+    return m, nil
+}
 
 func getStorage(path string, storageType string, debugMode bool, loggerTag string) (storage.Storage, storage.Downloader) {
     if storageType != "fs" && storageType != "s3" {

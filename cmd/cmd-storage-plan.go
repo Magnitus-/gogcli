@@ -43,17 +43,9 @@ func generateStoragePlanCmd() *cobra.Command {
 		Use:   "plan",
 		Short: "Generate a plan of the actions that would be executed if a given manifest was applied to the storage",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			bs, err := ioutil.ReadFile(manifestPath)
-			if err != nil {
-				fmt.Println("Could not load the manifest: ", err)
-				os.Exit(1)
-			}
-
-			err = json.Unmarshal(bs, &m)
-			if err != nil {
-				fmt.Println("Manifest file doesn't appear to contain valid json: ", err)
-				os.Exit(1)
-			}
+			var err error
+			m, err = loadManifestFromFile(path)
+			processError(err)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var actions *manifest.GameActions

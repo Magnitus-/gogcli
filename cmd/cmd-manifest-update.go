@@ -25,17 +25,9 @@ func generateManifestUpdateCmd() *cobra.Command {
 		Use:   "update",
 		Short: "Update a manifest file based on changes from gog api",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			bs, err := ioutil.ReadFile(manifestFile)
-			if err != nil {
-				fmt.Println("Could not load the manifest: ", err)
-				os.Exit(1)
-			}
-
-			err = json.Unmarshal(bs, &m)
-			if err != nil {
-				fmt.Println("Manifest file doesn't appear to contain valid json: ", err)
-				os.Exit(1)
-			}
+			var err error
+			m, err = loadManifestFromFile(manifestFile)
+			processError(err)
 
 			if len(gameIds) == 0 && updateFile == "" {
 				fmt.Println("You either need to pass ids of games to update or pass an updates file", err)
@@ -43,6 +35,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 			}
 
 			if updateFile != "" {
+				var bs []byte
 				bs, err = ioutil.ReadFile(updateFile)
 				if err != nil {
 					fmt.Println("Could not load the updates: ", err)

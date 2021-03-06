@@ -1,11 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
-	"fmt"
 	"gogcli/manifest"
-	"io/ioutil"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -20,17 +16,9 @@ func generateManifestSummaryCmd() *cobra.Command {
 		Use:   "summary",
 		Short: "Command to retrieve the summary of a manifest",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			bs, err := ioutil.ReadFile(manifestPath)
-			if err != nil {
-				fmt.Println("Could not load the manifest: ", err)
-				os.Exit(1)
-			}
-
-			err = json.Unmarshal(bs, &m)
-			if err != nil {
-				fmt.Println("Manifest file doesn't appear to contain valid json: ", err)
-				os.Exit(1)
-			}
+			var err error
+			m, err = loadManifestFromFile(manifestPath)
+			processError(err)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			summary := m.GetSummary()

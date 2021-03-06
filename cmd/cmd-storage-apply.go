@@ -3,12 +3,10 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"gogcli/manifest"
 	"gogcli/sdk"
 	"gogcli/storage"
 	"io/ioutil"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -25,17 +23,9 @@ func generateStorageApplyCmd() *cobra.Command {
 		Use:   "apply",
 		Short: "Change the files in a given storage to match the content of a manifest, uploading and deleting files as necessary",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			bs, err := ioutil.ReadFile(manifestPath)
-			if err != nil {
-				fmt.Println("Could not load the manifest: ", err)
-				os.Exit(1)
-			}
-
-			err = json.Unmarshal(bs, &m)
-			if err != nil {
-				fmt.Println("Manifest file doesn't appear to contain valid json: ", err)
-				os.Exit(1)
-			}
+			var err error
+			m, err = loadManifestFromFile(path)
+			processError(err)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var buf bytes.Buffer

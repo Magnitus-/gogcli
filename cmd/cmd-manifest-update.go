@@ -57,7 +57,17 @@ func generateManifestUpdateCmd() *cobra.Command {
 				ids = append(ids, (*u).UpdatedGames...)
 			}
 
-			//To finish
+			uManifest, errs, errs404 := sdkPtr.GetManifestFromIds(m.Filter, ids, concurrency, pause, tolerateDangles)
+			m.OverwriteGames(uManifest.Games)
+			m.Finalize()
+			processSerializableOutput(m, errs, false, manifestFile)
+			if len(errs404) > 0 {
+				errs404Output := Errors{make([]string, len(errs404))}
+				for idx, _ := range errs404 {
+					errs404Output.Errors[idx] = errs404[idx].Error()
+				}
+				processSerializableOutput(errs404Output, []error{}, false, warningFile)
+			}
 		},
 	}
 

@@ -5,39 +5,17 @@ import (
 	"fmt"
 )
 
-type ManifestFilter struct {
-	Titles []string
-	Oses []string
-	Languages []string
-	Tags []string
-	Installers bool
-	Extras bool
-	ExtraTypes []string
-}
-
-func NewManifestFilter (titles []string, oses []string, languages []string, tags []string, installers bool, extras bool, extraTypes []string) ManifestFilter {
-	return ManifestFilter{
-		Titles: titles,
-		Oses: oses,
-		Languages: languages,
-		Tags: tags,
-		Installers: installers,
-		Extras: extras,
-		ExtraTypes: extraTypes,
-	}
+type Manifest struct {
+	Games         []ManifestGame
+	EstimatedSize string
+	VerifiedSize  int64
+	Filter ManifestFilter
 }
 
 func (m *Manifest) Trim() {
 	m.TrimGames()	
 	m.TrimInstallers()	
 	m.TrimExtras()
-}
-
-type Manifest struct {
-	Games         []ManifestGame
-	EstimatedSize string
-	VerifiedSize  int64
-	Filter ManifestFilter
 }
 
 func NewEmptyManifest(f ManifestFilter) *Manifest {

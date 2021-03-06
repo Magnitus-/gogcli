@@ -37,6 +37,7 @@ func generateManifestSearchCmd() *cobra.Command {
 				extras,
 				extraTypeFilters,
 			)
+			f.Intersect(m.Filter)
 			m.Filter = f
 			m.Trim()
 			m.Finalize()

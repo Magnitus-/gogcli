@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestSortArrayAndComputeHash(t *testing.T) {
+func TestGetBytesToEstimate(t *testing.T) {
 	if GetBytesToEstimate(900) != "0.90 KB" {
 		t.Errorf("Under 1 Clearly Fraction KB value %s doesn't match expected: 0.90 KB", GetBytesToEstimate(900))
 	}

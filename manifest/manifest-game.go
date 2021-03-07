@@ -17,6 +17,14 @@ type ManifestGame struct {
 	VerifiedSize  int64
 }
 
+/*func (g *ManifestGame) imprintMissingChecksums(prev *ManifestGame) error {
+	if (*g).Id != (*prev).Id {
+		return errors.New("imprintMissingChecksums(...) -> Game ids do not match")
+	}
+
+	
+}*/
+
 func (g *ManifestGame) getInstallerNamed(name string) (ManifestGameInstaller, error) {
 	for idx, _ := range (*g).Installers {
 		if (*g).Installers[idx].Name == name {

@@ -5,66 +5,6 @@ import (
 	"fmt"
 )
 
-type FileAction struct {
-	Title        string
-	Name         string
-	Url          string
-	Kind         string
-	Action       string
-}
-
-type GameAction struct {
-	Title            string
-	Id               int64
-	Action           string
-	InstallerActions map[string]FileAction
-	ExtraActions     map[string]FileAction
-}
-
-func (g *GameAction) IsNoOp() bool {
-	return (*g).Action == "update" && (!(*g).HasFileActions())
-}
-
-func (g *GameAction) GetInstallerNames() []string {
-	installerNames := make([]string, len((*g).InstallerActions))
-	
-	idx := 0
-	for name, _ := range (*g).InstallerActions {
-		installerNames[idx] = name
-		idx++
-	}
-
-	return installerNames
-}
-
-func (g *GameAction) GetExtraNames() []string {
-	extraNames := make([]string, len((*g).ExtraActions))
-	
-	idx := 0
-	for name, _ := range (*g).ExtraActions {
-		extraNames[idx] = name
-		idx++
-	}
-
-	return extraNames
-}
-
-func (g *GameAction) HasFileActions() bool {
-	return len((*g).InstallerActions) > 0 || len((*g).ExtraActions) > 0
-}
-
-func (g *GameAction) CountFileActions() int {
-	return len((*g).InstallerActions) + len((*g).ExtraActions)
-}
-
-func (g *GameAction) ActionsLeft() int {
-	actionsCount := g.CountFileActions()
-	if (*g).Action != "update" {
-		actionsCount++
-	}
-	return actionsCount
-}
-
 type GameActions map[int64]GameAction
 
 func (g *GameActions) ActionsLeft() int {

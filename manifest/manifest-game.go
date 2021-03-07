@@ -17,6 +17,26 @@ type ManifestGame struct {
 	VerifiedSize  int64
 }
 
+func (g *ManifestGame) TrimIncompleteFiles() {
+	installers := make([]ManifestGameInstaller, 0)
+	extras := make([]ManifestGameExtra, 0)
+
+	for _, installer := range (*g).Installers {
+		if installer.Name != "" && installer.VerifiedSize > 0 {
+			installers = append(installers, installer)
+		}
+	}
+
+	for _, extra := range (*g).Extras {
+		if extra.Name != "" && extra.VerifiedSize > 0 {
+			extras = append(extras, extra)
+		}
+	}
+
+	(*g).Installers = installers
+	(*g).Extras = extras
+}
+
 func (g *ManifestGame) ImprintMissingChecksums(prev *ManifestGame) error {
 	if (*g).Id != (*prev).Id {
 		return errors.New("imprintMissingChecksums(...) -> Game ids do not match")

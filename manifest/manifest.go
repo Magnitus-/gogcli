@@ -12,6 +12,14 @@ type Manifest struct {
 	Filter ManifestFilter
 }
 
+func (m *Manifest) TrimIncompleteFiles() {
+	for idx, _ := range (*m).Games {
+		game := (*m).Games[idx]
+		game.TrimIncompleteFiles()
+		(*m).Games[idx] = game
+	}
+}
+
 func (m *Manifest) ImprintMissingChecksums(prev *Manifest) error {
 	prevGames := make(map[int64]ManifestGame)
 
@@ -48,6 +56,7 @@ func NewEmptyManifest(f ManifestFilter) *Manifest {
 }
 
 func (m *Manifest) Finalize() {
+	m.TrimIncompleteFiles()
 	filteredGames := make([]ManifestGame, 0)
 	for _, g := range (*m).Games {
 		if !g.IsEmpty() {

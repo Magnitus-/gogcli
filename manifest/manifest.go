@@ -12,6 +12,26 @@ type Manifest struct {
 	Filter ManifestFilter
 }
 
+func (m *Manifest) ImprintMissingChecksums(prev *Manifest) error {
+	prevGames := make(map[int64]ManifestGame)
+
+	for _, game := range (*prev).Games {
+		prevGames[game.Id] = game
+	}
+
+	for idx, game := range (*m).Games {
+		if prevGame, ok := prevGames[game.Id]; ok {
+			err := game.ImprintMissingChecksums(&prevGame)
+			if err != nil {
+				return err
+			}
+			(*m).Games[idx] = game
+		}
+	}
+
+	return nil
+}
+
 func (m *Manifest) Trim() {
 	m.TrimGames()	
 	m.TrimInstallers()	
@@ -30,7 +50,7 @@ func NewEmptyManifest(f ManifestFilter) *Manifest {
 func (m *Manifest) Finalize() {
 	filteredGames := make([]ManifestGame, 0)
 	for _, g := range (*m).Games {
-		if !g.isEmpty() {
+		if !g.IsEmpty() {
 			filteredGames = append(filteredGames, g)
 		}
 	}
@@ -51,8 +71,8 @@ func (m *Manifest) TrimGames() {
 	}
 
 	for _, g := range (*m).Games {
-		hasTitleTerm := len(titles) == 0 || g.hasTitleTerms(titles)
-		hasOneOfTags := len(tags) == 0 || g.hasOneOfTags(tags)
+		hasTitleTerm := len(titles) == 0 || g.HasTitleTerms(titles)
+		hasOneOfTags := len(tags) == 0 || g.HasOneOfTags(tags)
 		if hasTitleTerm && hasOneOfTags {
 			filteredGames = append(filteredGames, g)
 		}
@@ -73,8 +93,8 @@ func (m *Manifest) TrimInstallers() {
 	}
 
 	for _, g := range (*m).Games {
-		g.trimInstallers(oses, languages, keepAny)
-		if !g.isEmpty() {
+		g.TrimInstallers(oses, languages, keepAny)
+		if !g.IsEmpty() {
 			filteredGames = append(filteredGames, g)
 		}
 	}
@@ -93,8 +113,8 @@ func (m *Manifest) TrimExtras() {
 	}
 
 	for _, g := range (*m).Games {
-		g.trimExtras(typeTerms, keepAny)
-		if !g.isEmpty() {
+		g.TrimExtras(typeTerms, keepAny)
+		if !g.IsEmpty() {
 			filteredGames = append(filteredGames, g)
 		}
 	}
@@ -125,7 +145,7 @@ func (m *Manifest) ComputeVerifiedSize() int64 {
 	accumulate := int64(0)
 
 	for idx, _ := range (*m).Games {
-		accumulate += (*m).Games[idx].computeVerifiedSize()
+		accumulate += (*m).Games[idx].ComputeVerifiedSize()
 	}
 
 	(*m).VerifiedSize = accumulate
@@ -136,7 +156,7 @@ func (m *Manifest) ComputeEstimatedSize() (int64, error) {
 	accumulate := int64(0)
 
 	for idx, _ := range (*m).Games {
-		size, err := (*m).Games[idx].computeEstimatedSize()
+		size, err := (*m).Games[idx].ComputeEstimatedSize()
 		if err != nil {
 			return int64(0), err
 		}
@@ -158,7 +178,7 @@ func (m *Manifest) FillMissingFileInfo(gameId int64, fileKind string, fileName s
 	)
 	for idx, _ := range (*m).Games {
 		if (*m).Games[idx].Id == gameId {
-			err := (*m).Games[idx].fillMissingFileInfo(fileKind, fileName, fileSize, fileChecksum)
+			err := (*m).Games[idx].FillMissingFileInfo(fileKind, fileName, fileSize, fileChecksum)
 			if err != nil {
 				return errors.New(fmt.Sprintf("%s -> Error filling game's missing info: %s", fn, err.Error()))
 			}

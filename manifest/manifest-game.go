@@ -17,22 +17,55 @@ type ManifestGame struct {
 	VerifiedSize  int64
 }
 
-/*func (g *ManifestGame) imprintMissingChecksums(prev *ManifestGame) error {
+func (g *ManifestGame) ImprintMissingChecksums(prev *ManifestGame) error {
 	if (*g).Id != (*prev).Id {
 		return errors.New("imprintMissingChecksums(...) -> Game ids do not match")
 	}
 
-	
-}*/
+	previousInstallers := make(map[string]ManifestGameInstaller)
+	previousExtras := make(map[string]ManifestGameExtra)
 
-func (g *ManifestGame) getInstallerNamed(name string) (ManifestGameInstaller, error) {
+	for _, installer := range (*prev).Installers {
+		previousInstallers[installer.Name] = installer 
+	}
+
+	for _, extra := range (*prev).Extras {
+		previousExtras[extra.Name] = extra
+	}
+
+	for idx, installer := range (*g).Installers {
+		if prevInstaller, ok := previousInstallers[installer.Name]; ok {
+			if installer.IsEquivalentTo(&prevInstaller, true) {
+				if installer.Checksum == "" &&  prevInstaller.Checksum != "" {
+					installer.Checksum = prevInstaller.Checksum
+					(*g).Installers[idx] = installer
+				}
+			}
+		}
+	}
+
+	for idx, extra := range (*g).Extras {
+		if prevExtra, ok := previousExtras[extra.Name]; ok {
+			if extra.IsEquivalentTo(&prevExtra, true) {
+				if extra.Checksum == "" &&  prevExtra.Checksum != "" {
+					extra.Checksum = prevExtra.Checksum
+					(*g).Extras[idx] = extra
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (g *ManifestGame) GetInstallerNamed(name string) (ManifestGameInstaller, error) {
 	for idx, _ := range (*g).Installers {
 		if (*g).Installers[idx].Name == name {
 			return (*g).Installers[idx], nil
 		}
 	}
 
-	msg := fmt.Sprintf("*ManifestGame.getInstallerNamed(name=%s) -> No installer by that name", name)
+	msg := fmt.Sprintf("*ManifestGame.GetInstallerNamed(name=%s) -> No installer by that name", name)
 	return ManifestGameInstaller{}, errors.New(msg)
 }
 
@@ -47,7 +80,7 @@ func (g *ManifestGame) getExtraNamed(name string) (ManifestGameExtra, error) {
 	return ManifestGameExtra{}, errors.New(msg)
 }
 
-func (g *ManifestGame) trimInstallers(oses []string, languages []string, keepAny bool) {
+func (g *ManifestGame) TrimInstallers(oses []string, languages []string, keepAny bool) {
 	filteredInstallers := make([]ManifestGameInstaller, 0)
 
 	if keepAny {
@@ -57,8 +90,8 @@ func (g *ManifestGame) trimInstallers(oses []string, languages []string, keepAny
 		}
 
 		for _, i := range (*g).Installers {
-			hasOneOfOses := len(oses) == 0 || i.hasOneOfOses(oses)
-			hasOneOfLanguages := len(languages) == 0 || i.hasOneOfLanguages(languages)
+			hasOneOfOses := len(oses) == 0 || i.HasOneOfOses(oses)
+			hasOneOfLanguages := len(languages) == 0 || i.HasOneOfLanguages(languages)
 			if hasOneOfOses && hasOneOfLanguages {
 				filteredInstallers = append(filteredInstallers, i)
 			}
@@ -67,7 +100,7 @@ func (g *ManifestGame) trimInstallers(oses []string, languages []string, keepAny
 	(*g).Installers = filteredInstallers
 }
 
-func (g *ManifestGame) trimExtras(typeTerms []string, keepAny bool) {
+func (g *ManifestGame) TrimExtras(typeTerms []string, keepAny bool) {
 	filteredExtras := make([]ManifestGameExtra, 0)
 
 	if keepAny {
@@ -76,7 +109,7 @@ func (g *ManifestGame) trimExtras(typeTerms []string, keepAny bool) {
 		}
 
 		for _, e := range (*g).Extras {
-			if e.hasOneOfTypeTerms(typeTerms) {
+			if e.HasOneOfTypeTerms(typeTerms) {
 				filteredExtras = append(filteredExtras, e)
 			}
 		}
@@ -84,7 +117,7 @@ func (g *ManifestGame) trimExtras(typeTerms []string, keepAny bool) {
 	(*g).Extras = filteredExtras
 }
 
-func (g *ManifestGame) hasTitleTerms(titleTerms []string) bool {
+func (g *ManifestGame) HasTitleTerms(titleTerms []string) bool {
 	if len(titleTerms) == 0 {
 		return true
 	}
@@ -98,7 +131,7 @@ func (g *ManifestGame) hasTitleTerms(titleTerms []string) bool {
 	return false
 }
 
-func (g *ManifestGame) hasOneOfTags(tags []string) bool {
+func (g *ManifestGame) HasOneOfTags(tags []string) bool {
 	for _, t := range tags {
 		for _, gt := range (*g).Tags {
 			if t == gt {
@@ -109,11 +142,11 @@ func (g *ManifestGame) hasOneOfTags(tags []string) bool {
 	return false
 }
 
-func (g *ManifestGame) isEmpty() bool {
+func (g *ManifestGame) IsEmpty() bool {
 	return len((*g).Installers) == 0 && len((*g).Extras) == 0
 }
 
-func (g *ManifestGame) computeVerifiedSize() int64 {
+func (g *ManifestGame) ComputeVerifiedSize() int64 {
 	accumulate := int64(0)
 	for _, inst := range (*g).Installers {
 		accumulate += inst.VerifiedSize
@@ -127,10 +160,10 @@ func (g *ManifestGame) computeVerifiedSize() int64 {
 	return accumulate
 }
 
-func (g *ManifestGame) computeEstimatedSize() (int64, error) {
+func (g *ManifestGame) ComputeEstimatedSize() (int64, error) {
 	accumulate := int64(0)
 	for _, inst := range (*g).Installers {
-		size, err := inst.getEstimatedSizeInBytes()
+		size, err := inst.GetEstimatedSizeInBytes()
 		if err != nil {
 			return int64(0), err
 		}
@@ -138,7 +171,7 @@ func (g *ManifestGame) computeEstimatedSize() (int64, error) {
 	}
 
 	for _, extr := range (*g).Extras {
-		size, err := extr.getEstimatedSizeInBytes()
+		size, err := extr.GetEstimatedSizeInBytes()
 		if err != nil {
 			return 0, err
 		}
@@ -149,7 +182,7 @@ func (g *ManifestGame) computeEstimatedSize() (int64, error) {
 	return accumulate, nil
 }
 
-func (g *ManifestGame) fillMissingFileInfo(fileKind string, fileName string, fileSize int64, fileChecksum string) error {
+func (g *ManifestGame) FillMissingFileInfo(fileKind string, fileName string, fileSize int64, fileChecksum string) error {
 	if fileKind == "installer" {
 		for idx, _ := range (*g).Installers {
 			if (*g).Installers[idx].Name == fileName {

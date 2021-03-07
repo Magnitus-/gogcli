@@ -13,7 +13,7 @@ type ManifestGameExtra struct {
 	Checksum      string
 }
 
-func (e *ManifestGameExtra) hasOneOfTypeTerms(typeTerms []string) bool {
+func (e *ManifestGameExtra) HasOneOfTypeTerms(typeTerms []string) bool {
 	for _, t := range typeTerms {
 		if strings.Contains((*e).Type, t) {
 			return true
@@ -22,7 +22,7 @@ func (e *ManifestGameExtra) hasOneOfTypeTerms(typeTerms []string) bool {
 	return false
 }
 
-func (e *ManifestGameExtra) isEquivalentTo(o *ManifestGameExtra, emptyChecksumOk bool) bool {
+func (e *ManifestGameExtra) IsEquivalentTo(o *ManifestGameExtra, emptyChecksumOk bool) bool {
 	sameName := (*e).Name == (*o).Name
 	sameTitle := (*e).Title == (*o).Title
 	sameUrl := (*e).Url == (*o).Url
@@ -32,6 +32,6 @@ func (e *ManifestGameExtra) isEquivalentTo(o *ManifestGameExtra, emptyChecksumOk
 	return sameName && sameTitle && sameUrl && sameVerifiedSize && (sameChecksum || checksumIsEmptyAndItsOk)
 }
 
-func (e *ManifestGameExtra) getEstimatedSizeInBytes() (int64, error) {
+func (e *ManifestGameExtra) GetEstimatedSizeInBytes() (int64, error) {
 	return GetEstimateToBytes((*e).EstimatedSize)
 }

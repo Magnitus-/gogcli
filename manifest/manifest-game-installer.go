@@ -13,7 +13,7 @@ type ManifestGameInstaller struct {
 	Checksum      string
 }
 
-func (i *ManifestGameInstaller) hasOneOfOses(oses []string) bool {
+func (i *ManifestGameInstaller) HasOneOfOses(oses []string) bool {
 	for _, os := range oses {
 		if os == i.Os {
 			return true
@@ -22,7 +22,7 @@ func (i *ManifestGameInstaller) hasOneOfOses(oses []string) bool {
 	return false
 }
 
-func (i *ManifestGameInstaller) hasOneOfLanguages(languages []string) bool {
+func (i *ManifestGameInstaller) HasOneOfLanguages(languages []string) bool {
 	for _, l := range languages {
 		if l == i.Language {
 			return true
@@ -31,7 +31,7 @@ func (i *ManifestGameInstaller) hasOneOfLanguages(languages []string) bool {
 	return false
 }
 
-func (i *ManifestGameInstaller) isEquivalentTo(o *ManifestGameInstaller, emptyChecksumOk bool) bool {
+func (i *ManifestGameInstaller) IsEquivalentTo(o *ManifestGameInstaller, emptyChecksumOk bool) bool {
 	sameName := (*i).Name == (*o).Name
 	sameTitle := (*i).Title == (*o).Title
 	sameUrl := (*i).Url == (*o).Url
@@ -41,6 +41,6 @@ func (i *ManifestGameInstaller) isEquivalentTo(o *ManifestGameInstaller, emptyCh
 	return sameName && sameTitle && sameUrl && sameVerifiedSize && (sameChecksum || checksumIsEmptyAndItsOk)
 }
 
-func (i *ManifestGameInstaller) getEstimatedSizeInBytes() (int64, error) {
+func (i *ManifestGameInstaller) GetEstimatedSizeInBytes() (int64, error) {
 	return GetEstimateToBytes((*i).EstimatedSize)
 }

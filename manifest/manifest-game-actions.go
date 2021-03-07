@@ -136,7 +136,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksu
 
 	for name, inst := range futureInstallers {
 		if val, ok := currentInstallers[name]; ok {
-			if !inst.isEquivalentTo(&val, emptyChecksumOk) {
+			if !inst.IsEquivalentTo(&val, emptyChecksumOk) {
 				//Overwrite
 				g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Kind: "installer", Action: "add"}
 			}
@@ -166,7 +166,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksu
 
 	for name, extr := range futureExtras {
 		if val, ok := currentExtras[name]; ok {
-			if !extr.isEquivalentTo(&val, emptyChecksumOk) {
+			if !extr.IsEquivalentTo(&val, emptyChecksumOk) {
 				//Overwrite
 				g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Kind: "extra", Action: "add"}
 			}
@@ -227,7 +227,7 @@ func (m *Manifest) GetFileActionFileInfo(gameId int64, action FileAction) (FileI
 		if (*m).Games[idx].Id == gameId {
 			game := (*m).Games[idx]
 			if action.Kind == "installer" {
-				installer, err := game.getInstallerNamed(action.Name)
+				installer, err := game.GetInstallerNamed(action.Name)
 				if err != nil {
 					return FileInfo{}, err
 				}

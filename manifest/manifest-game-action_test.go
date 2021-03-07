@@ -307,23 +307,20 @@ func TestGameActionCountFileActions(t *testing.T) {
 }
 
 func TestGameActionActionsLeft(t *testing.T) {
+	installerOneAction := FileAction{
+		Title: "installer",
+		Name: "installerOne",
+		Url: "donotcare",
+		Kind: "installer",
+		Action: "add",
+	}
+
 	installerTwoAction := FileAction{
 		Title: "installer",
 		Name: "installerTwo",
 		Url: "donotcare",
 		Kind: "installer",
 		Action: "add",
-	}
-
-	twoInstallerActions := GameAction{
-		Title: "test",
-		Id: 1,
-		Action: "add",
-		InstallerActions: map[string]FileAction{
-			"installerOne": installerOneAction,
-			"installerTwo": installerTwoAction,
-		},
-		ExtraActions: map[string]FileAction{},
 	}
 
 	extraAction := FileAction{

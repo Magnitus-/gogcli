@@ -24,6 +24,14 @@ func UploadManifest(m *manifest.Manifest, s Storage, src Source, concurrency int
 		return []error{err}
 	}
 
+	if emptyChecksumOk {
+		prevManifest, err := s.LoadManifest()
+		if err != nil {
+			return []error{err}
+		}
+		m.ImprintMissingChecksums(prevManifest)
+	}
+
 	err = s.StoreSource(&src)
 	if err != nil {
 		return []error{err}

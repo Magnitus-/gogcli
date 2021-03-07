@@ -273,6 +273,12 @@ func (curr *Manifest) Plan(next *Manifest, emptyChecksumOk bool) *GameActions {
 		}
 	}
 
+	for id, gameAction := range actions {
+		if gameAction.ActionsLeft() == 0 {
+			delete(actions, id)
+		}
+	}
+
 	return &actions
 }
 

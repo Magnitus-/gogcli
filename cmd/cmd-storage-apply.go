@@ -25,7 +25,7 @@ func generateStorageApplyCmd() *cobra.Command {
 		Short: "Change the files in a given storage to match the content of a manifest, uploading and deleting files as necessary",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			var err error
-			m, err = loadManifestFromFile(path)
+			m, err = loadManifestFromFile(manifestPath)
 			processError(err)
 		},
 		Run: func(cmd *cobra.Command, args []string) {

@@ -125,15 +125,23 @@ func (m *Manifest) TrimExtras() {
 func (m *Manifest) OverwriteGames(games []ManifestGame) {
 	filteredGames := make([]ManifestGame, 0)
 	replaceMap := make(map[int64]ManifestGame)
+	existingMap := make(map[int64]ManifestGame)
 
 	for _, game := range games {
 		replaceMap[game.Id] = game
 	}
 
 	for _, game := range (*m).Games {
+		existingMap[game.Id] = game
 		if repl, ok := replaceMap[game.Id]; ok {
 			filteredGames = append(filteredGames, repl)
 		} else {
+			filteredGames = append(filteredGames, game)
+		}
+	}
+
+	for _, game := range games {
+		if _, ok := existingMap[game.Id]; !ok {
 			filteredGames = append(filteredGames, game)
 		}
 	}

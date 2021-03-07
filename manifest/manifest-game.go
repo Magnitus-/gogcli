@@ -69,14 +69,14 @@ func (g *ManifestGame) GetInstallerNamed(name string) (ManifestGameInstaller, er
 	return ManifestGameInstaller{}, errors.New(msg)
 }
 
-func (g *ManifestGame) getExtraNamed(name string) (ManifestGameExtra, error) {
+func (g *ManifestGame) GetExtraNamed(name string) (ManifestGameExtra, error) {
 	for idx, _ := range (*g).Extras {
 		if (*g).Extras[idx].Name == name {
 			return (*g).Extras[idx], nil
 		}
 	}
 
-	msg := fmt.Sprintf("*ManifestGame.getExtraNamed(name=%s) -> No extra by that name", name)
+	msg := fmt.Sprintf("*ManifestGame.GetExtraNamed(name=%s) -> No extra by that name", name)
 	return ManifestGameExtra{}, errors.New(msg)
 }
 

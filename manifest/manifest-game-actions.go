@@ -240,7 +240,7 @@ func (m *Manifest) GetFileActionFileInfo(gameId int64, action FileAction) (FileI
 					Url: installer.Url,
 				}, nil
 			} else {
-				extra, err := game.getExtraNamed(action.Name)
+				extra, err := game.GetExtraNamed(action.Name)
 				if err != nil {
 					return FileInfo{}, err
 				}

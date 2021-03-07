@@ -45,7 +45,7 @@ func generateStoragePlanCmd() *cobra.Command {
 		Short: "Generate a plan of the actions that would be executed if a given manifest was applied to the storage",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			var err error
-			m, err = loadManifestFromFile(path)
+			m, err = loadManifestFromFile(manifestPath)
 			processError(err)
 		},
 		Run: func(cmd *cobra.Command, args []string) {

@@ -21,17 +21,9 @@ sessions_gog_com=<value taken from gog.com>
 gog-al=<value taken from gog.com>
 ```
 
-To get the values, login to gog.com, then, open up the developer console and look at the cookie values of network requests going to gog.com.
+To get the values, login to gog.com in your browser, then, get the cookie values.
 
-For Chrome, you can do so as follows: 
-  - left click
-  - click on "Inspect"
-  - click on the "Network" tab
-  - Reload the main page
-  - You should see a request to **www.gog.com**, click on it
-  - Click on the **Headers** tab
-  - Go down to the **Request Headers** section
-  - All the cookie values are next to the **cookie:** caption in the format ```<key>=<value>```. They are separated by a **;** character.
+Here is a guide to look at your cookies in Chrome: https://developers.google.com/web/tools/chrome-devtools/storage/cookies
 
 The above is needed, because GOG.com does not yet have an official api for third-party tools with user-generated api keys.
 

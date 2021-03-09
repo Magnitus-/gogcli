@@ -7,6 +7,23 @@ import (
 
 type GameActions map[int64]GameAction
 
+func (g *GameActions) Update(n *GameActions) error {
+	for gameId, _ := range (*n) {
+		if gameAction, ok := (*g)[gameId]; ok {
+			newGameAction := (*n)[gameId]
+			err := gameAction.Update(&newGameAction)
+			if err != nil {
+				return err
+			}
+			(*g)[gameId] = gameAction
+		} else {
+			(*g)[gameId] = (*n)[gameId]
+		}
+	}
+	
+	return nil
+}
+
 func (g *GameActions) ActionsLeft() int {
 	actionsCount := 0
 	for id, _ := range *g {

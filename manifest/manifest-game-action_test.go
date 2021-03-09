@@ -4,6 +4,148 @@ import (
 	"testing"
 )
 
+func TestUpdate(t *testing.T) {
+
+	fileAdditions := []FileAction{
+		FileAction{
+			Title: "one",
+			Name: "one",
+			Url: "donotcare",
+			Kind: "installer",
+			Action: "add",
+		},
+		FileAction{
+			Title: "two",
+			Name: "two",
+			Url: "donotcare",
+			Kind: "installer",
+			Action: "add",
+		},
+		FileAction{
+			Title: "three",
+			Name: "three",
+			Url: "donotcare",
+			Kind: "installer",
+			Action: "add",
+		},
+	}
+
+	fileRemovals := []FileAction{
+		FileAction{
+			Title: "one",
+			Name: "one",
+			Url: "donotcare",
+			Kind: "installer",
+			Action: "remove",
+		},
+		FileAction{
+			Title: "two",
+			Name: "two",
+			Url: "donotcare",
+			Kind: "installer",
+			Action: "remove",
+		},
+		FileAction{
+			Title: "three",
+			Name: "three",
+			Url: "donotcare",
+			Kind: "installer",
+			Action: "remove",
+		},
+	}
+
+	addAction := GameAction{
+		Title: "test",
+		Id: 1,
+		Action: "add",
+		InstallerActions: map[string]FileAction{
+			"one": fileAdditions[0],
+			"two": fileAdditions[1],
+		},
+		ExtraActions: map[string]FileAction{
+			"one": fileAdditions[0],
+			"two": fileAdditions[1],
+		},
+	}
+	addToRemoveAction := GameAction{
+		Title: "test",
+		Id: 1,
+		Action: "remove",
+		InstallerActions: map[string]FileAction{
+			"one": fileRemovals[0],
+			"two": fileRemovals[1],
+		},
+		ExtraActions: map[string]FileAction{
+			"one": fileRemovals[0],
+			"two": fileRemovals[1],
+		},
+	}
+
+	addAction.Update(&addToRemoveAction)
+	if addAction.Action != "remove" {
+		t.Errorf("Update with a removal action should have set the action to remove")
+	}
+
+	installerActionOne := addAction.InstallerActions["one"]
+	installerActionTwo := addAction.InstallerActions["two"]
+	if installerActionOne.Action != "remove" || installerActionTwo.Action != "remove" {
+		t.Errorf("Installer actions didn't get properly updated in add to removal conversion")
+	}
+
+	extraActionOne := addAction.ExtraActions["one"]
+	extraActionTwo := addAction.ExtraActions["two"]
+	if extraActionOne.Action != "remove" || extraActionTwo.Action != "remove" {
+		t.Errorf("Extra actions didn't get properly updated in add to removal conversion")
+	}
+
+	addActionTakeTwo := GameAction{
+		Title: "test",
+		Id: 1,
+		Action: "add",
+		InstallerActions: map[string]FileAction{
+			"one": fileAdditions[0],
+			"two": fileAdditions[1],
+		},
+		ExtraActions: map[string]FileAction{
+			"one": fileAdditions[0],
+			"two": fileAdditions[1],
+		},
+	}
+	addToUpdateAction := GameAction{
+		Title: "test",
+		Id: 1,
+		Action: "update",
+		InstallerActions: map[string]FileAction{
+			"two": fileRemovals[1],
+			"three": fileAdditions[2],
+		},
+		ExtraActions: map[string]FileAction{
+			"two": fileRemovals[1],
+			"three": fileAdditions[2],
+		},
+	}
+
+	addActionTakeTwo.Update(&addToUpdateAction)
+	if addActionTakeTwo.Action != "add" {
+		t.Errorf("Update with an update action should not have changed the original action's type")
+	}
+
+	installerActionOne = addActionTakeTwo.InstallerActions["one"]
+	installerActionTwo = addActionTakeTwo.InstallerActions["two"]
+	installerActionThree := addActionTakeTwo.InstallerActions["three"]
+	if installerActionOne.Action != "add" || installerActionTwo.Action != "remove" || installerActionThree.Action != "add" {
+		t.Errorf("Installer actions didn't get properly updated in add to update conversion")
+	}
+
+	extraActionOne = addActionTakeTwo.ExtraActions["one"]
+	extraActionTwo = addActionTakeTwo.ExtraActions["two"]
+	extraActionThree := addActionTakeTwo.ExtraActions["three"]
+	if extraActionOne.Action != "add" || extraActionTwo.Action != "remove" || extraActionThree.Action != "add" {
+		t.Errorf("Extra actions didn't get properly updated in add to update conversion")
+	}
+
+}
+
 func TestGameActionIsNoOp(t *testing.T) {
 	addOnly := GameAction{
 		Title: "test",

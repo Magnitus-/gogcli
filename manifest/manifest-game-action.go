@@ -1,5 +1,7 @@
 package manifest
 
+import "errors"
+
 type FileAction struct {
 	Title        string
 	Name         string
@@ -14,6 +16,26 @@ type GameAction struct {
 	Action           string
 	InstallerActions map[string]FileAction
 	ExtraActions     map[string]FileAction
+}
+
+func (g *GameAction) Update(n *GameAction) error {
+	if (*n).Action == "update" && (*g).Action == "Remove" {
+		return errors.New("Cannot change a game removal to a game update. This is an impossible situation.")
+	}
+	
+	if (*n).Action == "remove" || (*n).Action == "add" {
+		(*g).Action = (*n).Action
+	}
+
+	for name, _ := range (*n).InstallerActions {
+		(*g).InstallerActions[name] = (*n).InstallerActions[name]
+	}
+
+	for name, _ := range (*n).ExtraActions {
+		(*g).ExtraActions[name] = (*n).ExtraActions[name]
+	}
+
+	return nil
 }
 
 func (g *GameAction) IsNoOp() bool {

@@ -441,12 +441,23 @@ func (s S3Store) RemoveFile(gameId int64, kind string, name string) error {
 		return errors.New("Unknown kind of file")
 	}
 
-	err := s.client.RemoveObject(context.Background(), configs.Bucket, oPath, minio.RemoveObjectOptions{})
+	_, err := s.client.StatObject(context.Background(), configs.Bucket, oPath, minio.StatObjectOptions{})
+	if err != nil {
+		errResponse := minio.ToErrorResponse(err)
+		if errResponse.Code != "NoSuchKey" {
+			return err
+		}
+	} else {
+		err := s.client.RemoveObject(context.Background(), configs.Bucket, oPath, minio.RemoveObjectOptions{})
+		if err != nil {
+			return err
+		}
+	}
 
-	if err == nil && s.debug {
+	if s.debug {
 		s.logger.Println(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", gameId, kind, name))
 	}
-	return err
+	return nil
 }
 
 func (s S3Store) DownloadFile(gameId int64, kind string, name string) (io.ReadCloser, int64, error) {

@@ -400,11 +400,14 @@ func (f FileSystem) RemoveFile(gameId int64, kind string, name string) error {
 	}
 
 	err := os.Remove(fPath)
+	if !os.IsNotExist(err) {
+		return err
+	}
 
-	if err == nil && f.debug {
+	if f.debug {
 		f.logger.Println(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", gameId, kind, name))
 	}
-	return err
+	return nil
 }
 
 func (f FileSystem) DownloadFile(gameId int64, kind string, name string) (io.ReadCloser, int64, error) {

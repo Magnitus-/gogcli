@@ -270,7 +270,7 @@ You took a break and in the interim, gog updated some games and now you're stuck
 
 What do you do?
 
-First of all, you produce an updated manifest using the **gogcli storage download manifest** + **gogcli update generate** + **gogcli manifest update** commands (option 1)... or you just use a **gogcli manifest generate** command (option 2).
+First of all, you produce an updated **manifest.json** manifest using the **gogcli storage download manifest** + **gogcli update generate** + **gogcli manifest update** commands (option 1)... or you just use a **gogcli manifest generate** command (option 2).
 
 After that, you just run the following:
 

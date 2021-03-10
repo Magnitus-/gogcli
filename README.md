@@ -261,3 +261,29 @@ Afterwards, you can copy the changes from your filesystem to your s3 store by ty
 ```
 gogcli storage copy --source-path=/home/eric/games --source-storage=fs --destination-path=s3.json --destination-storage=s3
 ```
+
+## Updating Your Storage with GOG.com When You Have Pending Actions
+
+Ok, so you started storing your games from your manifest using the **gogcli storage apply** command, but it did not complete, either because there was an error or you used the **--maximum** flag.
+
+You took a break and in the interim, gog updated some games and now you're stuck with a storage that has some half-uploaded manifest that is no longer valid.
+
+What do you do?
+
+First of all, you produce an updated manifest using the **gogcli storage download manifest** + **gogcli update generate** + **gogcli manifest update** commands (option 1)... or you just use a **gogcli manifest generate** command (option 2).
+
+After that, you just run the following:
+
+```
+gogcli storage update-actions --path=s3.json --storage=s3
+```
+
+Or if you really don't want to redownload extras that don't have a checksum and trust that the file was not updated if the file name and size matches:
+
+```
+gogcli storage update-actions --empty-checksum --path=s3.json --storage=s3 
+```
+
+What just happened? Your storage's manifest got updated and the remaining actions got adjusted to include additional actions from the change in your manifest.
+
+From there, you can just run **gogcli storage resume** normally.

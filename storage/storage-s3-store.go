@@ -3,6 +3,8 @@ package storage
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -413,20 +415,20 @@ func (s S3Store) UploadFile(source io.ReadCloser, gameId int64, kind string, nam
 		return "", err
 	}
 
-	info, statErr := s.client.StatObject(context.Background(), configs.Bucket, fPath, minio.StatObjectOptions{})
-	if statErr != nil {
-		return "", statErr
-	}
+	downloadHandle, size, err := s.DownloadFile(gameId, kind, name)
+	h := md5.New()
+	io.Copy(h, downloadHandle)
+	checksum := hex.EncodeToString(h.Sum(nil))
 
-	if info.Size != expectedSize {
-		msg := fmt.Sprintf("Object %s has a size of %d which doesn't match expected size of %d", fPath, info.Size, expectedSize)
+	if size != expectedSize {
+		msg := fmt.Sprintf("Object %s has a size of %d which doesn't match expected size of %d", fPath, size, expectedSize)
 		return "", errors.New(msg)
 	}
 
 	if s.debug {
 		s.logger.Println(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", gameId, kind, name))
 	}
-	return info.ETag, nil
+	return checksum, nil
 }
 
 func (s S3Store) RemoveFile(gameId int64, kind string, name string) error {

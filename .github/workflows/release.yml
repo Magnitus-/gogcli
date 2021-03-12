@@ -13,31 +13,44 @@ jobs:
           go-version: 1.15.x
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
       - name: Build Linux Amd64 Binary
         run: |
           mkdir linux-amd64
-          env GOOS=linux GOARCH=amd64 go build -o linux-amd64/gogcli
+          env GOOS=linux GOARCH=amd64 go build -o linux-amd64/gogcli -ldflags="-X gogcli/cmd.Version=$VERSION"
           zip -r linux-amd64.zip linux-amd64
+        env:
+          VERSION: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Linux arm64 Binary
         run: |
           mkdir linux-arm64
-          env GOOS=linux GOARCH=arm64 go build -o linux-arm64/gogcli
+          env GOOS=linux GOARCH=arm64 go build -o linux-arm64/gogcli -ldflags="-X gogcli/cmd.Version=$VERSION"
           zip -r linux-arm64.zip linux-arm64
+        env:
+          VERSION: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Macos amd64 Binary
         run: |
           mkdir macos-amd64
-          env GOOS=darwin GOARCH=amd64 go build -o macos-amd64/gogcli
+          env GOOS=darwin GOARCH=amd64 go build -o macos-amd64/gogcli -ldflags="-X gogcli/cmd.Version=$VERSION"
           zip -r macos-amd64.zip macos-amd64
+        env:
+          VERSION: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Windows adm64 Binary
         run: |
           mkdir windows-amd64
-          env GOOS=windows GOARCH=amd64 go build -o windows-amd64/gogcli.exe 
+          env GOOS=windows GOARCH=amd64 go build -o windows-amd64/gogcli.exe -ldflags="-X gogcli/cmd.Version=$VERSION"
           zip -r windows-amd64.zip windows-amd64
+        env:
+          VERSION: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Windows 386 Binary
         run: |
           mkdir windows-386
-          env GOOS=windows GOARCH=386 go build -o windows-386/gogcli.exe 
+          env GOOS=windows GOARCH=386 go build -o windows-386/gogcli.exe -ldflags="-X gogcli/cmd.Version=$VERSION"
           zip -r windows-386.zip windows-386
+        env:
+          VERSION: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1

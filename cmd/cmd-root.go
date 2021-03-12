@@ -36,6 +36,7 @@ func init() {
 	rootCmd.AddCommand(generateGogApiCmd())
 	rootCmd.AddCommand(generateManifestCmd())
 	rootCmd.AddCommand(generateStorageCmd())
+	rootCmd.AddCommand(generateVersionCmd())
 }
 
 func Execute() error {

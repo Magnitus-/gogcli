@@ -415,7 +415,11 @@ func (s S3Store) UploadFile(source io.ReadCloser, gameId int64, kind string, nam
 		return "", err
 	}
 
-	downloadHandle, size, err := s.DownloadFile(gameId, kind, name)
+	downloadHandle, size, downErr := s.DownloadFile(gameId, kind, name)
+	if downErr != nil {
+		return "", downErr
+	}
+	defer downloadHandle.Close()
 	h := md5.New()
 	io.Copy(h, downloadHandle)
 	checksum := hex.EncodeToString(h.Sum(nil))

@@ -400,7 +400,7 @@ func (f FileSystem) RemoveFile(gameId int64, kind string, name string) error {
 	}
 
 	err := os.Remove(fPath)
-	if !os.IsNotExist(err) {
+	if err != nil && (!os.IsNotExist(err)) {
 		return err
 	}
 

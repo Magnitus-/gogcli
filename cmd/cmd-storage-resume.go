@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"gogcli/manifest"
 	"gogcli/sdk"
 	"gogcli/storage"
 
@@ -12,6 +13,9 @@ func generateStorageResumeCmd() *cobra.Command {
 	var storageType string
 	var gamesMax int
 	var concurrency int
+	var preferredGameIds []int64
+	var sortCriterion string
+	var sortAscending bool
 
 	storageResumeCmd := &cobra.Command{
 		Use:   "resume",
@@ -40,7 +44,8 @@ func generateStorageResumeCmd() *cobra.Command {
 				downloader = storage.S3StoreDownloader{s3}
 			}
 			
-			errs := storage.ResumeActions(gamesStorage, concurrency, downloader, gamesMax)
+			sort := manifest.NewActionIteratorSort(preferredGameIds, sortCriterion, sortAscending)
+			errs := storage.ResumeActions(gamesStorage, concurrency, downloader, gamesMax, sort)
 			processErrors(errs)
 		},
 	}
@@ -49,6 +54,9 @@ func generateStorageResumeCmd() *cobra.Command {
 	storageResumeCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
 	storageResumeCmd.Flags().IntVarP(&gamesMax, "maximum", "x", -1, "The maximum number of games to upload into storage.")
 	storageResumeCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
+	storageResumeCmd.Flags().Int64SliceVarP(&preferredGameIds, "preferred-ids", "f", []int64{}, "Ids of games to download first")
+	storageResumeCmd.Flags().StringVarP(&sortCriterion, "sort-criterion", "t", "none", "Criteria to sort games download order by. Can be: id, title, size, none")
+	storageResumeCmd.Flags().BoolVarP(&sortAscending, "ascending", "n", true, "If set to true, game downloads will be sorted in ascending order given the sort criterion")
 
 	return storageResumeCmd
 }

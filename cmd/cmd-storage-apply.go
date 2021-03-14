@@ -19,6 +19,9 @@ func generateStorageApplyCmd() *cobra.Command {
 	var storageType string
 	var gamesMax int
 	var allowEmptyCheckum bool
+	var preferredGameIds []int64
+	var sortCriterion string
+	var sortAscending bool
 
 	storageApplyCmd := &cobra.Command{
 		Use:   "apply",
@@ -36,7 +39,8 @@ func generateStorageApplyCmd() *cobra.Command {
 			err := storage.EnsureInitialization(gamesStorage)
 			processError(err)
 
-			errs := storage.UploadManifest(&m, gamesStorage, storage.Source{Type: "gog"}, concurrency, downloader, gamesMax, allowEmptyCheckum)
+			sort := manifest.NewActionIteratorSort(preferredGameIds, sortCriterion, sortAscending)
+			errs := storage.UploadManifest(&m, gamesStorage, storage.Source{Type: "gog"}, concurrency, downloader, gamesMax, sort, allowEmptyCheckum)
 			processErrors(errs)
 
 			output, _ := json.Marshal(&m)
@@ -54,6 +58,8 @@ func generateStorageApplyCmd() *cobra.Command {
 	storageApplyCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
 	storageApplyCmd.Flags().IntVarP(&gamesMax, "maximum", "x", -1, "The maximum number of games to upload into storage.")
 	storageApplyCmd.Flags().BoolVarP(&allowEmptyCheckum, "empty-checksum", "s", false, "If set to true, manifest files with empty checksums will count as already uploaded if everything else matches")
-
+	storageApplyCmd.Flags().Int64SliceVarP(&preferredGameIds, "preferred-ids", "f", []int64{}, "Ids of games to download first")
+	storageApplyCmd.Flags().StringVarP(&sortCriterion, "sort-criterion", "t", "none", "Criteria to sort games download order by. Can be: id, title, size, none")
+	storageApplyCmd.Flags().BoolVarP(&sortAscending, "ascending", "n", true, "If set to true, game downloads will be sorted in ascending order given the sort criterion")
 	return storageApplyCmd
 }

@@ -204,14 +204,15 @@ func KeepActionsUpdated(g *manifest.GameActions, s Storage, doneAction chan Done
 	errsChan <- errs
 }
 
-func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage, concurrency int, d Downloader, gamesMax int) []error {
+func processGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage, concurrency int, d Downloader, gamesMax int, gamesSort manifest.ActionsIteratorSort) []error {
 	actionErrsChan := make(chan []error)
 	actionResult := make(chan ActionResult)
 	manifestUpdateErrsChan := make(chan []error)
 	actionsUpdateErrsChan := make(chan []error)
 	doneAction := make(chan DoneAction)
 	
-	iterator := manifest.NewActionsInterator(*a, gamesMax)
+	iterator := manifest.NewActionsIterator(*a, gamesMax)
+	iterator.Sort(gamesSort, m)
 	go launchActions(m, iterator, s, concurrency, d, actionResult, doneAction, actionErrsChan)
 	go keepManifestUpdated(m, s, actionResult, doneAction, manifestUpdateErrsChan)
 	go KeepActionsUpdated(a.DeepCopy(), s, doneAction, actionsUpdateErrsChan)

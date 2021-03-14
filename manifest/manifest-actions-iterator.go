@@ -3,6 +3,7 @@ package manifest
 import (
 	"errors"
 	"fmt"
+	"sort"
 )
 
 type Action struct {
@@ -22,7 +23,73 @@ type ActionsIterator struct {
 	processedGames        int
 }
 
-func NewActionsInterator(a GameActions, maxGames int) *ActionsIterator {
+type ActionsIteratorSort struct {
+	gameIds []int64
+	criteria string
+	ascending bool
+}
+
+func NewActionIteratorSort(gameIds []int64, criteria string, ascending bool) ActionsIteratorSort {
+	return ActionsIteratorSort{
+		gameIds,
+		criteria,
+		ascending,
+	}
+}
+
+func (i *ActionsIterator) Sort(gamesSort ActionsIteratorSort, m* Manifest) {
+	manifestGames := make(map[int64]ManifestGame)
+	if gamesSort.criteria != "none" && gamesSort.criteria != "id" {
+		for _, game := range (*m).Games {
+			manifestGames[game.Id] = game
+		}
+	}
+	
+	if gamesSort.criteria != "none" {
+		sort.Slice((*i).gameIds, func(x, y int) bool {
+			gameIdX := (*i).gameIds[x]
+			gameIdY := (*i).gameIds[y]
+			if gamesSort.criteria == "size" {
+				if gamesSort.ascending {
+					return manifestGames[gameIdX].VerifiedSize < manifestGames[gameIdY].VerifiedSize
+				}
+
+				return manifestGames[gameIdY].VerifiedSize < manifestGames[gameIdX].VerifiedSize
+			} else if gamesSort.criteria == "title" {
+				if gamesSort.ascending {
+					return manifestGames[gameIdX].Title < manifestGames[gameIdY].Title
+				}
+				
+				return manifestGames[gameIdY].Title < manifestGames[gameIdX].Title
+			}
+
+			//We assume the criteria is "id" otherwise
+			if gamesSort.ascending {
+				return gameIdX < gameIdY
+			} else {
+				return gameIdY < gameIdX
+			}
+		})
+	}
+
+	for _, gameId := range gamesSort.gameIds {
+		for idx, id := range (*i).gameIds {
+			if id == gameId {
+				end := (*i).gameIds[idx+1:]
+				beginning := append([]int64{(*i).gameIds[idx]}, (*i).gameIds[0:idx]...)
+				(*i).gameIds = append(beginning, end...)
+				break
+			}
+		}
+	}
+
+	currentGameAction := (*i).gameActions[(*i).gameIds[0]]
+	(*i).currentGameActionDone = (currentGameAction.Action == "update")
+	(*i).installerNames = currentGameAction.GetInstallerNames()
+	(*i).extraNames = currentGameAction.GetExtraNames()
+}
+
+func NewActionsIterator(a GameActions, maxGames int) *ActionsIterator {
 	gameIds := a.GetGameIds()
 	currentGameAction := a[gameIds[0]]
 	new := &ActionsIterator{

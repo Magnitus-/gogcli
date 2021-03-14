@@ -5,7 +5,7 @@ import (
 	"gogcli/manifest"
 )
 
-func UploadManifest(m *manifest.Manifest, s Storage, src Source, concurrency int, d Downloader, gamesMax int, emptyChecksumOk bool) []error {
+func UploadManifest(m *manifest.Manifest, s Storage, src Source, concurrency int, d Downloader, gamesMax int, gamesSort manifest.ActionsIteratorSort, emptyChecksumOk bool) []error {
 	var hasSource bool
 	var actions *manifest.GameActions
 	var err error
@@ -47,5 +47,5 @@ func UploadManifest(m *manifest.Manifest, s Storage, src Source, concurrency int
 		return []error{err}	
 	}
 
-	return processGameActions(m, actions, s, concurrency, d, gamesMax)
+	return processGameActions(m, actions, s, concurrency, d, gamesMax, gamesSort)
 }

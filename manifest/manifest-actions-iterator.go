@@ -84,20 +84,28 @@ func (i *ActionsIterator) Sort(gamesSort ActionsIteratorSort, m* Manifest) {
 	}
 
 	currentGameAction := (*i).gameActions[(*i).gameIds[0]]
+	installerNames := currentGameAction.GetInstallerNames()
+	sort.Strings(installerNames)
+	extraNames := currentGameAction.GetExtraNames()
+	sort.Strings(extraNames)
 	(*i).currentGameActionDone = (currentGameAction.Action == "update")
-	(*i).installerNames = currentGameAction.GetInstallerNames()
-	(*i).extraNames = currentGameAction.GetExtraNames()
+	(*i).installerNames = installerNames
+	(*i).extraNames = extraNames
 }
 
 func NewActionsIterator(a GameActions, maxGames int) *ActionsIterator {
 	gameIds := a.GetGameIds()
 	currentGameAction := a[gameIds[0]]
+	installerNames := currentGameAction.GetInstallerNames()
+	sort.Strings(installerNames)
+	extraNames := currentGameAction.GetExtraNames()
+	sort.Strings(extraNames)
 	new := &ActionsIterator{
 		gameActions: a,
 		gameIds: gameIds,
 		currentGameActionDone: currentGameAction.Action == "update",
-		installerNames: currentGameAction.GetInstallerNames(),
-		extraNames: currentGameAction.GetExtraNames(),
+		installerNames: installerNames,
+		extraNames: extraNames,
 		maxGames: maxGames,
 		processedGames: 0,
 	}
@@ -201,7 +209,11 @@ func (i *ActionsIterator) Next() (Action, error) {
 	i.gameIds = i.gameIds[1:]
 	i.currentGameActionDone = i.gameActions[i.gameIds[0]].Action == "update"
 	currentGameAction := i.gameActions[i.gameIds[0]]
-	i.installerNames = currentGameAction.GetInstallerNames()
-	i.extraNames = currentGameAction.GetExtraNames()
+	installerNames := currentGameAction.GetInstallerNames()
+	sort.Strings(installerNames)
+	extraNames := currentGameAction.GetExtraNames()
+	sort.Strings(extraNames)
+	i.installerNames = installerNames
+	i.extraNames = extraNames
 	return i.Next()
 }

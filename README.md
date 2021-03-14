@@ -1,11 +1,3 @@
-# WIP
-
-This is a work in progress. It is at this point usable for some use-cases, but not yet complete.
-
-The api is not yet stable and may be subject to change.
-
-Please, do not use yet for serious backups.
-
 # About
 
 This is a command line client to interact with the GOG.com api.
@@ -72,6 +64,8 @@ Here, I assume that the gogcli binary is in the **PATH** so that I just type **g
 
 Furthermore, for Windows, the executable would be **gogcli.exe**, but the commands are otherwise the same.
 
+Note that I'm using the long form arguments in all the examples to make everything more legible, but if you'd like to type less, all the arguments have a short form version, following the **POSIX** convention.
+
 ## Creating an Initial Manifest
 
 If I want to generate an initial manifest for Linux and Windows files, for the French and English language, I would type:
@@ -118,7 +112,19 @@ If you have 1000 games to upload and would like to only upload 50 games for now 
 gogcli storage apply --path=s3.json --storage=s3 --maximum=50
 ```
 
-If you'd like to at what's left, you can download all the actions that have yet to run by typing:
+And if of those 1000 games, you to download your smaller indie games first and **Faster Than Light** first of all (because it is such a great game), you would first type the following to get FTL's game id:
+
+```
+gogcli manifest search --title=FTL
+```
+
+And then type:
+
+```
+gogcli storage apply --path=s3.json --storage=s3 --maximum=50 --sort-criterion=size --preferred-ids=1207659102
+```
+
+If you'd like to look at what's left to download, you can download all the actions that have yet to run by typing:
 
 ```
 gogcli storage download actions --path=s3.json --storage=s3
@@ -126,10 +132,18 @@ gogcli storage download actions --path=s3.json --storage=s3
 
 The remaining actions will be listed in a file called **actions.json**.
 
-When you decide to continue with the next 50 games tomorrow, you will type:
+Then you decide to continue with the next 50 games tomorrow. Lets say you still want to download smaller indie games first, but this time, you'd like to download all the **Blackwell** games first of all. 
+
+First, you will type the following to find out the game id of the **Blackwell** games:
 
 ```
-gogcli storage resume --path=s3.json --storage=s3 --maximum=50
+gogcli manifest search --title=Blackwell
+```
+
+Then, you will type the following to download the next 50 games, with the **Blackwell** games first
+
+```
+gogcli storage resume --path=s3.json --storage=s3 --maximum=50 --sort-criterion=size --preferred-ids=1207662883 --preferred-ids=1207662893 --preferred-ids=1207662903 --preferred-ids=1207662913 --preferred-ids=1207664393
 ```
 
 And so forth...

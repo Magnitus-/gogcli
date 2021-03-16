@@ -23,7 +23,7 @@ func generateStorageUpdateActionsCmd() *cobra.Command {
 			processError(err)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			gamesStorage, _ := getStorage(path, storageType, debugMode, "")
+			gamesStorage, _ := getStorage(path, storageType, logSource, "")
 			err := storage.UpdateActions(&m, gamesStorage, allowEmptyCheckum)
 			processError(err)
 		},

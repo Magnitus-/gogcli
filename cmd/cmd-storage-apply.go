@@ -33,7 +33,7 @@ func generateStorageApplyCmd() *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var buf bytes.Buffer
-			gamesStorage, _ := getStorage(path, storageType, debugMode, "")
+			gamesStorage, _ := getStorage(path, storageType, logSource, "")
 			downloader := sdk.Downloader{sdkPtr}
 
 			err := storage.EnsureInitialization(gamesStorage)

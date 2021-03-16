@@ -22,7 +22,7 @@ func generateStorageResumeCmd() *cobra.Command {
 		Short: "Resume a manifest apply operation that didn't complete on a storage",
 		Run: func(cmd *cobra.Command, args []string) {
 			var downloader storage.Downloader
-			gamesStorage, _ := getStorage(path, storageType, debugMode, "DESTINATION")
+			gamesStorage, _ := getStorage(path, storageType, logSource, "DESTINATION")
 			
 			source, err := gamesStorage.LoadSource()
 			if err != nil {
@@ -31,13 +31,13 @@ func generateStorageResumeCmd() *cobra.Command {
 			if source.Type == "gog" {
 				downloader = sdk.Downloader{sdkPtr}
 			} else if source.Type == "fs" {
-				fs, sourceErr := storage.GetFileSystemFromSource(*source ,debugMode, "SOURCE")
+				fs, sourceErr := storage.GetFileSystemFromSource(*source ,logSource, "SOURCE")
 				if sourceErr != nil {
 					processError(sourceErr)
 				}
 				downloader = storage.FileSystemDownloader{fs}
 			} else {
-				s3, sourceErr := storage.GetS3StoreFromSource(*source ,debugMode, "SOURCE")
+				s3, sourceErr := storage.GetS3StoreFromSource(*source, logSource, "SOURCE")
 				if sourceErr != nil {
 					processError(sourceErr)
 				}

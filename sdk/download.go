@@ -166,9 +166,7 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
 	c := (*s).getClient(false)
-	if (*s).debug {
-		(*s).logger.Println(fmt.Sprintf("%s -> GET %s", fn, u))
-	}
+	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
 
 	filenameLoc, err = retrieveUrlRedirectLocation(c, u, fn)
 	if err != nil {
@@ -212,9 +210,7 @@ func (s *Sdk) GetDownloadFilename(downloadPath string) (string, error) {
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
 	c := (*s).getClient(false)
-	if (*s).debug {
-		(*s).logger.Println(fmt.Sprintf("%s -> GET %s", fn, u))
-	}
+	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
 
 	redirectLocation, err := retrieveUrlRedirectLocation(c, u, fn)
 	if err != nil {
@@ -233,9 +229,7 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, stri
 	filename := ""
 
 	c := (*s).getClient(true)
-	if (*s).debug {
-		(*s).logger.Println(fmt.Sprintf("%s -> GET %s", fn, u))
-	}
+	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
 
 	r, err := c.Get(u)
 	if err != nil {
@@ -249,18 +243,16 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, stri
 	if ok {
 		l, lErr := strconv.ParseInt(clHeader[0], 10, 64)
 		if lErr != nil {
-			(*s).logger.Println(fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not parsable. Will set it to 0.", fn))
+			(*s).logger.Debug(fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not parsable. Will set it to 0.", fn))
 		} else {
 			bodyLength = l
 		}
 	} else {
-		(*s).logger.Println(fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not found. Will set it to 0.", fn))
+		(*s).logger.Debug(fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not found. Will set it to 0.", fn))
 	}
 
 	finalURL := r.Request.URL.String()
-	if (*s).debug {
-		(*s).logger.Println(fmt.Sprintf("    Final Url: %s", finalURL))
-	}
+	(*s).logger.Debug(fmt.Sprintf("    Final Url: %s", finalURL))
 
 	p := (*r.Request.URL).Path
 	filename = path.Base(p)

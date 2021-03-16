@@ -18,7 +18,7 @@ func generateStorageDownloadManifestCmd() *cobra.Command {
 			callPersistentPreRun(cmd, args)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			gamesStorage, _ := getStorage(path, storageType, debugMode, "")
+			gamesStorage, _ := getStorage(path, storageType, logSource, "")
 			
 			exists, err := gamesStorage.Exists()
 			processError(err)

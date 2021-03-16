@@ -5,24 +5,26 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gogcli/logging"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
 type Sdk struct {
 	session string
 	al      string
-	debug bool
-	logger  *log.Logger
+	logger  *logging.Logger
 }
 
-func NewSdk(cookiePath string, debug bool, logger *log.Logger) (*Sdk, error) {
-	sdk := Sdk{session: "", al: "", debug: debug, logger: logger}
+func NewSdk(cookiePath string, logSource *logging.Source) (*Sdk, error) {
+	logger := logSource.CreateLogger(os.Stdout, "SDK: ", log.Lshortfile)
+	sdk := Sdk{session: "", al: "", logger: logger}
 	bs, err := ioutil.ReadFile(cookiePath)
 	if err != nil {
-		msg := fmt.Sprintf(" Error retrieving session: %s", err.Error())
+		msg := fmt.Sprintf("Error retrieving session: %s", err.Error())
 		return &sdk, errors.New(msg)
 	}
 
@@ -58,9 +60,8 @@ func (s *Sdk) getClient(followRedirects bool) http.Client {
 func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, error) {
 	c := (*s).getClient(true)
 
-	if (*s).debug {
-		(*s).logger.Println(fmt.Sprintf("%s -> GET %s", fnCall, url))
-	}
+	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fnCall, url))
+	
 	r, err := c.Get(url)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fnCall, err.Error())
@@ -73,21 +74,17 @@ func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, error) {
 		msg := fmt.Sprintf("%s -> retrieval body error: %s", fnCall, bErr.Error())
 		return nil, errors.New(msg)
 	}
-	if (*s).debug {
-		if jsonBody {
-			var out bytes.Buffer
-			jErr := json.Indent(&out, b, "", "  ")
-			if jErr != nil {
-				msg := fmt.Sprintf("%s -> json parsing error: %s", fnCall, jErr.Error())
-				return nil, errors.New(msg)
-			}
-			b = out.Bytes()
+
+	if jsonBody {
+		var out bytes.Buffer
+		jErr := json.Indent(&out, b, "", "  ")
+		if jErr != nil {
+			msg := fmt.Sprintf("%s -> json parsing error: %s", fnCall, jErr.Error())
+			return nil, errors.New(msg)
 		}
-		(*s).logger.Println(
-			fmt.Sprintf("%s -> response body:", fnCall),
-			string(b),
-		)
+		b = out.Bytes()
 	}
+	(*s).logger.Debug(fmt.Sprintf("%s -> response body: %s", fnCall, string(b)))
 
 	return b, nil
 }

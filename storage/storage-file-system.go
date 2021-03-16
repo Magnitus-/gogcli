@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"gogcli/logging"
 	"gogcli/manifest"
 	"io"
 	"io/ioutil"
@@ -18,26 +19,25 @@ import (
 
 type FileSystem struct {
 	Path string
-	debug bool
-	logger *log.Logger
+	logger *logging.Logger
 }
 
-func GetFileSystemFromSource(s Source, debug bool, tag string) (FileSystem, error) {
+func GetFileSystemFromSource(s Source, logSource *logging.Source, tag string) (FileSystem, error) {
 	if s.Type != "fs" {
 		msg := fmt.Sprintf("Cannot load file system from source of type %s", s.Type)
-		return FileSystem{"", false, nil}, errors.New(msg)
+		return FileSystem{"", nil}, errors.New(msg)
 	}
-	return GetFileSystem(s.FsPath, debug, tag), nil
+	return GetFileSystem(s.FsPath, logSource, tag), nil
 }
 
-func GetFileSystem(path string, debug bool, tag string) FileSystem {
+func GetFileSystem(path string, logSource *logging.Source, tag string) FileSystem {
 	var logPrefix string
 	if tag == "" {
 		logPrefix = "FS: "
 	} else {
 		logPrefix = fmt.Sprintf("FS-%s: ", tag)
 	}
-	return FileSystem{path, debug, log.New(os.Stdout, logPrefix, log.Lshortfile)}
+	return FileSystem{path, logSource.CreateLogger(os.Stdout, logPrefix, log.Lshortfile)}
 }
 
 func (f FileSystem) SupportsReaderAt() bool {
@@ -57,9 +57,7 @@ func (f FileSystem) Exists() (bool, error) {
 	_, err := os.Stat(f.Path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			if f.debug {
-				f.logger.Println("Exists() -> File system path not found")
-			}
+			f.logger.Debug("Exists() -> File system path not found")
 			return false, nil
 		} else {
 			msg := fmt.Sprintf("Exists() -> The following error occured while ascertaining existance of path %s: %s", f.Path, err.Error())
@@ -67,9 +65,7 @@ func (f FileSystem) Exists() (bool, error) {
 		}
 	}
 
-	if f.debug {
-		f.logger.Println("Exists() -> File system path found")
-	}
+	f.logger.Debug("Exists() -> File system path found")
 	return true, nil
 }
 
@@ -80,10 +76,8 @@ func (f FileSystem) Initialize() error {
 		return errors.New(msg)
 	}
 
-	if f.debug {
-		msg := fmt.Sprintf("Initialize() -> File system path %s created", f.Path)
-		f.logger.Println(msg)
-	}
+	msg := fmt.Sprintf("Initialize() -> File system path %s created", f.Path)
+	f.logger.Debug(msg)
 	return nil
 }
 
@@ -91,18 +85,14 @@ func (f FileSystem) HasManifest() (bool, error) {
 	_, err := os.Stat(path.Join(f.Path, "manifest.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			if f.debug {
-				f.logger.Println("HasManifest() -> Manifest not found")
-			}
+			f.logger.Debug("HasManifest() -> Manifest not found")
 			return false, nil
 		}
 
 		msg := fmt.Sprintf("HasManifest() -> The following error occured while ascertaining manifest's existance: %s", err.Error())
 		return true, errors.New(msg)
 	}
-	if f.debug {
-		f.logger.Println("HasManifest() -> Manifest found")
-	}
+	f.logger.Debug("HasManifest() -> Manifest found")
 	return true, nil
 }
 
@@ -110,18 +100,14 @@ func (f FileSystem) HasActions() (bool, error) {
 	_, err := os.Stat(path.Join(f.Path, "actions.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			if f.debug {
-				f.logger.Println("HasActions() -> Actions not found")
-			}
+			f.logger.Debug("HasActions() -> Actions not found")
 			return false, nil
 		}
 
 		msg := fmt.Sprintf("HasActions() -> The following error occured while ascertaining actions' existance: %s", err.Error())
 		return true, errors.New(msg)
 	}
-	if f.debug {
-		f.logger.Println("HasActions() -> Actions found")
-	}
+	f.logger.Debug("HasActions() -> Actions found")
 	return true, nil
 }
 
@@ -129,18 +115,14 @@ func (f FileSystem) HasSource() (bool, error) {
 	_, err := os.Stat(path.Join(f.Path, "source.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			if f.debug {
-				f.logger.Println("HasSource() -> Source not found")
-			}
+			f.logger.Debug("HasSource() -> Source not found")
 			return false, nil
 		}
 
 		msg := fmt.Sprintf("HasSource() -> The following error occured while ascertaining source's existance: %s", err.Error())
 		return true, errors.New(msg)
 	}
-	if f.debug {
-		f.logger.Println("HasSource() -> Source found")
-	}
+	f.logger.Debug("HasSource() -> Source found")
 	return true, nil
 }
 
@@ -159,8 +141,8 @@ func (f FileSystem) StoreManifest(m *manifest.Manifest) error {
 	output = buf.Bytes()
 
 	err = ioutil.WriteFile(path.Join(f.Path, "manifest.json"), output, 0644)
-	if err == nil && f.debug {
-		f.logger.Println(fmt.Sprintf("StoreManifest(...) -> Stored manifest with %d games", len((*m).Games)))
+	if err == nil {
+		f.logger.Debug(fmt.Sprintf("StoreManifest(...) -> Stored manifest with %d games", len((*m).Games)))
 	}
 	return err
 }
@@ -180,8 +162,8 @@ func (f FileSystem) StoreActions(a *manifest.GameActions) error {
 	output = buf.Bytes()
 
 	err = ioutil.WriteFile(path.Join(f.Path, "actions.json"), output, 0644)
-	if err == nil && f.debug {
-		f.logger.Println(fmt.Sprintf("StoreActions(...) -> Stored actions on %d games", len(*a)))
+	if err == nil {
+		f.logger.Debug(fmt.Sprintf("StoreActions(...) -> Stored actions on %d games", len(*a)))
 	}
 	return err
 }
@@ -201,8 +183,8 @@ func (f FileSystem) StoreSource(s *Source) error {
 	output = buf.Bytes()
 
 	err = ioutil.WriteFile(path.Join(f.Path, "source.json"), output, 0644)
-	if err == nil && f.debug {
-		f.logger.Println(fmt.Sprintf("StoreSource(...) -> Stored source of type %s", s.Type))
+	if err == nil {
+		f.logger.Debug(fmt.Sprintf("StoreSource(...) -> Stored source of type %s", s.Type))
 	}
 	return err
 }
@@ -220,9 +202,7 @@ func (f FileSystem) LoadManifest() (*manifest.Manifest, error) {
 		return &m, err
 	}
 
-	if f.debug {
-		f.logger.Println(fmt.Sprintf("LoadManifest() -> Loaded manifest with %d games", len(m.Games)))
-	}
+	f.logger.Debug(fmt.Sprintf("LoadManifest() -> Loaded manifest with %d games", len(m.Games)))
 	return &m, nil
 }
 
@@ -239,9 +219,7 @@ func (f FileSystem) LoadActions() (*manifest.GameActions, error) {
 		return a, err
 	}
 
-	if f.debug {
-		f.logger.Println(fmt.Sprintf("LoadActions() -> Loaded actions on %d games", len(*a)))
-	}
+	f.logger.Debug(fmt.Sprintf("LoadActions() -> Loaded actions on %d games", len(*a)))
 	return a, nil
 }
 
@@ -258,9 +236,7 @@ func (f FileSystem) LoadSource() (*Source, error) {
 		return s, err
 	}
 
-	if f.debug {
-		f.logger.Println(fmt.Sprintf("LoadSource() -> Loaded source of type %s", (*s).Type))
-	}
+	f.logger.Debug(fmt.Sprintf("LoadSource() -> Loaded source of type %s", (*s).Type))
 	return s, nil
 }
 
@@ -273,8 +249,8 @@ func (f FileSystem) RemoveActions() error {
 	if has {
 	    err = os.Remove(path.Join(f.Path, "actions.json"))
 	}
-	if err == nil && f.debug {
-		f.logger.Println("RemoveActions(...) -> Removed actions file")
+	if err == nil {
+		f.logger.Debug("RemoveActions(...) -> Removed actions file")
 	}
 	return err
 }
@@ -288,8 +264,8 @@ func (f FileSystem) RemoveSource() error {
 	if has {
 	    err = os.Remove(path.Join(f.Path, "source.json"))
 	}
-	if err == nil && f.debug {
-		f.logger.Println("RemoveSource(...) -> Removed source file")
+	if err == nil {
+		f.logger.Debug("RemoveSource(...) -> Removed source file")
 	}
 	return err
 }
@@ -328,9 +304,7 @@ func (f FileSystem) AddGame(gameId int64) error {
 	}
 
 	
-	if f.debug {
-		f.logger.Println(fmt.Sprintf("AddGame(gameId=%d) -> Created game directory", gameId))
-	}
+	f.logger.Debug(fmt.Sprintf("AddGame(gameId=%d) -> Created game directory", gameId))
 	return nil
 }
 
@@ -348,8 +322,8 @@ func (f FileSystem) RemoveGame(gameId int64) error {
 
 	err = os.RemoveAll(gameDir)
 
-	if err == nil && f.debug {
-		f.logger.Println(fmt.Sprintf("RemoveGame(gameId=%d) -> Removed game directory", gameId))
+	if err == nil {
+		f.logger.Debug(fmt.Sprintf("RemoveGame(gameId=%d) -> Removed game directory", gameId))
 	}
 	return err
 }
@@ -383,9 +357,7 @@ func (f FileSystem) UploadFile(source io.ReadCloser, gameId int64, kind string, 
 		return "", errors.New(msg)
 	}
 
-	if f.debug {
-		f.logger.Println(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", gameId, kind, name))
-	}
+	f.logger.Debug(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", gameId, kind, name))
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
@@ -404,9 +376,7 @@ func (f FileSystem) RemoveFile(gameId int64, kind string, name string) error {
 		return err
 	}
 
-	if f.debug {
-		f.logger.Println(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", gameId, kind, name))
-	}
+	f.logger.Debug(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", gameId, kind, name))
 	return nil
 }
 
@@ -434,8 +404,6 @@ func (f FileSystem) DownloadFile(gameId int64, kind string, name string) (io.Rea
 		return nil, 0, errors.New(msg)
 	}
 
-	if f.debug {
-		f.logger.Println(fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Fetched file download handle", gameId, kind, name))
-	}
+	f.logger.Debug(fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Fetched file download handle", gameId, kind, name))
 	return downloadHandle, size, nil
 }

@@ -77,7 +77,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 	manifestUpdateCmd.Flags().StringVarP(&manifestFile, "manifest", "f", "manifest.json", "Manifest file to update")
 	manifestUpdateCmd.MarkFlagFilename("manifest")
 	manifestUpdateCmd.Flags().StringVarP(&updateFile, "update", "u", "", "Optional update file containing new and updated game ids")
-	manifestUpdateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "g", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent manifest generation")
+	manifestUpdateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "d", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent manifest generation")
 	manifestUpdateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-404-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
 	return manifestUpdateCmd
 }

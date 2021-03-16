@@ -18,8 +18,8 @@ func generateStorageCopyCmd() *cobra.Command {
 		Use:   "copy",
 		Short: "Copy the game files from one storage to another",
 		Run: func(cmd *cobra.Command, args []string) {
-			source, downloader := getStorage(sourcePath, sourceStorage, debugMode, "SOURCE")
-			destination, _ := getStorage(destinationPath, destinationStorage, debugMode, "DESTINATION")
+			source, downloader := getStorage(sourcePath, sourceStorage, logSource, "SOURCE")
+			destination, _ := getStorage(destinationPath, destinationStorage, logSource, "DESTINATION")
 
 			errs := storage.Copy(source, destination, downloader, concurrency, gamesMax)
 			processErrors(errs)

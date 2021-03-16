@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
     "fmt"
+    "gogcli/logging"
     "gogcli/manifest"
     "gogcli/storage"
     "io/ioutil"
@@ -27,7 +28,7 @@ func loadManifestFromFile(path string) (manifest.Manifest, error) {
     return m, nil
 }
 
-func getStorage(path string, storageType string, debugMode bool, loggerTag string) (storage.Storage, storage.Downloader) {
+func getStorage(path string, storageType string, logSource *logging.Source, loggerTag string) (storage.Storage, storage.Downloader) {
     if storageType != "fs" && storageType != "s3" {
         msg := fmt.Sprintf("Source storage type %s is invalid", storageType)
         fmt.Println(msg)
@@ -35,11 +36,11 @@ func getStorage(path string, storageType string, debugMode bool, loggerTag strin
     }
     
     if storageType == "fs" {
-        gameStorage := storage.GetFileSystem(path, debugMode, loggerTag)
+        gameStorage := storage.GetFileSystem(path, logSource, loggerTag)
         downloader := storage.FileSystemDownloader{gameStorage}
         return gameStorage, downloader
     } else {
-        gameStorage, err := storage.GetS3StoreFromConfigFile(path, debugMode, loggerTag)
+        gameStorage, err := storage.GetS3StoreFromConfigFile(path, logSource, loggerTag)
         processError(err)
         downloader := storage.S3StoreDownloader{gameStorage}
         return gameStorage, downloader

@@ -51,12 +51,12 @@ func generateStoragePlanCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var actions *manifest.GameActions
 
-			gamesStorage, _ := getStorage(path, storageType, debugMode, "")
+			gamesStorage, _ := getStorage(path, storageType, logSource, "")
 
 			err := storage.EnsureInitialization(gamesStorage)
 			processError(err)
 
-			actions, err = storage.PlanManifest(&m, storage.GetFileSystem(path, debugMode, ""), allowEmptyCheckum)
+			actions, err = storage.PlanManifest(&m, storage.GetFileSystem(path, logSource, ""), allowEmptyCheckum)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)

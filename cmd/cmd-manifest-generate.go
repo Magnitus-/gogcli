@@ -20,6 +20,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 	var terminalOutput bool
 	var tolerateDangles bool
 	var warningFile string
+	var duplicatesFile string
 
 	manifestGenerateCmd := &cobra.Command{
 		Use:   "generate",
@@ -35,8 +36,12 @@ func generateManifestGenerateCmd() *cobra.Command {
 				extraTypeFilters,
 			)
 			m, errs, errs404 := sdkPtr.GetManifest(f, concurrency, pause, tolerateDangles)
-			m.Finalize()
+			duplicates := m.Finalize()
 			processSerializableOutput(m, errs, terminalOutput, file)
+			
+			if len(duplicates) > 0 {
+				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
+			}
 			if len(errs404) > 0 {
 				errs404Output := Errors{make([]string, len(errs404))}
 				for idx, _ := range errs404 {
@@ -60,5 +65,6 @@ func generateManifestGenerateCmd() *cobra.Command {
 	manifestGenerateCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the manifest will be output on the terminal instead of in a file")
 	manifestGenerateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "d", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent manifest generation")
 	manifestGenerateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-404-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
+	manifestGenerateCmd.Flags().StringVarP(&duplicatesFile, "duplicates-file", "u", "duplicates.json", "Files that had duplicate filenames within the same game and had to be renamed will be listed in this file")
 	return manifestGenerateCmd
 }

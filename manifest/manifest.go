@@ -5,11 +5,25 @@ import (
 	"fmt"
 )
 
+type ManifestFilenameDuplicates []GameFilenameDuplicates
+
 type Manifest struct {
 	Games         []ManifestGame
 	EstimatedSize string
 	VerifiedSize  int64
 	Filter ManifestFilter
+}
+
+func (m *Manifest) RenameDuplicateFilenames() ManifestFilenameDuplicates {
+	duplicates := make(ManifestFilenameDuplicates, 0)
+	for idx, game := range (*m).Games {
+		gameDuplicates := game.RenameDuplicateFilenames()
+		if len(gameDuplicates.Installers) > 0 || len(gameDuplicates.Extras) > 0 {
+			duplicates = append(duplicates, gameDuplicates)
+		}
+		(*m).Games[idx] = game
+	}
+	return duplicates
 }
 
 func (m *Manifest) TrimIncompleteFiles() {
@@ -55,7 +69,7 @@ func NewEmptyManifest(f ManifestFilter) *Manifest {
 	}
 }
 
-func (m *Manifest) Finalize() {
+func (m *Manifest) Finalize() ManifestFilenameDuplicates {
 	m.TrimIncompleteFiles()
 	filteredGames := make([]ManifestGame, 0)
 	for _, g := range (*m).Games {
@@ -67,6 +81,7 @@ func (m *Manifest) Finalize() {
 
 	m.ComputeEstimatedSize()	
 	m.ComputeVerifiedSize()
+	return m.RenameDuplicateFilenames()
 }
 
 func (m *Manifest) TrimGames() {

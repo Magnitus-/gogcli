@@ -3,8 +3,16 @@ package manifest
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
+	"sort"
 	"strings"
 )
+
+type GameFilenameDuplicates struct {
+	Id         int64
+	Installers []string
+	Extras     []string
+}
 
 type ManifestGame struct {
 	Id            int64
@@ -15,6 +23,70 @@ type ManifestGame struct {
 	Extras        []ManifestGameExtra
 	EstimatedSize string
 	VerifiedSize  int64
+}
+
+func (g *ManifestGame) RenameDuplicateFilenames() GameFilenameDuplicates {
+	sort.Slice((*g).Installers, func(x, y int) bool {
+		if (*g).Installers[x].Name != (*g).Installers[y].Name {
+			return (*g).Installers[x].Name < (*g).Installers[y].Name
+		} else if (*g).Installers[x].Title != (*g).Installers[y].Title {
+			return (*g).Installers[x].Title < (*g).Installers[y].Title
+		}
+		return (*g).Installers[x].Url < (*g).Installers[y].Url
+	})
+
+	duplicateInstallers := make([]string, 0)
+	currentName := ""
+	occurenceCounter := 0
+	for idx, installer := range (*g).Installers {
+		if installer.Name == currentName {
+			if occurenceCounter == 0 {
+				duplicateInstallers = append(duplicateInstallers, installer.Name)
+			}
+			occurenceCounter++
+			suffix := filepath.Ext(installer.Name)
+			base := strings.TrimSuffix(installer.Name, suffix)
+			installer.Name = fmt.Sprintf("%s[%d]%s", base, occurenceCounter, suffix)
+			(*g).Installers[idx] = installer
+		} else {
+			currentName = installer.Name
+			occurenceCounter = 0
+		}
+	}
+
+	sort.Slice((*g).Extras, func(x, y int) bool {
+		if (*g).Extras[x].Name != (*g).Extras[y].Name {
+			return (*g).Extras[x].Name < (*g).Extras[y].Name
+		} else if (*g).Extras[x].Title != (*g).Extras[y].Title {
+			return (*g).Extras[x].Title < (*g).Extras[y].Title
+		}
+		return (*g).Extras[x].Url < (*g).Extras[y].Url
+	})
+
+	duplicateExtras := make([]string, 0)
+	currentName = ""
+	occurenceCounter = 0
+	for idx, extra := range (*g).Extras {
+		if extra.Name == currentName {
+			if occurenceCounter == 0 {
+				duplicateExtras = append(duplicateExtras, extra.Name)
+			}
+			occurenceCounter++
+			suffix := filepath.Ext(extra.Name)
+			base := strings.TrimSuffix(extra.Name, suffix)
+			extra.Name = fmt.Sprintf("%s[%d]%s", base, occurenceCounter, suffix)
+			(*g).Extras[idx] = extra
+		} else {
+			currentName = extra.Name
+			occurenceCounter = 0
+		}
+	}
+
+	return GameFilenameDuplicates{
+		Id: (*g).Id,
+		Installers: duplicateInstallers,
+		Extras: duplicateExtras,
+	}
 }
 
 func (g *ManifestGame) TrimIncompleteFiles() {

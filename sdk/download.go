@@ -243,12 +243,12 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, stri
 	if ok {
 		l, lErr := strconv.ParseInt(clHeader[0], 10, 64)
 		if lErr != nil {
-			(*s).logger.Debug(fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not parsable. Will set it to 0.", fn))
+			(*s).logger.Warning(fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not parsable. Will set it to 0.", fn))
 		} else {
 			bodyLength = l
 		}
 	} else {
-		(*s).logger.Debug(fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not found. Will set it to 0.", fn))
+		(*s).logger.Warning(fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not found. Will set it to 0.", fn))
 	}
 
 	finalURL := r.Request.URL.String()

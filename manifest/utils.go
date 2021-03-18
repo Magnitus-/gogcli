@@ -58,3 +58,18 @@ func GetBytesToEstimate(size int64) string {
 
 	return fmt.Sprintf("%.2f %s", (float64(size)/float64(units[unit])), strings.ToUpper(unit))
 }
+
+func ConcatStringSlicesUnique(slice1 []string, slice2 []string) []string {
+	processed := map[string]bool{}
+	for _, str := range slice1 {
+		processed[str] = true
+	}
+
+	for _, str := range slice2 {
+		if _, ok := processed[str]; !ok {
+			slice1 = append(slice1, str)
+		}
+	}
+
+	return slice1
+}

@@ -19,7 +19,7 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 			game.Installers = append(
 				game.Installers,
 				manifest.ManifestGameInstaller{
-					Language:      languageToAscii(i.Language),
+					Languages:     []string{languageToAscii(i.Language)},
 					Os:            i.Os,
 					Url:           i.ManualUrl,
 					Title:         i.Name,
@@ -46,7 +46,7 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 				game.Installers = append(
 					game.Installers,
 					manifest.ManifestGameInstaller{
-						Language:      languageToAscii(i.Language),
+						Languages:     []string{languageToAscii(i.Language)},
 						Os:            i.Os,
 						Url:           i.ManualUrl,
 						Title:         i.Name,

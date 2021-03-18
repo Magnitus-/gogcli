@@ -9,7 +9,7 @@ import (
 )
 
 type GameFilenameDuplicates struct {
-	Id         int64
+	Id             int64
 	Installers []string
 	Extras     []string
 }
@@ -23,6 +23,29 @@ type ManifestGame struct {
 	Extras        []ManifestGameExtra
 	EstimatedSize string
 	VerifiedSize  int64
+}
+
+func (g *ManifestGame) CompressIdenticalInstallers() {
+	mappedInstallers := map[string]ManifestGameInstaller{}
+	
+	for _, installer := range (*g).Installers {
+		key := fmt.Sprintf("%s|%s|%d", installer.Name, installer.Checksum, installer.VerifiedSize)
+		if preExistingInst, ok := mappedInstallers[key]; ok {
+			preExistingInst.Languages = ConcatStringSlicesUnique(installer.Languages, preExistingInst.Languages)
+			mappedInstallers[key] = preExistingInst
+		} else {
+			mappedInstallers[key] = installer
+		}
+	}
+
+	installers := make([]ManifestGameInstaller, len(mappedInstallers))
+	idx := 0
+	for _, installer := range mappedInstallers {
+		installers[idx] = installer
+		idx++
+	}
+
+	(*g).Installers = installers
 }
 
 func (g *ManifestGame) RenameDuplicateFilenames() GameFilenameDuplicates {

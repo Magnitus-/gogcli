@@ -6,7 +6,7 @@ import (
 
 func TestManifestGameInstallerHasOneOfOses(t *testing.T) {
 	installer := ManifestGameInstaller{
-		Language: "french",
+		Languages: []string{"french"},
 		Os: "linux",
 		Url: "/dontknowdontcare",
 		Title: "installer",
@@ -29,7 +29,7 @@ func TestManifestGameInstallerHasOneOfOses(t *testing.T) {
 
 func TestManifestGameInstallerHasOneOfLanguages(t *testing.T) {
 	installer := ManifestGameInstaller{
-		Language: "french",
+		Languages: []string{"french"},
 		Os: "linux",
 		Url: "/dontknowdontcare",
 		Title: "installer",
@@ -52,7 +52,7 @@ func TestManifestGameInstallerHasOneOfLanguages(t *testing.T) {
 
 func TestManifestGameInstallerIsEquivalentTo(t *testing.T) {
 	installer := ManifestGameInstaller{
-		Language: "french",
+		Languages: []string{"french"},
 		Os: "linux",
 		Url: "/dontknowdontcare",
 		Title: "installer",
@@ -65,7 +65,7 @@ func TestManifestGameInstallerIsEquivalentTo(t *testing.T) {
 	}
 
 	otherInstaller := ManifestGameInstaller{
-		Language: "english",
+		Languages: []string{"english"},
 		Os: "windows",
 		Url: "/dontknowdontcare",
 		Title: "installer",

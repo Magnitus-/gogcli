@@ -71,7 +71,7 @@ func updateManifestWithGameDetails(m *manifest.Manifest, gameDetails []GameDetai
 					(*m).Games[gidx].Installers = append(
 						(*m).Games[gidx].Installers,
 						manifest.ManifestGameInstaller{
-							Language:      languageToAscii(i.Language),
+							Languages:     []string{languageToAscii(i.Language)},
 							Os:            i.Os,
 							Url:           i.ManualUrl,
 							Title:         i.Name,
@@ -100,7 +100,7 @@ func updateManifestWithGameDetails(m *manifest.Manifest, gameDetails []GameDetai
 						(*m).Games[gidx].Installers = append(
 							(*m).Games[gidx].Installers,
 							manifest.ManifestGameInstaller{
-								Language:      languageToAscii(i.Language),
+								Languages:     []string{languageToAscii(i.Language)},
 								Os:            i.Os,
 								Url:           i.ManualUrl,
 								Title:         i.Name,

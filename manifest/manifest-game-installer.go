@@ -1,7 +1,7 @@
 package manifest
 
 type ManifestGameInstaller struct {
-	Language      string
+	Languages      []string
 	Os            string
 	Url           string
 	Title         string
@@ -24,8 +24,10 @@ func (i *ManifestGameInstaller) HasOneOfOses(oses []string) bool {
 
 func (i *ManifestGameInstaller) HasOneOfLanguages(languages []string) bool {
 	for _, l := range languages {
-		if l == i.Language {
-			return true
+		for _, l2 := range i.Languages {
+			if l == l2 {
+				return true
+			}
 		}
 	}
 	return false

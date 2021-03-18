@@ -14,9 +14,10 @@ type Manifest struct {
 	Filter ManifestFilter
 }
 
-func (m *Manifest) RenameDuplicateFilenames() ManifestFilenameDuplicates {
+func (m *Manifest) HandleDuplicateFilenames() ManifestFilenameDuplicates {
 	duplicates := make(ManifestFilenameDuplicates, 0)
 	for idx, game := range (*m).Games {
+		game.CompressIdenticalInstallers()
 		gameDuplicates := game.RenameDuplicateFilenames()
 		if len(gameDuplicates.Installers) > 0 || len(gameDuplicates.Extras) > 0 {
 			duplicates = append(duplicates, gameDuplicates)
@@ -79,9 +80,10 @@ func (m *Manifest) Finalize() ManifestFilenameDuplicates {
 	}
 	(*m).Games = filteredGames
 
+	duplicates := m.HandleDuplicateFilenames()
 	m.ComputeEstimatedSize()	
 	m.ComputeVerifiedSize()
-	return m.RenameDuplicateFilenames()
+	return duplicates
 }
 
 func (m *Manifest) TrimGames() {

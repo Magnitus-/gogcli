@@ -7,7 +7,7 @@ import (
 func TestManifestGameImprintMissingChecksums(t *testing.T) {
 	nextInstallers := []ManifestGameInstaller{
 		ManifestGameInstaller{
-			Language: "english",
+			Languages: []string{"english"},
 			Os: "windows",
 			Url: "/dontknowdontcare",
 			Title: "installer",
@@ -19,7 +19,7 @@ func TestManifestGameImprintMissingChecksums(t *testing.T) {
 			Checksum: "",
 		},
 		ManifestGameInstaller{
-			Language: "english",
+			Languages: []string{"english"},
 			Os: "windows",
 			Url: "/dontknowdontcare2",
 			Title: "installer2",
@@ -31,7 +31,7 @@ func TestManifestGameImprintMissingChecksums(t *testing.T) {
 			Checksum: "abcdefg",
 		},
 		ManifestGameInstaller{
-			Language: "english",
+			Languages: []string{"english"},
 			Os: "windows",
 			Url: "/dontknowdontcare3",
 			Title: "installer3",
@@ -90,7 +90,7 @@ func TestManifestGameImprintMissingChecksums(t *testing.T) {
 
 	prevInstallers := []ManifestGameInstaller{
 		ManifestGameInstaller{
-			Language: "english",
+			Languages: []string{"english"},
 			Os: "windows",
 			Url: "/dontknowdontcare",
 			Title: "installer",
@@ -102,7 +102,7 @@ func TestManifestGameImprintMissingChecksums(t *testing.T) {
 			Checksum: "hijklmn", //Should imprint
 		},
 		ManifestGameInstaller{
-			Language: "english",
+			Languages: []string{"english"},
 			Os: "windows",
 			Url: "/dontknowdontcare2",
 			Title: "installer2",
@@ -114,7 +114,7 @@ func TestManifestGameImprintMissingChecksums(t *testing.T) {
 			Checksum: "hijklmn", //Not empty in next, will not imprint
 		},
 		ManifestGameInstaller{
-			Language: "english",
+			Languages: []string{"english"},
 			Os: "windows",
 			Url: "/dontknowdontcare3",
 			Title: "installer3",

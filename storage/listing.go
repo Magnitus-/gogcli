@@ -79,7 +79,7 @@ func (g StorageListingGame) RetrieveManifestGame(c chan ListingGameRetrieval, d 
 		go g.RetrieveFileInfo(extr, "extra", d, fileChan)
 	}
 
-	filesCount := len(g.Installers) + len(game.Extras)
+	filesCount := len(g.Installers) + len(g.Extras)
 	for idx := 0; idx < filesCount; idx++ {
 		fileRetrieval := <- fileChan
 		if fileRetrieval.Error != nil {

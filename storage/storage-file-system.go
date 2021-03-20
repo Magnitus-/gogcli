@@ -40,6 +40,46 @@ func GetFileSystem(path string, logSource *logging.Source, tag string) FileSyste
 	return FileSystem{path, logSource.CreateLogger(os.Stdout, logPrefix, log.Lshortfile)}
 }
 
+func (f FileSystem) GetListing() (*StorageListing, error) {
+	listing := NewEmptyStorageListing(FileSystemDownloader{f})
+	files, err := ioutil.ReadDir(f.Path)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range files {
+		gameId, err := strconv.ParseInt(file.Name(), 10, 64)
+		if err != nil {
+			continue
+		}
+
+		gameListing := StorageListingGame{
+			Id: gameId,
+			Installers: make([]string, 0),
+			Extras: make([]string, 0),
+		}
+
+		installers, err := ioutil.ReadDir(path.Join(f.Path, file.Name(), "installers"))
+		if err != nil {
+			return nil, err
+		}
+		for _, installer := range installers {
+			gameListing.Installers = append(gameListing.Installers, installer.Name())
+		}
+		
+		extras, err := ioutil.ReadDir(path.Join(f.Path, file.Name(), "extras"))
+		if err != nil {
+			return nil, err
+		}
+		for _, extra := range extras {
+			gameListing.Extras = append(gameListing.Extras, extra.Name())
+		}
+
+		listing.Games[gameId] = gameListing
+	}
+
+	return &listing, nil
+}
+
 func (f FileSystem) SupportsReaderAt() bool {
 	return true
 }

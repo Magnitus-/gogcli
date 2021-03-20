@@ -22,10 +22,10 @@ func (e *ManifestGameExtra) HasOneOfTypeTerms(typeTerms []string) bool {
 	return false
 }
 
-func (e *ManifestGameExtra) IsEquivalentTo(o *ManifestGameExtra, emptyChecksumOk bool) bool {
+func (e *ManifestGameExtra) IsEquivalentTo(o *ManifestGameExtra, emptyChecksumOk bool, ignoreMetadata bool) bool {
 	sameName := (*e).Name == (*o).Name
-	sameTitle := (*e).Title == (*o).Title
-	sameUrl := (*e).Url == (*o).Url
+	sameTitle := ((*e).Title == (*o).Title) || ignoreMetadata
+	sameUrl := ((*e).Url == (*o).Url) || ignoreMetadata
 	sameVerifiedSize := (*o).VerifiedSize != 0 && (*e).VerifiedSize == (*o).VerifiedSize
 	checksumIsEmptyAndItsOk := emptyChecksumOk && ((*e).Checksum == "" || (*o).Checksum == "")
 	sameChecksum := (*o).Checksum != "" && (*e).Checksum == (*o).Checksum

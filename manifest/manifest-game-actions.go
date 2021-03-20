@@ -131,7 +131,7 @@ func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, er
 	return g, nil
 }
 
-func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksumOk bool) GameAction {
+func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksumOk bool, ignoreMetadata bool) GameAction {
 	g := GameAction{
 		Title:            (*curr).Title,
 		Id:               (*curr).Id,
@@ -153,7 +153,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksu
 
 	for name, inst := range futureInstallers {
 		if val, ok := currentInstallers[name]; ok {
-			if !inst.IsEquivalentTo(&val, emptyChecksumOk) {
+			if !inst.IsEquivalentTo(&val, emptyChecksumOk, ignoreMetadata) {
 				//Overwrite
 				g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Kind: "installer", Action: "add"}
 			}
@@ -183,7 +183,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksu
 
 	for name, extr := range futureExtras {
 		if val, ok := currentExtras[name]; ok {
-			if !extr.IsEquivalentTo(&val, emptyChecksumOk) {
+			if !extr.IsEquivalentTo(&val, emptyChecksumOk, ignoreMetadata) {
 				//Overwrite
 				g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Kind: "extra", Action: "add"}
 			}
@@ -203,7 +203,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksu
 	return g
 }
 
-func (curr *Manifest) Plan(next *Manifest, emptyChecksumOk bool) *GameActions {
+func (curr *Manifest) Plan(next *Manifest, emptyChecksumOk bool, ignoreMetadata bool) *GameActions {
 	actions := GameActions(make(map[int64]GameAction))
 	currentGames := make(map[int64]ManifestGame)
 	futureGames := make(map[int64]ManifestGame)
@@ -220,7 +220,7 @@ func (curr *Manifest) Plan(next *Manifest, emptyChecksumOk bool) *GameActions {
 		if val, ok := currentGames[id]; !ok {
 			actions[id], _ = planManifestGameAddOrRemove(&game, "add")
 		} else {
-			actions[id] = planManifestGameUpdate(&val, &game, emptyChecksumOk)
+			actions[id] = planManifestGameUpdate(&val, &game, emptyChecksumOk, ignoreMetadata)
 		}
 	}
 

@@ -29,5 +29,6 @@ func generateManifestMigrateCmd() *cobra.Command {
 	}
 
 	manifestMigrateCmd.Flags().StringVarP(&manifestFile, "manifest", "m", "manifest.json", "Manifest file to migrate")
+	manifestMigrateCmd.MarkFlagFilename("manifest")
 	return manifestMigrateCmd
 }

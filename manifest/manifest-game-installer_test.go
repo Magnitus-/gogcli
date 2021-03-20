@@ -77,72 +77,72 @@ func TestManifestGameInstallerIsEquivalentTo(t *testing.T) {
 		Checksum: "icheck",
 	}
 
-	if !installer.IsEquivalentTo(&otherInstaller, false) {
+	if !installer.IsEquivalentTo(&otherInstaller, false, false) {
 		t.Errorf("Installers who url, title, name, verified size and checksum match should be equivalent when empty checksums are not tolerated")
 	}
 
-	if !installer.IsEquivalentTo(&otherInstaller, true) {
+	if !installer.IsEquivalentTo(&otherInstaller, true, false) {
 		t.Errorf("Installers who url, title, name, verified size and checksum match should be equivalent when empty checksums are tolerated")
 	}
 
 	otherInstaller.Checksum = "idonotcheck"
-	if installer.IsEquivalentTo(&otherInstaller, false) {
+	if installer.IsEquivalentTo(&otherInstaller, false, false) {
 		t.Errorf("Installers whose checksum doesn't match should not be equivalent when empty checksums are not tolerated")
 	}
 
-	if installer.IsEquivalentTo(&otherInstaller, true) {
+	if installer.IsEquivalentTo(&otherInstaller, true, false) {
 		t.Errorf("Installers whose checksum doesn't match should not be equivalent when empty checksums are tolerated")
 	}
 
 	otherInstaller.Checksum = ""
-	if installer.IsEquivalentTo(&otherInstaller, false) {
+	if installer.IsEquivalentTo(&otherInstaller, false, false) {
 		t.Errorf("Installers whose checksum is empty should not be equivalent when empty checksums are not tolerated")
 	}
 
-	if !installer.IsEquivalentTo(&otherInstaller, true) {
+	if !installer.IsEquivalentTo(&otherInstaller, true, false) {
 		t.Errorf("Installers whose checksum is empty should be equivalent when empty checksums are tolerated")
 	}
 
 	installer.Checksum = ""
 	otherInstaller.Checksum = "icheck"
-	if installer.IsEquivalentTo(&otherInstaller, false) {
+	if installer.IsEquivalentTo(&otherInstaller, false, false) {
 		t.Errorf("Installers whose checksum is empty should not be equivalent when empty checksums are not tolerated")
 	}
 
-	if !installer.IsEquivalentTo(&otherInstaller, true) {
+	if !installer.IsEquivalentTo(&otherInstaller, true, false) {
 		t.Errorf("Installers whose checksum is empty should be equivalent when empty checksums are tolerated")
 	}
 
 	installer.Checksum = ""
 	otherInstaller.Checksum = ""
-	if installer.IsEquivalentTo(&otherInstaller, false) {
+	if installer.IsEquivalentTo(&otherInstaller, false, false) {
 		t.Errorf("Installers whose checksum is empty should not be equivalent when empty checksums are not tolerated")
 	}
 
-	if !installer.IsEquivalentTo(&otherInstaller, true) {
+	if !installer.IsEquivalentTo(&otherInstaller, true, false) {
 		t.Errorf("Installers whose checksum is empty should be equivalent when empty checksums are tolerated")
 	}
 
 	otherInstaller.Title = "wrong"
-	if installer.IsEquivalentTo(&otherInstaller, true) {
+	if installer.IsEquivalentTo(&otherInstaller, true, false) {
 		t.Errorf("Installers whose title differs should be not equivalent")
 	}
 
 	otherInstaller.Title = "installer"
 	otherInstaller.Name = "wrong"
-	if installer.IsEquivalentTo(&otherInstaller, true) {
+	if installer.IsEquivalentTo(&otherInstaller, true, false) {
 		t.Errorf("Installers whose name differs should be not equivalent")
 	}
 
 	otherInstaller.Name = "installer"
 	otherInstaller.Url = "/dadadada"
-	if installer.IsEquivalentTo(&otherInstaller, true) {
+	if installer.IsEquivalentTo(&otherInstaller, true, false) {
 		t.Errorf("Installers whose url differs should be not equivalent")
 	}
 
 	otherInstaller.Url = "/dontknowdontcare"
 	otherInstaller.VerifiedSize = 9999
-	if installer.IsEquivalentTo(&otherInstaller, true) {
+	if installer.IsEquivalentTo(&otherInstaller, true, false) {
 		t.Errorf("Installers whose verified size differs should be not equivalent")
 	}
 }

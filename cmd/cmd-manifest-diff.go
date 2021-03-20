@@ -26,7 +26,7 @@ func generateManifestDiffCmd() *cobra.Command {
 			processError(err)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			a := curr.Plan(&next, allowEmptyCheckum)
+			a := curr.Plan(&next, allowEmptyCheckum, false)
 			processSerializableOutput(a, []error{}, terminalOutput, file)
 		},
 	}

@@ -14,8 +14,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -84,6 +85,42 @@ func getS3Store(configs *S3Configs, logSource *logging.Source, tag string) (S3St
 		configs: configs,
 		logger: logSource.CreateLogger(os.Stdout, logPrefix, log.Lshortfile),
 	}, nil
+}
+
+func (s S3Store) GetListing() (*StorageListing, error) {
+	listing := NewEmptyStorageListing(S3StoreDownloader{s})
+	configs := *s.configs
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	gameFileRegex := regexp.MustCompile(`^(?P<id>\d+)/(?P<kind>(?:installer)|(?:extra))/(?P<file>.+)$`)
+	
+	objChan := s.client.ListObjects(ctx, configs.Bucket, minio.ListObjectsOptions{
+		Recursive: true,
+	})
+	for obj := range objChan {
+		if obj.Err != nil {
+			return nil, obj.Err
+		}
+		if gameFileRegex.MatchString(obj.Key) {
+			match := gameFileRegex.FindStringSubmatch(obj.Key)
+		    gameId, _ := strconv.ParseInt(match[1], 10, 64)
+			gameListing, ok := listing.Games[gameId]
+			if !ok {
+				gameListing = StorageListingGame{
+					Id: gameId,
+					Installers: make([]string, 0),
+					Extras: make([]string, 0),
+				}
+			}
+			if match[2] == "installer" {
+				gameListing.Installers = append(gameListing.Installers, match[3])
+			} else {
+				gameListing.Extras = append(gameListing.Extras, match[3])
+			}
+			listing.Games[gameId] = gameListing
+		}
+	}
+	return &listing, nil
 }
 
 func (s S3Store) SupportsReaderAt() bool {
@@ -371,9 +408,11 @@ func (s S3Store) UploadFile(source io.ReadCloser, gameId int64, kind string, nam
 
 	var fPath string
 	if kind == "installer" {
-		fPath = path.Join(strconv.FormatInt(gameId, 10), "installers", name)
+		arr := []string{strconv.FormatInt(gameId, 10), "installers", name}
+		fPath = strings.Join(arr,"/")
 	} else if kind == "extra" {
-		fPath = path.Join(strconv.FormatInt(gameId, 10), "extras", name)
+		arr := []string{strconv.FormatInt(gameId, 10), "extras", name}
+		fPath = strings.Join(arr,"/")
 	} else {
 		return "", errors.New("Unknown kind of file")
 	}
@@ -406,9 +445,11 @@ func (s S3Store) RemoveFile(gameId int64, kind string, name string) error {
 	
 	var oPath string
 	if kind == "installer" {
-		oPath = path.Join(strconv.FormatInt(gameId, 10), "installers", name)
+		arr := []string{strconv.FormatInt(gameId, 10), "installers", name}
+		oPath = strings.Join(arr,"/")
 	} else if kind == "extra" {
-		oPath = path.Join(strconv.FormatInt(gameId, 10), "extras", name)
+		arr := []string{strconv.FormatInt(gameId, 10), "extras", name}
+		oPath = strings.Join(arr,"/")
 	} else {
 		return errors.New("Unknown kind of file")
 	}
@@ -435,9 +476,11 @@ func (s S3Store) DownloadFile(gameId int64, kind string, name string) (io.ReadCl
 
 	var fPath string
 	if kind == "installer" {
-		fPath = path.Join(strconv.FormatInt(gameId, 10), "installers", name)
+		arr := []string{strconv.FormatInt(gameId, 10), "installers", name}
+		fPath = strings.Join(arr,"/")
 	} else if kind == "extra" {
-		fPath = path.Join(strconv.FormatInt(gameId, 10), "extras", name)
+		arr := []string{strconv.FormatInt(gameId, 10), "extras", name}
+		fPath = strings.Join(arr,"/")
 	} else {
 		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Unknown kind of file", gameId, kind, name)
 		return nil, 0, errors.New(msg)

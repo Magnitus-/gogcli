@@ -25,5 +25,5 @@ func PlanManifest(m *manifest.Manifest, s Storage, emptyChecksumOk bool) (*manif
 	    storedManifest = manifest.NewEmptyManifest((*m).Filter)
 	}
 
-	return storedManifest.Plan(m, emptyChecksumOk), nil
+	return storedManifest.Plan(m, emptyChecksumOk, false), nil
 }

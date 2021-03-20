@@ -6,6 +6,7 @@ import (
 )
 
 type Storage interface {
+	GetListing() (*StorageListing, error)
 	SupportsReaderAt() bool
 	GenerateSource() *Source
 	GetPrintableSummary() string

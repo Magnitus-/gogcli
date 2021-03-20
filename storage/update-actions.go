@@ -25,7 +25,7 @@ func UpdateActions(nextMan *manifest.Manifest, s Storage, emptyChecksumOk bool) 
 		return actionsErr
 	}
 
-	actionsUpdate := storedMan.Plan(nextMan, emptyChecksumOk)
+	actionsUpdate := storedMan.Plan(nextMan, emptyChecksumOk, false)
 	updateErr := storedActions.Update(actionsUpdate)
 	if updateErr != nil {
 		return updateErr

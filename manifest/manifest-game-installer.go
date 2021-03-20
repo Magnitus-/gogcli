@@ -33,10 +33,10 @@ func (i *ManifestGameInstaller) HasOneOfLanguages(languages []string) bool {
 	return false
 }
 
-func (i *ManifestGameInstaller) IsEquivalentTo(o *ManifestGameInstaller, emptyChecksumOk bool) bool {
+func (i *ManifestGameInstaller) IsEquivalentTo(o *ManifestGameInstaller, emptyChecksumOk bool, ignoreMetadata bool) bool {
 	sameName := (*i).Name == (*o).Name
-	sameTitle := (*i).Title == (*o).Title
-	sameUrl := (*i).Url == (*o).Url
+	sameTitle := ((*i).Title == (*o).Title) || ignoreMetadata
+	sameUrl := ((*i).Url == (*o).Url) || ignoreMetadata
 	sameVerifiedSize := (*o).VerifiedSize != 0 && (*i).VerifiedSize == (*o).VerifiedSize
 	checksumIsEmptyAndItsOk := emptyChecksumOk && ((*i).Checksum == "" || (*o).Checksum == "")
 	sameChecksum := (*o).Checksum != "" && (*i).Checksum == (*o).Checksum

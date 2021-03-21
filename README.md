@@ -322,7 +322,7 @@ You will run the pending actions in your storage just as you would resume an unf
 gogcli storage resume --path=s3.json --storage=s3 
 ```
 
-** Migration From gogcli 0.9.x
+## Migration From gogcli 0.9.x
 
 The manifest has to be changed in version 0.10.0, because of an unforeseen situation with languages which forced me to change the manifest format.
 

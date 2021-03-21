@@ -301,3 +301,37 @@ gogcli storage update-actions --empty-checksum --path=s3.json --storage=s3
 What just happened? Your storage's manifest got updated and the remaining actions got adjusted to include additional actions from the change in your manifest.
 
 From there, you can just run **gogcli storage resume** normally.
+
+## Repair Broken Storage
+
+Ok, so ran **storage validate** and it returned some errors, maybe you deleted some files per accident or maybe, you generated a storage with a previous version of gogcli, then migrated your manifest and you'd like to make sure your storage is still ok.
+
+Here, you might not be able to run a **gogli manifest appy**, because this commands only applies a differential between your local manifest and the manifest in the storage. It assumes that the storage's game files reflect the storage's manifest and do not check them separately.
+
+Instead, to reconcile a situation where the game files diverge from what the manifest indicates, assuming your local file **manifest.json** contains a proper manifest (obtained either directly from your storage if you can manage it or otherwise from GOG.com running a **gogli manifest generate** command though in the later case, you'll have to redownload most of your extras as they don't have a checksum), you would run (assuming you have an s3 store):
+
+```
+gogcli storage repair --path=s3.json --storage=s3 
+```
+
+After running the command, you'll possibly have a bunch of pending actions in your storage if adjustments were needed.
+
+You will run the pending actions in your storage just as you would resume an unfinished **gogli storage apply** by running:
+
+```
+gogcli storage resume --path=s3.json --storage=s3 
+```
+
+** Migration From gogcli 0.9.x
+
+The manifest has to be changed in version 0.10.0, because of an unforeseen situation with languages which forced me to change the manifest format.
+
+To migrate your storage's manifest (using an s3 storage as an example here), copy the manifest to migrate in your current path. Then run:
+
+```
+gogcli storage manifest migrate
+```
+
+```
+gogcli storage repair --path=s3.json --storage=s3
+```

@@ -30,11 +30,6 @@ func Repair(m* manifest.Manifest, s Storage, src Source, concurrency int) error 
 		return manErr
 	}
 
-	srcErr = s.StoreSource(&src)
-	if srcErr != nil {
-		return srcErr
-	}
-
 	l, lErr := s.GetListing()
 	if lErr != nil {
 		return lErr
@@ -46,5 +41,16 @@ func Repair(m* manifest.Manifest, s Storage, src Source, concurrency int) error 
 	}
 
 	actions := filesManifest.Plan(m, false, true)
-	return s.StoreActions(actions)
+	if len(*actions) > 0 {
+		srcErr = s.StoreSource(&src)
+		if srcErr != nil {
+			return srcErr
+		}
+
+		actErr = s.StoreActions(actions)
+		if actErr != nil {
+			return actErr
+		}
+	}
+	return nil
 }

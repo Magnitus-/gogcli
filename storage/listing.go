@@ -23,7 +23,7 @@ func NewEmptyStorageListingGame(id int64) StorageListingGame {
 
 type ListingFileRetrieval struct {
 	File  manifest.FileInfo
-	Error  error
+	Error error
 }
 
 func (g StorageListingGame) RetrieveFileInfo(name string, kind string, d Downloader, c chan ListingFileRetrieval) {

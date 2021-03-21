@@ -92,7 +92,7 @@ func (s S3Store) GetListing() (*StorageListing, error) {
 	configs := *s.configs
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	gameFileRegex := regexp.MustCompile(`^(?P<id>\d+)/(?P<kind>(?:installer)|(?:extra))/(?P<file>.+)$`)
+	gameFileRegex := regexp.MustCompile(`^(?P<id>\d+)/(?P<kind>(?:installers)|(?:extras))/(?P<file>.+)$`)
 	
 	objChan := s.client.ListObjects(ctx, configs.Bucket, minio.ListObjectsOptions{
 		Recursive: true,
@@ -112,7 +112,7 @@ func (s S3Store) GetListing() (*StorageListing, error) {
 					Extras: make([]string, 0),
 				}
 			}
-			if match[2] == "installer" {
+			if match[2] == "installers" {
 				gameListing.Installers = append(gameListing.Installers, match[3])
 			} else {
 				gameListing.Extras = append(gameListing.Extras, match[3])

@@ -11,7 +11,7 @@ type Manifest struct {
 	Games         []ManifestGame
 	EstimatedSize string
 	VerifiedSize  int64
-	Filter ManifestFilter
+	Filter        ManifestFilter
 }
 
 func (m *Manifest) HandleDuplicateFilenames() ManifestFilenameDuplicates {

@@ -115,13 +115,6 @@ func (o OwnedGamesPage) Print() {
 	}
 }
 
-func (o *OwnedGamesPage) CleanUnicodeMarkup() {
-	for idx, product := range (*o).Products {
-		product.Title = replaceUnicodeEncodedAscii(product.Title)
-		(*o).Products[idx] = product
-	}
-}
-
 func (s *Sdk) GetOwnedGames(page int, search string) (OwnedGamesPage, error) {
 	var o OwnedGamesPage
 
@@ -146,6 +139,5 @@ func (s *Sdk) GetOwnedGames(page int, search string) (OwnedGamesPage, error) {
 		return o, errors.New(msg)
 	}
 
-	o.CleanUnicodeMarkup()
 	return o, nil
 }

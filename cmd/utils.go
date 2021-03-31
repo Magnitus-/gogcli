@@ -69,21 +69,23 @@ type Errors struct {
 
 func processSerializableOutput(serializable interface{}, errs []error, terminal bool, file string) {
     hasErr := false
-    var buf bytes.Buffer
     var output []byte
     var e Errors
 
+    buf := new(bytes.Buffer)
+    enc := json.NewEncoder(buf)
+    enc.SetEscapeHTML(false)
+    enc.SetIndent("", "  ")
     if len(errs) > 0 {
         for _, err := range errs {
             e.Errors = append(e.Errors, err.Error())
         }
-        output, _ = json.Marshal(e)
+        _ = enc.Encode(e)
         hasErr = true
     } else {
-        output, _ = json.Marshal(serializable)
+        _ = enc.Encode(serializable)
     }
 
-    json.Indent(&buf, output, "", "  ")
     output = buf.Bytes()
 
     if terminal {

@@ -322,6 +322,35 @@ You will run the pending actions in your storage just as you would resume an unf
 gogcli storage resume --path=s3.json --storage=s3 
 ```
 
+## Dealing With Repeated Download Mismatch
+
+Sometimes, during a download, you might have to deal with repeated errors like this:
+
+```
+addFileAction(gameId=1207659025, fileInfo={Kind=extra, Name=darkstone_avatars.zip, ...}, ...) -> Download file size of 445 does not match expected file size of 184891
+addFileAction(gameId=1207659025, fileInfo={Kind=extra, Name=darkstone_artworks.zip, ...}, ...) -> Download file size of 445 does not match expected file size of 6430403
+```
+
+If it occurs only once, it might be a bad download. If it occurs several times, it might mean that the game has changed since your manifest has been generated.
+
+The best way to deal with the problem is to first get your manifest (using an s3 storage as an example here):
+
+```
+gogcli storage download manifest --storage=s3 --path=s3.json
+```
+
+Update that game entry in your manifest:
+
+```
+gogcli manifest update --id=1207659025
+```
+
+And finally, update the actions list in your storage with your updated manifest:
+
+```
+gogcli storage update-actions --empty-checksum --path=s3.json --storage=s3
+```
+
 ## Migration From gogcli 0.9.x
 
 The manifest has to be changed in version 0.10.0, because of an unforeseen situation with languages which forced me to change the manifest format.

@@ -45,6 +45,28 @@ type GameDetails struct {
 	//GalaxyDownloads
 }
 
+func (g *GameDetails) CleanUnicodeMarkup() {
+	(*g).Title = replaceUnicodeEncodedAscii((*g).Title)
+	(*g).CdKey = replaceUnicodeEncodedAscii((*g).CdKey)
+	
+	for idx, extra := range (*g).Extras {
+		extra.Name = replaceUnicodeEncodedAscii(extra.Name)
+		extra.Type = replaceUnicodeEncodedAscii(extra.Type)
+		(*g).Extras[idx] = extra
+	}
+
+	for idx, download := range (*g).Downloads {
+		download.Name = replaceUnicodeEncodedAscii(download.Name)
+		download.Version = replaceUnicodeEncodedAscii(download.Version)
+		(*g).Downloads[idx] = download
+	}
+
+	for idx, gd := range (*g).Dlcs {
+		gd.CleanUnicodeMarkup()
+		(*g).Dlcs[idx] = gd
+	}
+}
+
 func (g GameDetails) Print() {
 	fmt.Println("Title:           ", g.Title)
 	fmt.Println("BackgroundImage: ", g.BackgroundImage)
@@ -130,7 +152,7 @@ func (s *Sdk) GetGameDetails(gameId int64) (GameDetails, error) {
 	var g GameDetails
 
 	fn := fmt.Sprintf("GetGameDetails(gameId=%d)", gameId)
-	u := fmt.Sprintf("https://embed.gog.com/account//gameDetails/%d.json", gameId)
+	u := fmt.Sprintf("https://embed.gog.com/account/gameDetails/%d.json", gameId)
 
 	b, err := s.getUrl(
 		u,
@@ -147,5 +169,6 @@ func (s *Sdk) GetGameDetails(gameId int64) (GameDetails, error) {
 		return g, errors.New(msg)
 	}
 
+	g.CleanUnicodeMarkup()
 	return g, nil
 }

@@ -11,6 +11,7 @@ type Image struct {
 	Size     int64
 	Checksum string
 	Url      string
+	Tag      string
 }
 
 type Video struct {
@@ -19,9 +20,10 @@ type Video struct {
 	Provider     string
 }
 
-type GameMetadata struct {
+type MetadataGame struct {
 	Id                    int64
 	Title                 string
+	Tags                  []string
 	Description           GameMetadataDescription
 	ProductCards          []Image
 	OtherProductImages    []Image
@@ -29,9 +31,22 @@ type GameMetadata struct {
 	Videos                []Video
 	Slug                  string
 	ReleaseDate           string
-	Rating                int64
+	Rating                int
 	Category              string
 	Dlcs                  int
 	Features              []string
 	Changelog             string
+}
+
+type Metadata struct {
+	Games []MetadataGame
+	Size  int64
+}
+
+func NewEmptyMetadata() *Metadata {
+	m := Metadata{
+		Games: []MetadataGame{},
+		Size: 0,
+	}
+	return &m
 }

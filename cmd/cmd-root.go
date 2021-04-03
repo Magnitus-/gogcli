@@ -36,6 +36,7 @@ func init() {
 	rootCmd.AddCommand(generateUpdateCmd())
 	rootCmd.AddCommand(generateGogApiCmd())
 	rootCmd.AddCommand(generateManifestCmd())
+	rootCmd.AddCommand(generateMetadataCmd())
 	rootCmd.AddCommand(generateStorageCmd())
 	rootCmd.AddCommand(generateVersionCmd())
 }

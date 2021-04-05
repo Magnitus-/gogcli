@@ -124,7 +124,7 @@ func (s *Sdk) GetOwnedGames(page int, search string) (OwnedGamesPage, error) {
 		u += fmt.Sprintf("&search=%s", url.QueryEscape(search))
 	}
 
-	b, err := s.getUrl(
+	b, _, err := s.getUrl(
 		u,
 		fn,
 		true,

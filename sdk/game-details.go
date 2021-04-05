@@ -132,7 +132,7 @@ func (s *Sdk) GetGameDetails(gameId int64) (GameDetails, error) {
 	fn := fmt.Sprintf("GetGameDetails(gameId=%d)", gameId)
 	u := fmt.Sprintf("https://embed.gog.com/account/gameDetails/%d.json", gameId)
 
-	b, err := s.getUrl(
+	b, _, err := s.getUrl(
 		u,
 		fn,
 		true,

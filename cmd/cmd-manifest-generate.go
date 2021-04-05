@@ -64,7 +64,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 	manifestGenerateCmd.Flags().StringVarP(&file, "file", "f", "manifest.json", "File to output the manifest in")
 	manifestGenerateCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the manifest will be output on the terminal instead of in a file")
 	manifestGenerateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "d", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent manifest generation")
-	manifestGenerateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-404-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
+	manifestGenerateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
 	manifestGenerateCmd.Flags().StringVarP(&duplicatesFile, "duplicates-file", "u", "duplicates.json", "Files that had duplicate filenames within the same game and had to be renamed will be listed in this file")
 	return manifestGenerateCmd
 }

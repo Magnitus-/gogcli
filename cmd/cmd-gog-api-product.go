@@ -13,7 +13,7 @@ func generateProductCmd() *cobra.Command {
 		Use:   "product",
 		Short: "Command to retrieve product information from a game you own",
 		Run: func(cmd *cobra.Command, args []string) {
-			o, err := sdkPtr.GetProduct(gameId)
+			o, _, err := sdkPtr.GetProduct(gameId)
 			errs := make([]error, 0)
 			if err != nil {
 				errs = append(errs, err)

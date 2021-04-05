@@ -86,7 +86,7 @@ func (u User) Print() {
 func (s *Sdk) GetUser() (User, error) {
 	var u User
 
-	b, err := s.getUrl(
+	b, _, err := s.getUrl(
 		"https://embed.gog.com/userData.json",
 		"GetUser()",
 		true,

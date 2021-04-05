@@ -114,26 +114,26 @@ type Product struct {
 	Changelog                    string
 }
 
-func (s *Sdk) GetProduct(gameId int64) (Product, error) {
+func (s *Sdk) GetProduct(gameId int64) (Product, bool, error) {
 	var p Product
 
 	fn := fmt.Sprintf("GetProduct(gameId=%d)", gameId)
 	u := fmt.Sprintf("https://api.gog.com/products/%d?expand=downloads,expanded_dlcs,description,screenshots,videos,related_products,changelog", gameId)
 
-	b, err := s.getUrl(
+	b, statusCode, err := s.getUrl(
 		u,
 		fn,
 		true,
 	)
 	if err != nil {
-		return p, err
+		return p, statusCode == 404, err
 	}
 
 	sErr := json.Unmarshal(b, &p)
 	if sErr != nil {
 		msg := fmt.Sprintf("Responde deserialization error: %s", sErr.Error())
-		return p, errors.New(msg)
+		return p, false, errors.New(msg)
 	}
 
-	return p, nil
+	return p, false, nil
 }

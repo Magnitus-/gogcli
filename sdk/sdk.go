@@ -57,7 +57,7 @@ func (s *Sdk) getClient(followRedirects bool) http.Client {
 	}
 }
 
-func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, error) {
+func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, int, error) {
 	c := (*s).getClient(true)
 
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fnCall, url))
@@ -65,14 +65,19 @@ func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, error) {
 	r, err := c.Get(url)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fnCall, err.Error())
-		return nil, errors.New(msg)
+		return nil, -1, errors.New(msg)
 	}
 	defer r.Body.Close()
+
+	if r.StatusCode < 200 || r.StatusCode > 299 {
+		msg := fmt.Sprintf("%s -> retrieval request error: did not expect status code of %d", fnCall, r.StatusCode)
+		return nil, r.StatusCode, errors.New(msg)
+	}
 
 	b, bErr := ioutil.ReadAll(r.Body)
 	if bErr != nil {
 		msg := fmt.Sprintf("%s -> retrieval body error: %s", fnCall, bErr.Error())
-		return nil, errors.New(msg)
+		return nil, r.StatusCode, errors.New(msg)
 	}
 
 	if jsonBody {
@@ -80,11 +85,11 @@ func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, error) {
 		jErr := json.Indent(&out, b, "", "  ")
 		if jErr != nil {
 			msg := fmt.Sprintf("%s -> json parsing error: %s", fnCall, jErr.Error())
-			return nil, errors.New(msg)
+			return nil, r.StatusCode, errors.New(msg)
 		}
 		b = out.Bytes()
 	}
 	(*s).logger.Debug(fmt.Sprintf("%s -> response body: %s", fnCall, string(b)))
 
-	return b, nil
+	return b, r.StatusCode, nil
 }

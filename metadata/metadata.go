@@ -6,7 +6,7 @@ type GameMetadataDescription struct {
 	Highlights string
 }
 
-type Image struct {
+type GameMetadataImage struct {
 	Name     string
 	Size     int64
 	Checksum string
@@ -14,21 +14,34 @@ type Image struct {
 	Tag      string
 }
 
-type Video struct {
+type GameMetadataVideo struct {
 	ThumbnailUrl string
 	VideoUrl     string
 	Provider     string
 }
+
+type GameMetadataProductImages struct {
+	Background          GameMetadataImage
+	Logo                GameMetadataImage
+	Logo2x              GameMetadataImage
+	Icon                GameMetadataImage
+	SidebarIcon         GameMetadataImage
+	SidebarIcon2x       GameMetadataImage
+	MenuNotificationAv  GameMetadataImage
+	MenuNotificationAv2 GameMetadataImage
+}
+
+type GameMetadataScreenShot []GameMetadataImage
 
 type MetadataGame struct {
 	Id                    int64
 	Title                 string
 	Tags                  []string
 	Description           GameMetadataDescription
-	ProductCards          []Image
-	OtherProductImages    []Image
-    Screenshots           []Image
-	Videos                []Video
+	ProductCards          []GameMetadataImage
+	ProductImages         GameMetadataProductImages
+    Screenshots           []GameMetadataScreenShot
+	Videos                []GameMetadataVideo
 	Slug                  string
 	ReleaseDate           string
 	Rating                int

@@ -1,6 +1,10 @@
 package sdk
 
-import "gogcli/metadata"
+import (
+	"fmt"
+	"gogcli/metadata"
+	"strings"
+)
 
 func addOwnedGamesPagesToMetadata(m *metadata.Metadata, pages []OwnedGamesPage) {
 	for _, page := range pages {
@@ -34,11 +38,13 @@ func addOwnedGamesPagesToMetadata(m *metadata.Metadata, pages []OwnedGamesPage) 
 Left:
 type MetadataGame struct {
 	ProductCards          []Image
-	OtherProductImages    []Image
-    Screenshots           []Image
 	Features              []string
 }
 */
+
+func processProductImageUrl(u string) string {
+	return fmt.Sprintf("%s%s", "https:", strings.Replace(u, ".jpg", ".png", -1))
+}
 
 func updateMetadataWithProducts(m *metadata.Metadata, products []Product) {
 	productsMap := map[int64]Product{}
@@ -57,20 +63,62 @@ func updateMetadataWithProducts(m *metadata.Metadata, products []Product) {
 		game.ReleaseDate = product.Release_date
 		game.Changelog = product.Changelog
 		
-		videos := []metadata.Video{}
+		videos := []metadata.GameMetadataVideo{}
 		for _, vid := range product.Videos {
-			videos = append(videos, metadata.Video{
+			videos = append(videos, metadata.GameMetadataVideo{
 				ThumbnailUrl: vid.Thumbnail_url,
 				VideoUrl: vid.Video_url,
 				Provider: vid.Provider,
 			})
 		}
 		game.Videos = videos
-		
-		otherProductImages := []metadata.Image{}
-		game.OtherProductImages = otherProductImages
 
-		screenshots := []metadata.Image{}
+		game.ProductImages = metadata.GameMetadataProductImages{
+			Background: metadata.GameMetadataImage{
+				Url: processProductImageUrl(product.Images.Background),
+				Tag: "Background",
+			},
+			Logo: metadata.GameMetadataImage{
+				Url: processProductImageUrl(product.Images.Logo),
+				Tag: "Logo",
+			},
+			Logo2x: metadata.GameMetadataImage{
+				Url: processProductImageUrl(product.Images.Logo2x),
+				Tag: "Logo2x",
+			},
+			Icon: metadata.GameMetadataImage{
+				Url: processProductImageUrl(product.Images.Icon),
+				Tag: "Icon",
+			},
+			SidebarIcon: metadata.GameMetadataImage{
+				Url: processProductImageUrl(product.Images.SidebarIcon),
+				Tag: "SidebarIcon",
+			},
+			SidebarIcon2x: metadata.GameMetadataImage{
+				Url: processProductImageUrl(product.Images.SidebarIcon2x),
+				Tag: "SidebarIcon2x",
+			},
+			MenuNotificationAv: metadata.GameMetadataImage{
+				Url: processProductImageUrl(product.Images.MenuNotificationAv),
+				Tag: "MenuNotificationAv",
+			},
+			MenuNotificationAv2: metadata.GameMetadataImage{
+				Url: processProductImageUrl(product.Images.MenuNotificationAv2),
+				Tag: "MenuNotificationAv2",
+			},
+		}
+
+		screenshots := []metadata.GameMetadataScreenShot{}
+		for _, prodScreenshot := range product.Screenshots {
+			screenshot := metadata.GameMetadataScreenShot{}
+			for _, prodScreenshotRes := range prodScreenshot.Formatted_images {
+				screenshot = append(screenshot, metadata.GameMetadataImage{
+					Url: strings.Replace(prodScreenshotRes.Image_url, ".jpg", ".png", -1),
+					Tag: prodScreenshotRes.Formatter_name,
+				})
+			}
+			screenshots = append(screenshots, screenshot)
+		}
 		game.Screenshots = screenshots
 
 		(*m).Games[idx] = game

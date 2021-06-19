@@ -138,7 +138,7 @@ func retrieveUrlContentLength(c http.Client, downloadUrl string, fn string) (int
 
 	if r.StatusCode != 200 {
 		msg := fmt.Sprintf("%s -> Expected response status code of 200, but got %d", fn, r.StatusCode)
-		return int64(0), errors.New(msg), (r.StatusCode == 404 || r.StatusCode == 403)
+		return int64(0), errors.New(msg), (r.StatusCode == 404 || r.StatusCode == 403 || r.StatusCode == 301)
 	}
 
 	clHeader, ok := r.Header["Content-Length"]
@@ -162,7 +162,7 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 	var downloadLoc string
 	var err error
 	var dangling bool
-	fn := fmt.Sprintf("GetDownloadInfo(downloadPath=%s)", downloadPath)
+	fn := fmt.Sprintf("GetDownloadFileInfo(downloadPath=%s)", downloadPath)
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
 	c := (*s).getClient(false)

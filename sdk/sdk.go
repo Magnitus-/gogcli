@@ -16,12 +16,14 @@ import (
 type Sdk struct {
 	session string
 	al      string
+	maxRetries int64
+	currentRetries int64
 	logger  *logging.Logger
 }
 
 func NewSdk(cookiePath string, logSource *logging.Source) (*Sdk, error) {
 	logger := logSource.CreateLogger(os.Stdout, "SDK: ", log.Lshortfile)
-	sdk := Sdk{session: "", al: "", logger: logger}
+	sdk := Sdk{session: "", al: "", maxRetries: 3, currentRetries: 0, logger: logger}
 	bs, err := ioutil.ReadFile(cookiePath)
 	if err != nil {
 		msg := fmt.Sprintf("Error retrieving session: %s", err.Error())
@@ -37,6 +39,18 @@ func NewSdk(cookiePath string, logSource *logging.Source) (*Sdk, error) {
 		}
 	}
 	return &sdk, nil
+}
+
+func (s *Sdk) incRetries() {
+	(*s).currentRetries += 1
+}
+
+func (s *Sdk) resetRetries() {
+	(*s).currentRetries = 0
+}
+
+func (s *Sdk) maxRetriesReached() bool {
+	return (*s).currentRetries == (*s).maxRetries
 }
 
 func (s *Sdk) getClient(followRedirects bool) http.Client {
@@ -70,9 +84,17 @@ func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, int, err
 	defer r.Body.Close()
 
 	if r.StatusCode < 200 || r.StatusCode > 299 {
+		if r.StatusCode >= 500 && (!(*s).maxRetriesReached()) {
+			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed with code %d. Will retry.", fnCall, url, r.StatusCode))
+			(*s).incRetries()
+			return (*s).getUrl(url, fnCall, jsonBody)
+		}
+		(*s).resetRetries()
 		msg := fmt.Sprintf("%s -> retrieval request error: did not expect status code of %d", fnCall, r.StatusCode)
 		return nil, r.StatusCode, errors.New(msg)
 	}
+
+	(*s).resetRetries()
 
 	b, bErr := ioutil.ReadAll(r.Body)
 	if bErr != nil {

@@ -31,7 +31,13 @@ For Linux, you can run the following on the command prompt:
 ./gogcli --help
 ```
 
-Not yet sure what the Windows/MacOS equivalent are, but you should have a runable binary that you can use.
+# Netscape Cookies
+
+The client also supports Netscape cookie files. By default, it will use the format defined above, so to use the Netscape format, you need to specify it like so:
+
+```
+./gogcli gog-api user-info -y netscape
+```
 
 # Supported Storage Solutions
 

@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 )
 
 type Sdk struct {
@@ -21,24 +20,10 @@ type Sdk struct {
 	logger  *logging.Logger
 }
 
-func NewSdk(cookiePath string, logSource *logging.Source) (*Sdk, error) {
+func NewSdk(cookie GogCookie, logSource *logging.Source) *Sdk {
 	logger := logSource.CreateLogger(os.Stdout, "SDK: ", log.Lshortfile)
-	sdk := Sdk{session: "", al: "", maxRetries: 3, currentRetries: 0, logger: logger}
-	bs, err := ioutil.ReadFile(cookiePath)
-	if err != nil {
-		msg := fmt.Sprintf("Error retrieving session: %s", err.Error())
-		return &sdk, errors.New(msg)
-	}
-
-	fileLines := strings.Split(string(bs), "\n")
-	for _, fileLine := range fileLines {
-		if strings.HasPrefix(fileLine, "sessions_gog_com=") {
-			sdk.session = strings.TrimPrefix(fileLine, "sessions_gog_com=")
-		} else if strings.HasPrefix(fileLine, "gog-al=") {
-			sdk.al = strings.TrimPrefix(fileLine, "gog-al=")
-		}
-	}
-	return &sdk, nil
+	sdk := Sdk{session: cookie.Session, al: cookie.Al, maxRetries: 3, currentRetries: 0, logger: logger}
+	return &sdk
 }
 
 func (s *Sdk) incRetries() {

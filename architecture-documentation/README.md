@@ -12,11 +12,11 @@ There is some filtering support so that only the part of your collection that yo
 
 Conceptually, the tool uses the following components:
 
-**GOG.com**: The GOG website, where you purchase and download games
-**Storages**: A persistent store that will mirror either your entire GOG collection or a subset of it. It also stores some metadata files (the manifest and actions files) for efficiency's sake.
-**Manifest**: This is a file that describes either an existing or desired state for a collection of game files in your storage. It lists games and game files.
-**Actions**: This is a file that represents every atomic action the client will have to do in order to bridge the difference between what is described in a manifest file and the actual game files stored in your storage. After every action in the actions file is executed, the manifest will perfectly represent the state of the game files in your storage.
-**Updates**: This is a file that lists all the games that GOG.com marks as new or updated at a given point in time.
+- **GOG.com**: The GOG website, where you purchase and download games
+- **Storages**: A persistent store that will mirror either your entire GOG collection or a subset of it. It also stores some metadata files (the manifest and actions files) for efficiency's sake.
+- **Manifest**: This is a file that describes either an existing or desired state for a collection of game files in your storage. It lists games and game files.
+- **Actions**: This is a file that represents every atomic action the client will have to do in order to bridge the difference between what is described in a manifest file and the actual game files stored in your storage. After every action in the actions file is executed, the manifest will perfectly represent the state of the game files in your storage.
+- **Updates**: This is a file that lists all the games that GOG.com marks as new or updated at a given point in time.
 
 # Command Flow
 

@@ -33,11 +33,11 @@ func GetFileSystemFromSource(s Source, logSource *logging.Source, tag string) (F
 func GetFileSystem(path string, logSource *logging.Source, tag string) FileSystem {
 	var logPrefix string
 	if tag == "" {
-		logPrefix = "FS: "
+		logPrefix = "[fs] "
 	} else {
-		logPrefix = fmt.Sprintf("FS-%s: ", tag)
+		logPrefix = fmt.Sprintf("[fs-%s] ", tag)
 	}
-	return FileSystem{path, logSource.CreateLogger(os.Stdout, logPrefix, log.Lshortfile)}
+	return FileSystem{path, logSource.CreateLogger(os.Stdout, logPrefix, log.Lmsgprefix)}
 }
 
 func (f FileSystem) GetListing() (*StorageListing, error) {

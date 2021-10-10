@@ -21,7 +21,7 @@ type Sdk struct {
 }
 
 func NewSdk(cookie GogCookie, logSource *logging.Source) *Sdk {
-	logger := logSource.CreateLogger(os.Stdout, "SDK: ", log.Lshortfile)
+	logger := logSource.CreateLogger(os.Stdout, "[sdk] ", log.Lmsgprefix)
 	sdk := Sdk{session: cookie.Session, al: cookie.Al, maxRetries: 3, currentRetries: 0, logger: logger}
 	return &sdk
 }

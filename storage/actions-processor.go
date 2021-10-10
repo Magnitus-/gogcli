@@ -52,7 +52,7 @@ func GetActionsProcessor(
 		retries: retries,
 		gamesMax: gamesMax,
 		gamesSort: gamesSort,
-		logger: logSource.CreateLogger(os.Stdout, "DOWNLOADS PROCESSING: ", log.Lshortfile),
+		logger: logSource.CreateLogger(os.Stdout, "[actions processing] ", log.Lmsgprefix),
 		actionErrChan:  make(chan error),
 		actionsErrsChan: make(chan []error),
 		actionResultChan: make(chan ActionResult),
@@ -123,14 +123,22 @@ func (p ActionsProcessor) addFileAction(
 	r.fileChecksum = fChecksum
 	p.actionResultChan <- r
 	p.actionErrChan <- nil
+	p.logger.Info(fmt.Sprintf("Created/Updated file: %d/%ss/%s", gameId, fileKind, fileInfo.Name))
 }
 
 func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifest.ActionsIterator, s Storage, d Downloader) {
 	errs := make([]error, 0)
 	jobsRunning  := 0
 	concurrency := p.concurrency
+	gamesToDo := -1
 	
 	for true {
+        _, iterGamesToDo, _ := iterator.GetProgress()
+		if gamesToDo != iterGamesToDo {
+			gamesToDo = iterGamesToDo
+			p.logger.Info(fmt.Sprintf("Games Progress: %d games with unstarted actions", iterGamesToDo))
+		}
+
 		if iterator.ShouldContinue() && len(errs) == 0 {
 			action, nextErr := iterator.Next()
 			if nextErr != nil {
@@ -142,6 +150,7 @@ func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifes
 						errs = append(errs, err)
 					} else {
 						p.doneActionChan <- DoneAction{action: action, end: false}
+						p.logger.Info(fmt.Sprintf("Created directory for new game: %d", action.GameId))
 					}
 				} else if action.GameAction == "remove" {
 					err := s.RemoveGame(action.GameId)
@@ -149,6 +158,7 @@ func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifes
 						errs = append(errs, err)
 					} else {
 						p.doneActionChan <- DoneAction{action: action, end: false}
+						p.logger.Info(fmt.Sprintf("Deleted directory for deleted game: %d", action.GameId))
 					}
 				}
 			} else {
@@ -168,6 +178,7 @@ func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifes
 							s,
 							d,
 						)
+						p.logger.Info(fmt.Sprintf("Creating/Updating file: %d/%ss/%s", action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name))
 					}
 				} else if (*fileActionPtr).Action == "remove" {
 					err := s.RemoveFile(action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name)
@@ -175,6 +186,7 @@ func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifes
 						errs = append(errs, err)
 					} else {
 						p.doneActionChan <- DoneAction{action: action, end: false}
+						p.logger.Info(fmt.Sprintf("Deleted file: %d/%ss/%s", action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name))
 					}
 				}
 			}
@@ -182,6 +194,7 @@ func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifes
 		endWhenPossible := (!iterator.ShouldContinue()) || (len(errs) > 0)
 		allDone := endWhenPossible && jobsRunning == 0
 		if allDone {
+			p.logger.Info("Downloads completed")
 			break
 		} else if (concurrency <= 0 && jobsRunning > 0) || (endWhenPossible && jobsRunning > 0) {
 			err := <- p.actionErrChan

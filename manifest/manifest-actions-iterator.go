@@ -125,6 +125,11 @@ func (i *ActionsIterator) Stringify() string {
 	)
 }
 
+func (i *ActionsIterator) GetProgress() (int, int, int) {
+	return i.processedGames, len(i.gameIds), i.maxGames
+}
+
+
 func (i *ActionsIterator) ShouldContinue() bool {
 	return i.HasMore() && (i.maxGames == -1 || i.processedGames < i.maxGames)
 }

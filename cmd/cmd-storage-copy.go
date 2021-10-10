@@ -23,8 +23,8 @@ func generateStorageCopyCmd() *cobra.Command {
 		Use:   "copy",
 		Short: "Copy the game files from one storage to another",
 		Run: func(cmd *cobra.Command, args []string) {
-			source, downloader := getStorage(sourcePath, sourceStorage, logSource, "SOURCE")
-			destination, _ := getStorage(destinationPath, destinationStorage, logSource, "DESTINATION")
+			source, downloader := getStorage(sourcePath, sourceStorage, logSource, "source")
+			destination, _ := getStorage(destinationPath, destinationStorage, logSource, "destination")
 
 			sort := manifest.NewActionIteratorSort(preferredGameIds, sortCriterion, sortAscending)
 			proc := storage.GetActionsProcessor(concurrency, downloadRetries, gamesMax, sort, logSource)

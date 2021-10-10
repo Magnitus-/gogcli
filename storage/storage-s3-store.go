@@ -64,9 +64,9 @@ func GetS3StoreFromSource(s Source, logSource *logging.Source, tag string) (S3St
 func getS3Store(configs *S3Configs, logSource *logging.Source, tag string) (S3Store, error) {
 	var logPrefix string
 	if tag == "" {
-		logPrefix = "S3: "
+		logPrefix = "[s3] "
 	} else {
-		logPrefix = fmt.Sprintf("S3-%s: ", tag)
+		logPrefix = fmt.Sprintf("[s3-%s] ", tag)
 	}
 
 	client, err := minio.New((*configs).Endpoint, &minio.Options{
@@ -83,7 +83,7 @@ func getS3Store(configs *S3Configs, logSource *logging.Source, tag string) (S3St
 	return S3Store{
 		client: client,
 		configs: configs,
-		logger: logSource.CreateLogger(os.Stdout, logPrefix, log.Lshortfile),
+		logger: logSource.CreateLogger(os.Stdout, logPrefix, log.Lmsgprefix),
 	}, nil
 }
 

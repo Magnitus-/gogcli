@@ -237,7 +237,7 @@ func (p ActionsProcessor) keepActionsUpdated(g *manifest.GameActions, s Storage)
 			errs = append(errs, err)
 		}
 	}
-	p.actionsErrsChan <- errs
+	p.actionsUpdateErrsChan <- errs
 }
 
 func (p ActionsProcessor) ProcessGameActions(m *manifest.Manifest, a *manifest.GameActions, s Storage, d Downloader) []error {

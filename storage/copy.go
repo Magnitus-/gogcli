@@ -3,10 +3,9 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"gogcli/manifest"
 )
 
-func Copy(source Storage, destination Storage, sourceDownloader Downloader, concurrency int, gamesMax int) []error {
+func Copy(source Storage, destination Storage, sourceDownloader Downloader, a ActionsProcessor) []error {
 	exists, err := source.Exists()
 	if err != nil {
 		return []error{err}
@@ -45,6 +44,5 @@ func Copy(source Storage, destination Storage, sourceDownloader Downloader, conc
 		return []error{loadErr}
 	}
 
-	sort := manifest.NewActionIteratorSort([]int64{}, "none", true)
-	return UploadManifest(m, destination, *source.GenerateSource(), concurrency, sourceDownloader, gamesMax, sort, false)
+	return UploadManifest(m, destination, *source.GenerateSource(), sourceDownloader, a, false)
 }

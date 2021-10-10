@@ -3,10 +3,9 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"gogcli/manifest"
 )
 
-func ResumeActions(s Storage, concurrency int, d Downloader, gamesMax int, gamesSort manifest.ActionsIteratorSort) []error {
+func ResumeActions(s Storage, d Downloader, a ActionsProcessor) []error {
 	exists, err := s.Exists()
 	if err != nil {
 		return []error{err}
@@ -47,5 +46,5 @@ func ResumeActions(s Storage, concurrency int, d Downloader, gamesMax int, games
 		return []error{actionsErr}
 	}
 
-	return processGameActions(manifest, actions, s, concurrency, d, gamesMax, gamesSort)
+	return a.ProcessGameActions(manifest, actions, s, d)
 }

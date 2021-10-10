@@ -22,6 +22,7 @@ func generateStorageApplyCmd() *cobra.Command {
 	var preferredGameIds []int64
 	var sortCriterion string
 	var sortAscending bool
+	var downloadRetries int
 
 	storageApplyCmd := &cobra.Command{
 		Use:   "apply",
@@ -40,7 +41,8 @@ func generateStorageApplyCmd() *cobra.Command {
 			processError(err)
 
 			sort := manifest.NewActionIteratorSort(preferredGameIds, sortCriterion, sortAscending)
-			errs := storage.UploadManifest(&m, gamesStorage, storage.Source{Type: "gog"}, concurrency, downloader, gamesMax, sort, allowEmptyCheckum)
+			proc := storage.GetActionsProcessor(concurrency, downloadRetries, gamesMax, sort, logSource)
+			errs := storage.UploadManifest(&m, gamesStorage, storage.Source{Type: "gog"}, downloader, proc, allowEmptyCheckum)
 			processErrors(errs)
 
 			output, _ := json.Marshal(&m)
@@ -61,5 +63,6 @@ func generateStorageApplyCmd() *cobra.Command {
 	storageApplyCmd.Flags().Int64SliceVarP(&preferredGameIds, "preferred-ids", "f", []int64{}, "Ids of games to download first")
 	storageApplyCmd.Flags().StringVarP(&sortCriterion, "sort-criterion", "t", "none", "Criteria to sort games download order by. Can be: id, title, size, none")
 	storageApplyCmd.Flags().BoolVarP(&sortAscending, "ascending", "n", true, "If set to true, game downloads will be sorted in ascending order given the sort criterion")
+	storageApplyCmd.Flags().IntVarP(&downloadRetries, "download-retries", "d", 2, "How many times to retry a failed download before giving up")
 	return storageApplyCmd
 }

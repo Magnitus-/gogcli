@@ -70,7 +70,18 @@ func (p ActionsProcessor) addFileAction(
 	action manifest.FileAction, 
 	s Storage,
 	d Downloader,
+	retriesLeft int,
 ) {
+	handleErr := func(err error) {
+		if retriesLeft <= 0 {
+			p.actionErrChan <- err
+			return 	
+		}
+
+		p.logger.Warning(fmt.Sprintf("Problem updating/creating file %d/%ss/%s (%d retries left) => %s", gameId, fileKind, fileInfo.Name, retriesLeft, err.Error()))
+		p.addFileAction(gameId, fileKind, fileInfo, action, s, d, retriesLeft - 1)
+	}
+
 	fn := fmt.Sprintf("addFileAction(gameId=%d, fileInfo={Kind=%s, Name=%s, ...}, ...)", gameId, fileInfo.Kind, fileInfo.Name)
 	r := ActionResult{
 		gameId: gameId,
@@ -83,7 +94,7 @@ func (p ActionsProcessor) addFileAction(
 	handle, fSize, _, err := d.Download(gameId, action)
 	if err != nil {
 		r.err = err
-		p.actionErrChan <- err
+		handleErr(err)
 		return 
 	}
 	defer handle.Close()
@@ -91,7 +102,7 @@ func (p ActionsProcessor) addFileAction(
 	if fileInfo.Size > 0 && fileInfo.Size != fSize {
 		msg := fmt.Sprintf("%s -> Download file size of %d does not match expected file size of %d", fn, fSize, fileInfo.Size)  
 		r.err = errors.New(msg)
-		p.actionErrChan <- errors.New(msg)
+		handleErr(errors.New(msg))
 		return
 	}
 	
@@ -99,14 +110,14 @@ func (p ActionsProcessor) addFileAction(
 	fChecksum, uploadErr := s.UploadFile(handle, gameId, fileKind, action.Name, fSize)
 	if err != nil {
 		r.err = uploadErr
-		p.actionErrChan <- uploadErr
+		handleErr(uploadErr)
 		return
 	}
 
 	if fileInfo.Checksum != "" && fileInfo.Checksum != fChecksum {
 		msg := fmt.Sprintf("%s -> Download file checksum of %s does not match expected file checksum of %s", fn, fChecksum, fileInfo.Checksum)  
 		r.err = errors.New(msg)
-		p.actionErrChan <- errors.New(msg)
+		handleErr(errors.New(msg))
 		return
 	}
 
@@ -115,7 +126,7 @@ func (p ActionsProcessor) addFileAction(
 		if err != nil {
 			msg := fmt.Sprintf("%s -> Error occured while validating Zip archive %s: %s", fn, fileInfo.Name, err.Error())  
 			r.err = errors.New(msg)
-			p.actionErrChan <- errors.New(msg)
+			handleErr(errors.New(msg))
 			return
 		}
 	}
@@ -177,6 +188,7 @@ func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifes
 							(*fileActionPtr),
 							s,
 							d,
+							p.retries,
 						)
 						p.logger.Info(fmt.Sprintf("Creating/Updating file: %d/%ss/%s", action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name))
 					}

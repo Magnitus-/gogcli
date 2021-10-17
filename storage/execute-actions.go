@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func ResumeActions(s Storage, d Downloader, a ActionsProcessor) []error {
+func ExecuteActions(s Storage, d Downloader, a ActionsProcessor) []error {
 	exists, err := s.Exists()
 	if err != nil {
 		return []error{err}

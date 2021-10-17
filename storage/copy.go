@@ -44,5 +44,15 @@ func Copy(source Storage, destination Storage, sourceDownloader Downloader, a Ac
 		return []error{loadErr}
 	}
 
-	return UploadManifest(m, destination, *source.GenerateSource(), sourceDownloader, a, false)
+	err = ApplyManifest(m, destination, *source.GenerateSource(), false)
+	if err != nil {
+		return []error{err}
+	}
+
+	actions, loadActionsErr := destination.LoadActions()
+	if loadActionsErr != nil {
+		return []error{loadActionsErr}
+	}
+
+	return a.ProcessGameActions(m, actions, destination, sourceDownloader)
 }

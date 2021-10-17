@@ -19,7 +19,7 @@ type GameAction struct {
 }
 
 func (g *GameAction) Update(n *GameAction) error {
-	if (*n).Action == "update" && (*g).Action == "Remove" {
+	if (*n).Action == "update" && (*g).Action == "remove" {
 		return errors.New("Cannot change a game removal to a game update. This is an impossible situation.")
 	}
 

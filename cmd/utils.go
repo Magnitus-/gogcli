@@ -13,6 +13,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func loadActionsFromFile(path string) (manifest.GameActions, error) {
+	var a manifest.GameActions
+	bs, err := ioutil.ReadFile(path)
+	if err != nil {
+		return manifest.GameActions{}, err
+	}
+
+	err = json.Unmarshal(bs, &a)
+	if err != nil {
+		return manifest.GameActions{}, err
+	}
+
+	return a, nil
+}
+
 func loadManifestFromFile(path string) (manifest.Manifest, error) {
 	var m manifest.Manifest
 	bs, err := ioutil.ReadFile(path)

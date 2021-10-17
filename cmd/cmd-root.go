@@ -43,6 +43,7 @@ func init() {
 	rootCmd.AddCommand(generateMetadataCmd())
 	rootCmd.AddCommand(generateStorageCmd())
 	rootCmd.AddCommand(generateVersionCmd())
+	rootCmd.AddCommand(generateActionsCmd())
 }
 
 func Execute() error {

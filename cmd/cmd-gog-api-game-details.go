@@ -16,7 +16,7 @@ func generateGameDetailsCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			g, err := sdkPtr.GetGameDetails(gameId)
 			if !jsonOutput {
-				processError(err) 
+				processError(err)
 				g.Print()
 			} else {
 				errs := make([]error, 0)

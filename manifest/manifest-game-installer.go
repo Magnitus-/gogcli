@@ -1,7 +1,7 @@
 package manifest
 
 type ManifestGameInstaller struct {
-	Languages      []string
+	Languages     []string
 	Os            string
 	Url           string
 	Title         string

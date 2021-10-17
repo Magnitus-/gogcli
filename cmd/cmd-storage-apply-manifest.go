@@ -29,7 +29,7 @@ func generateStorageApplyManifestCmd() *cobra.Command {
 			processError(err)
 
 			err = storage.ApplyManifest(&m, gamesStorage, storage.Source{Type: "gog"}, allowEmptyCheckum)
-			processError(err)			
+			processError(err)
 		},
 	}
 

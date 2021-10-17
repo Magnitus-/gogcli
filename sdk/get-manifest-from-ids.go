@@ -5,12 +5,12 @@ import "gogcli/manifest"
 func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWithId) {
 	for _, gd := range gameDetails {
 		game := manifest.ManifestGame{
-			Id: gd.id,
-			Title: gd.game.Title,
-			CdKey: gd.game.CdKey,
-			Tags: make([]string, len(gd.game.Tags)),
+			Id:         gd.id,
+			Title:      gd.game.Title,
+			CdKey:      gd.game.CdKey,
+			Tags:       make([]string, len(gd.game.Tags)),
 			Installers: make([]manifest.ManifestGameInstaller, 0),
-			Extras: make([]manifest.ManifestGameExtra, 0),
+			Extras:     make([]manifest.ManifestGameExtra, 0),
 		}
 		for i, _ := range gd.game.Tags {
 			game.Tags[i] = gd.game.Tags[i].Name
@@ -76,7 +76,7 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 
 func (s *Sdk) GetManifestFromIds(f manifest.ManifestFilter, gameIds []int64, concurrency int, pause int, tolerateDangles bool) (*manifest.Manifest, []error, []error) {
 	m := manifest.NewEmptyManifest(f)
-	
+
 	details, detailsErrs := s.GetManyGameDetails(gameIds, concurrency, pause)
 	if len(detailsErrs) > 0 {
 		return m, detailsErrs, []error{}

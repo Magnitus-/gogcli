@@ -35,35 +35,35 @@ type ManifestV0_9 struct {
 
 func (m *ManifestV0_9) Migrate() *manifest.Manifest {
 	migrated := manifest.Manifest{
-		Games: make([]manifest.ManifestGame, len((*m).Games)),
+		Games:         make([]manifest.ManifestGame, len((*m).Games)),
 		EstimatedSize: (*m).EstimatedSize,
-		VerifiedSize: (*m).VerifiedSize,
-		Filter: (*m).Filter,
+		VerifiedSize:  (*m).VerifiedSize,
+		Filter:        (*m).Filter,
 	}
 
 	for idx, game := range (*m).Games {
 		gameCopy := manifest.ManifestGame{
-			Id: game.Id,
-			Title: game.Title,
-			CdKey: game.CdKey,
-			Tags: game.Tags,
-			Installers: make([]manifest.ManifestGameInstaller, len(game.Installers)),
-			Extras: game.Extras,
+			Id:            game.Id,
+			Title:         game.Title,
+			CdKey:         game.CdKey,
+			Tags:          game.Tags,
+			Installers:    make([]manifest.ManifestGameInstaller, len(game.Installers)),
+			Extras:        game.Extras,
 			EstimatedSize: game.EstimatedSize,
-			VerifiedSize: game.VerifiedSize,
+			VerifiedSize:  game.VerifiedSize,
 		}
 		for idx2, inst := range game.Installers {
 			gameCopy.Installers[idx2] = manifest.ManifestGameInstaller{
-				Languages: []string{inst.Language},
-				Os: inst.Os,
-				Url: inst.Url,
-				Title: inst.Title,
-				Name: inst.Name,
-				Version: inst.Version,
-				Date: inst.Date,
+				Languages:     []string{inst.Language},
+				Os:            inst.Os,
+				Url:           inst.Url,
+				Title:         inst.Title,
+				Name:          inst.Name,
+				Version:       inst.Version,
+				Date:          inst.Date,
 				EstimatedSize: inst.EstimatedSize,
-				VerifiedSize: inst.VerifiedSize,
-				Checksum: inst.Checksum,
+				VerifiedSize:  inst.VerifiedSize,
+				Checksum:      inst.Checksum,
 			}
 		}
 		migrated.Games[idx] = gameCopy

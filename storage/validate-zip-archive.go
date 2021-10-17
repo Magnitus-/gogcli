@@ -36,7 +36,7 @@ func ValidateZipArchive(s Storage, gameId int64, fileKind string, fileName strin
 
 	for _, zipFile := range zipReader.File {
 		zipFileReader, openErr := zipFile.Open()
-		if openErr  != nil {
+		if openErr != nil {
 			msg := fmt.Sprintf("%s -> Error occurred accessing file %s in zip archive: %s", fn, zipFile.Name, openErr.Error())
 			return errors.New(msg)
 		}

@@ -33,8 +33,8 @@ func (m *Manifest) GetSummary() ManifestSummary {
 		filesCount += (len(game.Installers) + len(game.Extras))
 		installersCount += len(game.Installers)
 		extrasCount += len(game.Extras)
-		
-		if largestGame.Id == 0 || (game.VerifiedSize  > largestGame.Size) {
+
+		if largestGame.Id == 0 || (game.VerifiedSize > largestGame.Size) {
 			largestGame.Id = game.Id
 			largestGame.Title = game.Title
 			largestGame.Size = game.VerifiedSize
@@ -55,15 +55,15 @@ func (m *Manifest) GetSummary() ManifestSummary {
 	smallestGame.SizeAsString = GetBytesToEstimate(smallestGame.Size)
 
 	return ManifestSummary{
-		Games: len((*m).Games),
-		Files: filesCount,
-		Installers: installersCount,
-		Extras: extrasCount,
-		Size: (*m).VerifiedSize,
-		SizeAsString: GetBytesToEstimate((*m).VerifiedSize),
-		SizeAverage: (*m).VerifiedSize / int64(len((*m).Games)),
+		Games:               len((*m).Games),
+		Files:               filesCount,
+		Installers:          installersCount,
+		Extras:              extrasCount,
+		Size:                (*m).VerifiedSize,
+		SizeAsString:        GetBytesToEstimate((*m).VerifiedSize),
+		SizeAverage:         (*m).VerifiedSize / int64(len((*m).Games)),
 		SizeAverageAsString: GetBytesToEstimate((*m).VerifiedSize / int64(len((*m).Games))),
-		LargestGame: largestGame,
-		SmallestGame: smallestGame,
+		LargestGame:         largestGame,
+		SmallestGame:        smallestGame,
 	}
 }

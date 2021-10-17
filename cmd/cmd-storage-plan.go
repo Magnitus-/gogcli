@@ -24,7 +24,7 @@ func generateStoragePlanCmd() *cobra.Command {
 	show := func(a *manifest.GameActions) {
 		var buf bytes.Buffer
 		var output []byte
-		
+
 		output, _ = json.Marshal((*a))
 		json.Indent(&buf, output, "", "  ")
 		output = buf.Bytes()

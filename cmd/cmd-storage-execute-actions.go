@@ -24,7 +24,7 @@ func generateStorageExecuteActionsCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var downloader storage.Downloader
 			gamesStorage, _ := getStorage(path, storageType, logSource, "destination")
-			
+
 			source, err := gamesStorage.LoadSource()
 			if err != nil {
 				processError(err)
@@ -32,7 +32,7 @@ func generateStorageExecuteActionsCmd() *cobra.Command {
 			if source.Type == "gog" {
 				downloader = sdk.Downloader{sdkPtr}
 			} else if source.Type == "fs" {
-				fs, sourceErr := storage.GetFileSystemFromSource(*source ,logSource, "source")
+				fs, sourceErr := storage.GetFileSystemFromSource(*source, logSource, "source")
 				if sourceErr != nil {
 					processError(sourceErr)
 				}
@@ -44,7 +44,7 @@ func generateStorageExecuteActionsCmd() *cobra.Command {
 				}
 				downloader = storage.S3StoreDownloader{s3}
 			}
-			
+
 			sort := manifest.NewActionIteratorSort(preferredGameIds, sortCriterion, sortAscending)
 			proc := storage.GetActionsProcessor(concurrency, downloadRetries, gamesMax, sort, logSource)
 			errs := storage.ExecuteActions(gamesStorage, downloader, proc)
@@ -59,7 +59,7 @@ func generateStorageExecuteActionsCmd() *cobra.Command {
 	storageExecuteActionsCmd.Flags().Int64SliceVarP(&preferredGameIds, "preferred-ids", "f", []int64{}, "Ids of games to download first")
 	storageExecuteActionsCmd.Flags().StringVarP(&sortCriterion, "sort-criterion", "t", "none", "Criteria to sort games download order by. Can be: id, title, size, none")
 	storageExecuteActionsCmd.Flags().BoolVarP(&sortAscending, "ascending", "n", true, "If set to true, game downloads will be sorted in ascending order given the sort criterion")
-    storageExecuteActionsCmd.Flags().IntVarP(&downloadRetries, "download-retries", "d", 2, "How many times to retry a failed download before giving up")
+	storageExecuteActionsCmd.Flags().IntVarP(&downloadRetries, "download-retries", "d", 2, "How many times to retry a failed download before giving up")
 
 	return storageExecuteActionsCmd
 }

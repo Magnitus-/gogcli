@@ -20,7 +20,7 @@ func generateMetadataGenerateCmd() *cobra.Command {
 			m, errs, errs404 := sdkPtr.GetMetadata(concurrency, pause, tolerateDangles)
 			//duplicates := m.Finalize()
 			processSerializableOutput(m, errs, terminalOutput, file)
-			
+
 			/*if len(duplicates) > 0 {
 				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
 			}*/
@@ -33,7 +33,6 @@ func generateMetadataGenerateCmd() *cobra.Command {
 			}
 		},
 	}
-
 
 	metadataGenerateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Maximum number of concurrent requests that will be made on the GOG api")
 	metadataGenerateCmd.Flags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")

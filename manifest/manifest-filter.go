@@ -1,25 +1,25 @@
 package manifest
 
 type ManifestFilter struct {
-	Titles []string
-	Oses []string
-	Languages []string
-	Tags []string
-	Installers bool
-	Extras bool
-	ExtraTypes []string
+	Titles        []string
+	Oses          []string
+	Languages     []string
+	Tags          []string
+	Installers    bool
+	Extras        bool
+	ExtraTypes    []string
 	Intersections []ManifestFilter
 }
 
-func NewManifestFilter (titles []string, oses []string, languages []string, tags []string, installers bool, extras bool, extraTypes []string) ManifestFilter {
+func NewManifestFilter(titles []string, oses []string, languages []string, tags []string, installers bool, extras bool, extraTypes []string) ManifestFilter {
 	return ManifestFilter{
-		Titles: titles,
-		Oses: oses,
-		Languages: languages,
-		Tags: tags,
-		Installers: installers,
-		Extras: extras,
-		ExtraTypes: extraTypes,
+		Titles:        titles,
+		Oses:          oses,
+		Languages:     languages,
+		Tags:          tags,
+		Installers:    installers,
+		Extras:        extras,
+		ExtraTypes:    extraTypes,
 		Intersections: []ManifestFilter{},
 	}
 }

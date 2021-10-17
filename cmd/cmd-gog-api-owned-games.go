@@ -17,7 +17,7 @@ func generateOwnedGamesCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			o, err := sdkPtr.GetOwnedGames(page, search)
 			if !jsonOutput {
-				processError(err) 
+				processError(err)
 				o.Print()
 			} else {
 				errs := make([]error, 0)

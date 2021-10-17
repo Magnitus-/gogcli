@@ -56,17 +56,17 @@ func (m *Manifest) ImprintMissingChecksums(prev *Manifest) error {
 }
 
 func (m *Manifest) Trim() {
-	m.TrimGames()	
-	m.TrimInstallers()	
+	m.TrimGames()
+	m.TrimInstallers()
 	m.TrimExtras()
 }
 
 func NewEmptyManifest(f ManifestFilter) *Manifest {
 	return &Manifest{
-		Games: make([]ManifestGame, 0), 
+		Games:         make([]ManifestGame, 0),
 		EstimatedSize: "0 MB",
-		VerifiedSize: 0,
-		Filter: f,
+		VerifiedSize:  0,
+		Filter:        f,
 	}
 }
 
@@ -81,7 +81,7 @@ func (m *Manifest) Finalize() ManifestFilenameDuplicates {
 	(*m).Games = filteredGames
 
 	duplicates := m.HandleDuplicateFilenames()
-	m.ComputeEstimatedSize()	
+	m.ComputeEstimatedSize()
 	m.ComputeVerifiedSize()
 	return duplicates
 }
@@ -231,7 +231,7 @@ func (m *Manifest) GetUrlMappedInstallers() map[string]*ManifestGameInstaller {
 			installers[(*m).Games[idx].Installers[idx2].Url] = &(*m).Games[idx].Installers[idx2]
 		}
 	}
-	
+
 	return installers
 }
 
@@ -243,6 +243,6 @@ func (m *Manifest) GetUrlMappedExtras() map[string]*ManifestGameExtra {
 			extras[(*m).Games[idx].Extras[idx2].Url] = &(*m).Games[idx].Extras[idx2]
 		}
 	}
-	
+
 	return extras
 }

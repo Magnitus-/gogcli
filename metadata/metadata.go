@@ -34,21 +34,21 @@ type GameMetadataProductImages struct {
 type GameMetadataScreenShot []GameMetadataImage
 
 type MetadataGame struct {
-	Id                    int64
-	Title                 string
-	Tags                  []string
-	Description           GameMetadataDescription
-	ProductCards          []GameMetadataImage
-	ProductImages         GameMetadataProductImages
-    Screenshots           []GameMetadataScreenShot
-	Videos                []GameMetadataVideo
-	Slug                  string
-	ReleaseDate           string
-	Rating                int
-	Category              string
-	Dlcs                  int
-	Features              []string
-	Changelog             string
+	Id            int64
+	Title         string
+	Tags          []string
+	Description   GameMetadataDescription
+	ProductCards  []GameMetadataImage
+	ProductImages GameMetadataProductImages
+	Screenshots   []GameMetadataScreenShot
+	Videos        []GameMetadataVideo
+	Slug          string
+	ReleaseDate   string
+	Rating        int
+	Category      string
+	Dlcs          int
+	Features      []string
+	Changelog     string
 }
 
 type Metadata struct {
@@ -59,7 +59,7 @@ type Metadata struct {
 func NewEmptyMetadata() *Metadata {
 	m := Metadata{
 		Games: []MetadataGame{},
-		Size: 0,
+		Size:  0,
 	}
 	return &m
 }

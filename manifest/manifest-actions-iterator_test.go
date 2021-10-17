@@ -4,23 +4,22 @@ import (
 	"testing"
 )
 
-
 func getFixtures() (Manifest, GameActions) {
 	manifest := Manifest{
 		Games: []ManifestGame{
 			ManifestGame{
-				Id: 1,
-				Title: "Croom",
+				Id:           1,
+				Title:        "Croom",
 				VerifiedSize: 10,
 			},
 			ManifestGame{
-				Id: 2,
-				Title: "Broom",
+				Id:           2,
+				Title:        "Broom",
 				VerifiedSize: 30,
 			},
 			ManifestGame{
-				Id: 3,
-				Title: "Aroom",
+				Id:           3,
+				Title:        "Aroom",
 				VerifiedSize: 20,
 			},
 		},
@@ -28,68 +27,68 @@ func getFixtures() (Manifest, GameActions) {
 
 	actions := GameActions{
 		1: GameAction{
-			Title: "Croom",
-			Id: 1,
+			Title:  "Croom",
+			Id:     1,
 			Action: "update",
 			InstallerActions: map[string]FileAction{
 				"CroomInstaller1": FileAction{
-					Title: "CroomInstaller1",
-					Name: "CroomInstaller1",
-					Url: "CroomInstaller1",
-					Kind: "installer",
+					Title:  "CroomInstaller1",
+					Name:   "CroomInstaller1",
+					Url:    "CroomInstaller1",
+					Kind:   "installer",
 					Action: "add",
 				},
 				"CroomInstaller2": FileAction{
-					Title: "CroomInstaller2",
-					Name: "CroomInstaller2",
-					Url: "CroomInstaller2",
-					Kind: "installer",
+					Title:  "CroomInstaller2",
+					Name:   "CroomInstaller2",
+					Url:    "CroomInstaller2",
+					Kind:   "installer",
 					Action: "remove",
 				},
 			},
 			ExtraActions: map[string]FileAction{},
 		},
 		2: GameAction{
-			Title: "Broom",
-			Id: 2,
-			Action: "add",
+			Title:            "Broom",
+			Id:               2,
+			Action:           "add",
 			InstallerActions: map[string]FileAction{},
 			ExtraActions: map[string]FileAction{
 				"BroomExtra1": FileAction{
-					Title: "BroomExtra1",
-					Name: "BroomExtra1",
-					Url: "BroomExtra1",
-					Kind: "extra",
+					Title:  "BroomExtra1",
+					Name:   "BroomExtra1",
+					Url:    "BroomExtra1",
+					Kind:   "extra",
 					Action: "add",
 				},
 				"BroomExtra2": FileAction{
-					Title: "BroomExtra2",
-					Name: "BroomExtra2",
-					Url: "BroomExtra2",
-					Kind: "extra",
+					Title:  "BroomExtra2",
+					Name:   "BroomExtra2",
+					Url:    "BroomExtra2",
+					Kind:   "extra",
 					Action: "remove",
 				},
 			},
 		},
 		3: GameAction{
-			Title: "Aroom",
-			Id: 3,
+			Title:  "Aroom",
+			Id:     3,
 			Action: "remove",
 			InstallerActions: map[string]FileAction{
 				"AroomInstaller1": FileAction{
-					Title: "AroomInstaller1",
-					Name: "AroomInstaller1",
-					Url: "AroomInstaller1",
-					Kind: "installer",
+					Title:  "AroomInstaller1",
+					Name:   "AroomInstaller1",
+					Url:    "AroomInstaller1",
+					Kind:   "installer",
 					Action: "add",
 				},
 			},
 			ExtraActions: map[string]FileAction{
 				"AroomExtra1": FileAction{
-					Title: "AroomExtra1",
-					Name: "AroomExtra1",
-					Url: "AroomExtra1",
-					Kind: "extra",
+					Title:  "AroomExtra1",
+					Name:   "AroomExtra1",
+					Url:    "AroomExtra1",
+					Kind:   "extra",
 					Action: "remove",
 				},
 			},
@@ -136,45 +135,45 @@ func TestFullIdSort(t *testing.T) {
 	}, &manifest)
 
 	fileAction1 := FileAction{
-		Title: "CroomInstaller1",
-		Name: "CroomInstaller1",
-		Url: "CroomInstaller1",
-		Kind: "installer",
+		Title:  "CroomInstaller1",
+		Name:   "CroomInstaller1",
+		Url:    "CroomInstaller1",
+		Kind:   "installer",
 		Action: "add",
 	}
 	fileAction2 := FileAction{
-		Title: "CroomInstaller2",
-		Name: "CroomInstaller2",
-		Url: "CroomInstaller2",
-		Kind: "installer",
+		Title:  "CroomInstaller2",
+		Name:   "CroomInstaller2",
+		Url:    "CroomInstaller2",
+		Kind:   "installer",
 		Action: "remove",
 	}
 	fileAction3 := FileAction{
-		Title: "BroomExtra1",
-		Name: "BroomExtra1",
-		Url: "BroomExtra1",
-		Kind: "extra",
+		Title:  "BroomExtra1",
+		Name:   "BroomExtra1",
+		Url:    "BroomExtra1",
+		Kind:   "extra",
 		Action: "add",
 	}
 	fileAction4 := FileAction{
-		Title: "BroomExtra2",
-		Name: "BroomExtra2",
-		Url: "BroomExtra2",
-		Kind: "extra",
+		Title:  "BroomExtra2",
+		Name:   "BroomExtra2",
+		Url:    "BroomExtra2",
+		Kind:   "extra",
 		Action: "remove",
 	}
 	fileAction5 := FileAction{
-		Title: "AroomInstaller1",
-		Name: "AroomInstaller1",
-		Url: "AroomInstaller1",
-		Kind: "installer",
+		Title:  "AroomInstaller1",
+		Name:   "AroomInstaller1",
+		Url:    "AroomInstaller1",
+		Kind:   "installer",
 		Action: "add",
 	}
 	fileAction6 := FileAction{
-		Title: "AroomExtra1",
-		Name: "AroomExtra1",
-		Url: "AroomExtra1",
-		Kind: "extra",
+		Title:  "AroomExtra1",
+		Name:   "AroomExtra1",
+		Url:    "AroomExtra1",
+		Kind:   "extra",
 		Action: "remove",
 	}
 	expectedActions := []Action{
@@ -240,45 +239,45 @@ func TestFullIdSortWithPreferredId(t *testing.T) {
 	}, &manifest)
 
 	fileAction1 := FileAction{
-		Title: "CroomInstaller1",
-		Name: "CroomInstaller1",
-		Url: "CroomInstaller1",
-		Kind: "installer",
+		Title:  "CroomInstaller1",
+		Name:   "CroomInstaller1",
+		Url:    "CroomInstaller1",
+		Kind:   "installer",
 		Action: "add",
 	}
 	fileAction2 := FileAction{
-		Title: "CroomInstaller2",
-		Name: "CroomInstaller2",
-		Url: "CroomInstaller2",
-		Kind: "installer",
+		Title:  "CroomInstaller2",
+		Name:   "CroomInstaller2",
+		Url:    "CroomInstaller2",
+		Kind:   "installer",
 		Action: "remove",
 	}
 	fileAction3 := FileAction{
-		Title: "BroomExtra1",
-		Name: "BroomExtra1",
-		Url: "BroomExtra1",
-		Kind: "extra",
+		Title:  "BroomExtra1",
+		Name:   "BroomExtra1",
+		Url:    "BroomExtra1",
+		Kind:   "extra",
 		Action: "add",
 	}
 	fileAction4 := FileAction{
-		Title: "BroomExtra2",
-		Name: "BroomExtra2",
-		Url: "BroomExtra2",
-		Kind: "extra",
+		Title:  "BroomExtra2",
+		Name:   "BroomExtra2",
+		Url:    "BroomExtra2",
+		Kind:   "extra",
 		Action: "remove",
 	}
 	fileAction5 := FileAction{
-		Title: "AroomInstaller1",
-		Name: "AroomInstaller1",
-		Url: "AroomInstaller1",
-		Kind: "installer",
+		Title:  "AroomInstaller1",
+		Name:   "AroomInstaller1",
+		Url:    "AroomInstaller1",
+		Kind:   "installer",
 		Action: "add",
 	}
 	fileAction6 := FileAction{
-		Title: "AroomExtra1",
-		Name: "AroomExtra1",
-		Url: "AroomExtra1",
-		Kind: "extra",
+		Title:  "AroomExtra1",
+		Name:   "AroomExtra1",
+		Url:    "AroomExtra1",
+		Kind:   "extra",
 		Action: "remove",
 	}
 	expectedActions := []Action{
@@ -344,31 +343,31 @@ func TestMax2TitleSort(t *testing.T) {
 	}, &manifest)
 
 	fileAction3 := FileAction{
-		Title: "BroomExtra1",
-		Name: "BroomExtra1",
-		Url: "BroomExtra1",
-		Kind: "extra",
+		Title:  "BroomExtra1",
+		Name:   "BroomExtra1",
+		Url:    "BroomExtra1",
+		Kind:   "extra",
 		Action: "add",
 	}
 	fileAction4 := FileAction{
-		Title: "BroomExtra2",
-		Name: "BroomExtra2",
-		Url: "BroomExtra2",
-		Kind: "extra",
+		Title:  "BroomExtra2",
+		Name:   "BroomExtra2",
+		Url:    "BroomExtra2",
+		Kind:   "extra",
 		Action: "remove",
 	}
 	fileAction5 := FileAction{
-		Title: "AroomInstaller1",
-		Name: "AroomInstaller1",
-		Url: "AroomInstaller1",
-		Kind: "installer",
+		Title:  "AroomInstaller1",
+		Name:   "AroomInstaller1",
+		Url:    "AroomInstaller1",
+		Kind:   "installer",
 		Action: "add",
 	}
 	fileAction6 := FileAction{
-		Title: "AroomExtra1",
-		Name: "AroomExtra1",
-		Url: "AroomExtra1",
-		Kind: "extra",
+		Title:  "AroomExtra1",
+		Name:   "AroomExtra1",
+		Url:    "AroomExtra1",
+		Kind:   "extra",
 		Action: "remove",
 	}
 	expectedActions := []Action{
@@ -422,31 +421,31 @@ func TestMax2SizeSort(t *testing.T) {
 	}, &manifest)
 
 	fileAction1 := FileAction{
-		Title: "CroomInstaller1",
-		Name: "CroomInstaller1",
-		Url: "CroomInstaller1",
-		Kind: "installer",
+		Title:  "CroomInstaller1",
+		Name:   "CroomInstaller1",
+		Url:    "CroomInstaller1",
+		Kind:   "installer",
 		Action: "add",
 	}
 	fileAction2 := FileAction{
-		Title: "CroomInstaller2",
-		Name: "CroomInstaller2",
-		Url: "CroomInstaller2",
-		Kind: "installer",
+		Title:  "CroomInstaller2",
+		Name:   "CroomInstaller2",
+		Url:    "CroomInstaller2",
+		Kind:   "installer",
 		Action: "remove",
 	}
 	fileAction5 := FileAction{
-		Title: "AroomInstaller1",
-		Name: "AroomInstaller1",
-		Url: "AroomInstaller1",
-		Kind: "installer",
+		Title:  "AroomInstaller1",
+		Name:   "AroomInstaller1",
+		Url:    "AroomInstaller1",
+		Kind:   "installer",
 		Action: "add",
 	}
 	fileAction6 := FileAction{
-		Title: "AroomExtra1",
-		Name: "AroomExtra1",
-		Url: "AroomExtra1",
-		Kind: "extra",
+		Title:  "AroomExtra1",
+		Name:   "AroomExtra1",
+		Url:    "AroomExtra1",
+		Kind:   "extra",
 		Action: "remove",
 	}
 	expectedActions := []Action{
@@ -494,31 +493,31 @@ func TestMax2DescSizeSort(t *testing.T) {
 	}, &manifest)
 
 	fileAction3 := FileAction{
-		Title: "BroomExtra1",
-		Name: "BroomExtra1",
-		Url: "BroomExtra1",
-		Kind: "extra",
+		Title:  "BroomExtra1",
+		Name:   "BroomExtra1",
+		Url:    "BroomExtra1",
+		Kind:   "extra",
 		Action: "add",
 	}
 	fileAction4 := FileAction{
-		Title: "BroomExtra2",
-		Name: "BroomExtra2",
-		Url: "BroomExtra2",
-		Kind: "extra",
+		Title:  "BroomExtra2",
+		Name:   "BroomExtra2",
+		Url:    "BroomExtra2",
+		Kind:   "extra",
 		Action: "remove",
 	}
 	fileAction5 := FileAction{
-		Title: "AroomInstaller1",
-		Name: "AroomInstaller1",
-		Url: "AroomInstaller1",
-		Kind: "installer",
+		Title:  "AroomInstaller1",
+		Name:   "AroomInstaller1",
+		Url:    "AroomInstaller1",
+		Kind:   "installer",
 		Action: "add",
 	}
 	fileAction6 := FileAction{
-		Title: "AroomExtra1",
-		Name: "AroomExtra1",
-		Url: "AroomExtra1",
-		Kind: "extra",
+		Title:  "AroomExtra1",
+		Name:   "AroomExtra1",
+		Url:    "AroomExtra1",
+		Kind:   "extra",
 		Action: "remove",
 	}
 	expectedActions := []Action{

@@ -30,7 +30,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 				gameTitleFilters,
 				oses,
 				languages,
-				gameTagFilters, 
+				gameTagFilters,
 				downloads,
 				extras,
 				extraTypeFilters,
@@ -38,7 +38,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 			m, errs, errs404 := sdkPtr.GetManifest(f, concurrency, pause, tolerateDangles)
 			duplicates := m.Finalize()
 			processSerializableOutput(m, errs, terminalOutput, file)
-			
+
 			if len(duplicates) > 0 {
 				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
 			}

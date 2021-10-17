@@ -3,27 +3,27 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"log"
 	"gogcli/logging"
 	"gogcli/manifest"
+	"log"
 	"os"
 	"strings"
 )
 
 type DoneAction struct {
 	action manifest.Action
-	end bool
+	end    bool
 }
 
 type ActionResult struct {
-	gameId int64
-	fileKind string
-	action manifest.FileAction
-	fileName string
-	fileSize int64
+	gameId       int64
+	fileKind     string
+	action       manifest.FileAction
+	fileName     string
+	fileSize     int64
 	fileChecksum string
-	err error
-	end bool
+	err          error
+	end          bool
 }
 
 type ActionsProcessor struct {
@@ -31,7 +31,7 @@ type ActionsProcessor struct {
 	retries                int
 	gamesMax               int
 	gamesSort              manifest.ActionsIteratorSort
-    logger                 *logging.Logger
+	logger                 *logging.Logger
 	actionErrChan          chan error
 	actionsErrsChan        chan []error
 	actionResultChan       chan ActionResult
@@ -41,33 +41,32 @@ type ActionsProcessor struct {
 }
 
 func GetActionsProcessor(
-	concurrency int, 
-	retries int, 
-	gamesMax int, 
+	concurrency int,
+	retries int,
+	gamesMax int,
 	gamesSort manifest.ActionsIteratorSort,
 	logSource *logging.Source,
-) (ActionsProcessor) {
+) ActionsProcessor {
 	return ActionsProcessor{
-		concurrency: concurrency,
-		retries: retries,
-		gamesMax: gamesMax,
-		gamesSort: gamesSort,
-		logger: logSource.CreateLogger(os.Stdout, "[actions processing] ", log.Lmsgprefix),
-		actionErrChan:  make(chan error),
-		actionsErrsChan: make(chan []error),
-		actionResultChan: make(chan ActionResult),
+		concurrency:            concurrency,
+		retries:                retries,
+		gamesMax:               gamesMax,
+		gamesSort:              gamesSort,
+		logger:                 logSource.CreateLogger(os.Stdout, "[actions processing] ", log.Lmsgprefix),
+		actionErrChan:          make(chan error),
+		actionsErrsChan:        make(chan []error),
+		actionResultChan:       make(chan ActionResult),
 		manifestUpdateErrsChan: make(chan []error),
-		actionsUpdateErrsChan: make(chan []error),
-		doneActionChan: make(chan DoneAction),
+		actionsUpdateErrsChan:  make(chan []error),
+		doneActionChan:         make(chan DoneAction),
 	}
 }
-
 
 func (p ActionsProcessor) addFileAction(
 	gameId int64,
 	fileKind string,
 	fileInfo manifest.FileInfo,
-	action manifest.FileAction, 
+	action manifest.FileAction,
 	s Storage,
 	d Downloader,
 	retriesLeft int,
@@ -75,37 +74,37 @@ func (p ActionsProcessor) addFileAction(
 	handleErr := func(err error) {
 		if retriesLeft <= 0 {
 			p.actionErrChan <- err
-			return 	
+			return
 		}
 
 		p.logger.Warning(fmt.Sprintf("Problem updating/creating file %d/%ss/%s (%d retries left) => %s", gameId, fileKind, fileInfo.Name, retriesLeft, err.Error()))
-		p.addFileAction(gameId, fileKind, fileInfo, action, s, d, retriesLeft - 1)
+		p.addFileAction(gameId, fileKind, fileInfo, action, s, d, retriesLeft-1)
 	}
 
 	fn := fmt.Sprintf("addFileAction(gameId=%d, fileInfo={Kind=%s, Name=%s, ...}, ...)", gameId, fileInfo.Kind, fileInfo.Name)
 	r := ActionResult{
-		gameId: gameId,
+		gameId:   gameId,
 		fileKind: fileKind,
-		action: action,
+		action:   action,
 		fileName: action.Name,
-		end: false,
+		end:      false,
 	}
 
 	handle, fSize, _, err := d.Download(gameId, action)
 	if err != nil {
 		r.err = err
 		handleErr(err)
-		return 
+		return
 	}
 	defer handle.Close()
 
 	if fileInfo.Size > 0 && fileInfo.Size != fSize {
-		msg := fmt.Sprintf("%s -> Download file size of %d does not match expected file size of %d", fn, fSize, fileInfo.Size)  
+		msg := fmt.Sprintf("%s -> Download file size of %d does not match expected file size of %d", fn, fSize, fileInfo.Size)
 		r.err = errors.New(msg)
 		handleErr(errors.New(msg))
 		return
 	}
-	
+
 	r.fileSize = fSize
 	fChecksum, uploadErr := s.UploadFile(handle, gameId, fileKind, action.Name, fSize)
 	if err != nil {
@@ -115,7 +114,7 @@ func (p ActionsProcessor) addFileAction(
 	}
 
 	if fileInfo.Checksum != "" && fileInfo.Checksum != fChecksum {
-		msg := fmt.Sprintf("%s -> Download file checksum of %s does not match expected file checksum of %s", fn, fChecksum, fileInfo.Checksum)  
+		msg := fmt.Sprintf("%s -> Download file checksum of %s does not match expected file checksum of %s", fn, fChecksum, fileInfo.Checksum)
 		r.err = errors.New(msg)
 		handleErr(errors.New(msg))
 		return
@@ -124,7 +123,7 @@ func (p ActionsProcessor) addFileAction(
 	if fileInfo.Checksum == "" && strings.HasSuffix(fileInfo.Name, ".zip") {
 		err = ValidateZipArchive(s, gameId, fileKind, fileInfo.Name)
 		if err != nil {
-			msg := fmt.Sprintf("%s -> Error occured while validating Zip archive %s: %s", fn, fileInfo.Name, err.Error())  
+			msg := fmt.Sprintf("%s -> Error occured while validating Zip archive %s: %s", fn, fileInfo.Name, err.Error())
 			r.err = errors.New(msg)
 			handleErr(errors.New(msg))
 			return
@@ -137,14 +136,14 @@ func (p ActionsProcessor) addFileAction(
 	p.logger.Info(fmt.Sprintf("Created/Updated file: %d/%ss/%s", gameId, fileKind, fileInfo.Name))
 }
 
-func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifest.ActionsIterator, s Storage, d Downloader) {
+func (p ActionsProcessor) launchActions(m *manifest.Manifest, iterator *manifest.ActionsIterator, s Storage, d Downloader) {
 	errs := make([]error, 0)
-	jobsRunning  := 0
+	jobsRunning := 0
 	concurrency := p.concurrency
 	gamesToDo := -1
-	
+
 	for true {
-        _, iterGamesToDo, _ := iterator.GetProgress()
+		_, iterGamesToDo, _ := iterator.GetProgress()
 		if gamesToDo != iterGamesToDo {
 			gamesToDo = iterGamesToDo
 			p.logger.Info(fmt.Sprintf("Games Progress: %d games with unstarted actions", iterGamesToDo))
@@ -154,7 +153,7 @@ func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifes
 			action, nextErr := iterator.Next()
 			if nextErr != nil {
 				errs = append(errs, nextErr)
-			} else if (!action.IsFileAction) {
+			} else if !action.IsFileAction {
 				if action.GameAction == "add" {
 					err := s.AddGame(action.GameId)
 					if err != nil {
@@ -202,14 +201,14 @@ func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifes
 					}
 				}
 			}
-		}		
+		}
 		endWhenPossible := (!iterator.ShouldContinue()) || (len(errs) > 0)
 		allDone := endWhenPossible && jobsRunning == 0
 		if allDone {
 			p.logger.Info("Downloads completed")
 			break
 		} else if (concurrency <= 0 && jobsRunning > 0) || (endWhenPossible && jobsRunning > 0) {
-			err := <- p.actionErrChan
+			err := <-p.actionErrChan
 			if err != nil {
 				errs = append(errs, err)
 			}
@@ -223,7 +222,7 @@ func (p ActionsProcessor) launchActions( m *manifest.Manifest, iterator *manifes
 func (p ActionsProcessor) keepManifestUpdated(m *manifest.Manifest, s Storage) {
 	errs := make([]error, 0)
 	for true {
-		r := <- p.actionResultChan
+		r := <-p.actionResultChan
 		if r.end {
 			break
 		}
@@ -236,10 +235,10 @@ func (p ActionsProcessor) keepManifestUpdated(m *manifest.Manifest, s Storage) {
 				errs = append(errs, err)
 			} else {
 				action := manifest.Action{
-					GameId: r.gameId,
-					IsFileAction: true,
+					GameId:        r.gameId,
+					IsFileAction:  true,
 					FileActionPtr: &r.action,
-					GameAction: "",
+					GameAction:    "",
 				}
 				p.doneActionChan <- DoneAction{action: action, end: false}
 			}
@@ -252,7 +251,7 @@ func (p ActionsProcessor) keepManifestUpdated(m *manifest.Manifest, s Storage) {
 func (p ActionsProcessor) keepActionsUpdated(g *manifest.GameActions, s Storage) {
 	errs := make([]error, 0)
 	for true {
-		d := <- p.doneActionChan
+		d := <-p.doneActionChan
 		if d.end {
 			break
 		}
@@ -271,20 +270,20 @@ func (p ActionsProcessor) ProcessGameActions(m *manifest.Manifest, a *manifest.G
 	go p.launchActions(m, iterator, s, d)
 	go p.keepManifestUpdated(m, s)
 	go p.keepActionsUpdated(a.DeepCopy(), s)
-	actionErrs := <- p.actionsErrsChan
+	actionErrs := <-p.actionsErrsChan
 	p.actionResultChan <- ActionResult{end: true}
-	manifestUpdateErrs := <- p.manifestUpdateErrsChan
+	manifestUpdateErrs := <-p.manifestUpdateErrsChan
 	p.doneActionChan <- DoneAction{end: true}
-	actionsUpdateErrs := <- p.actionsUpdateErrsChan
-	errs := make([]error, len(actionErrs) + len(manifestUpdateErrs) + len(actionsUpdateErrs))
+	actionsUpdateErrs := <-p.actionsUpdateErrsChan
+	errs := make([]error, len(actionErrs)+len(manifestUpdateErrs)+len(actionsUpdateErrs))
 	for idx, err := range actionErrs {
 		errs[idx] = err
 	}
 	for idx, err := range manifestUpdateErrs {
-		errs[idx + len(actionErrs)] = err
+		errs[idx+len(actionErrs)] = err
 	}
 	for idx, err := range actionsUpdateErrs {
-		errs[idx + len(actionErrs) + len(manifestUpdateErrs)] = err	
+		errs[idx+len(actionErrs)+len(manifestUpdateErrs)] = err
 	}
 
 	if len(errs) == 0 && (!iterator.HasMore()) {

@@ -42,7 +42,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 					fmt.Println("Could not load the updates: ", err)
 					os.Exit(1)
 				}
-	
+
 				u = &manifest.Updates{}
 				err = json.Unmarshal(bs, u)
 				if err != nil {
@@ -62,7 +62,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 			m.OverwriteGames(uManifest.Games)
 			duplicates := m.Finalize()
 			processSerializableOutput(m, errs, false, manifestFile)
-			
+
 			if len(duplicates) > 0 {
 				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
 			}

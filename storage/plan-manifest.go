@@ -19,7 +19,7 @@ func PlanManifest(m *manifest.Manifest, s Storage, emptyChecksumOk bool) (*manif
 			return nil, loadManifestErr
 		}
 	} else {
-	    storedManifest = manifest.NewEmptyManifest((*m).Filter)
+		storedManifest = manifest.NewEmptyManifest((*m).Filter)
 	}
 
 	hasActions, hasActionsErr := s.HasActions()
@@ -32,7 +32,7 @@ func PlanManifest(m *manifest.Manifest, s Storage, emptyChecksumOk bool) (*manif
 		if loadActionsErr != nil {
 			return nil, loadActionsErr
 		}
-		
+
 		actionsUpdate := storedManifest.Plan(m, emptyChecksumOk, false)
 		updateErr := storedActions.Update(actionsUpdate)
 		if updateErr != nil {

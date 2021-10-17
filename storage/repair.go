@@ -2,7 +2,7 @@ package storage
 
 import "gogcli/manifest"
 
-func Repair(m* manifest.Manifest, s Storage, src Source, concurrency int) error {
+func Repair(m *manifest.Manifest, s Storage, src Source, concurrency int) error {
 	hasActions, actErr := s.HasActions()
 	if actErr != nil {
 		return actErr
@@ -13,7 +13,7 @@ func Repair(m* manifest.Manifest, s Storage, src Source, concurrency int) error 
 			return err
 		}
 	}
-	
+
 	hasSource, srcErr := s.HasSource()
 	if srcErr != nil {
 		return srcErr

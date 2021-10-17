@@ -13,7 +13,7 @@ func ApplyManifest(m *manifest.Manifest, s Storage, src Source, emptyChecksumOk 
 	if err != nil {
 		return err
 	}
-	
+
 	if !hasSource {
 		err = s.StoreSource(&src)
 		if err != nil {

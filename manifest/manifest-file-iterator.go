@@ -19,11 +19,11 @@ type ManifestFileIterator struct {
 }
 
 func NewManifestFileInterator(m *Manifest) ManifestFileIterator {
-    new := ManifestFileIterator{
-		manifestPtr: m,
-		currentGame: 0,
+	new := ManifestFileIterator{
+		manifestPtr:      m,
+		currentGame:      0,
 		currentInstaller: 0,
-		currentExtra: 0,
+		currentExtra:     0,
 	}
 
 	return new
@@ -45,35 +45,35 @@ func (i *ManifestFileIterator) HasMore() bool {
 func (i *ManifestFileIterator) Next() (FileInfo, error) {
 	if !i.HasMore() {
 		return FileInfo{
-			GameId: -1,
-			Kind: "",
-			Name: "",
+			GameId:   -1,
+			Kind:     "",
+			Name:     "",
 			Checksum: "",
-			Size: 0,
-			Url: "",
+			Size:     0,
+			Url:      "",
 		}, errors.New("*ManifestFileIterator.Next() -> End of iterator, cannot fetch anymore")
 	}
 
 	currentGame := (*(*i).manifestPtr).Games[(*i).currentGame]
 	if (*i).currentInstaller < len(currentGame.Installers) {
 		new := FileInfo{
-			GameId: currentGame.Id,
-			Kind: "installer",
-			Name: currentGame.Installers[(*i).currentInstaller].Name,
+			GameId:   currentGame.Id,
+			Kind:     "installer",
+			Name:     currentGame.Installers[(*i).currentInstaller].Name,
 			Checksum: currentGame.Installers[(*i).currentInstaller].Checksum,
-			Size: currentGame.Installers[(*i).currentInstaller].VerifiedSize,
-			Url: currentGame.Installers[(*i).currentInstaller].Url,
+			Size:     currentGame.Installers[(*i).currentInstaller].VerifiedSize,
+			Url:      currentGame.Installers[(*i).currentInstaller].Url,
 		}
 		(*i).currentInstaller++
 		return new, nil
 	} else if (*i).currentExtra < len(currentGame.Extras) {
 		new := FileInfo{
-			GameId: currentGame.Id,
-			Kind: "extra",
-			Name: currentGame.Extras[(*i).currentExtra].Name,
+			GameId:   currentGame.Id,
+			Kind:     "extra",
+			Name:     currentGame.Extras[(*i).currentExtra].Name,
 			Checksum: currentGame.Extras[(*i).currentExtra].Checksum,
-			Size: currentGame.Extras[(*i).currentExtra].VerifiedSize,
-			Url: currentGame.Extras[(*i).currentExtra].Url,
+			Size:     currentGame.Extras[(*i).currentExtra].VerifiedSize,
+			Url:      currentGame.Extras[(*i).currentExtra].Url,
 		}
 		(*i).currentExtra++
 		return new, nil

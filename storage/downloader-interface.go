@@ -10,7 +10,7 @@ type Downloader interface {
 }
 
 type Source struct {
-	Type string
+	Type     string
 	S3Params S3Configs
-	FsPath string
+	FsPath   string
 }

@@ -15,7 +15,7 @@ func generateUserInfoCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			user, err := sdkPtr.GetUser()
 			if !jsonOutput {
-				processError(err) 
+				processError(err)
 				user.Print()
 			} else {
 				errs := make([]error, 0)

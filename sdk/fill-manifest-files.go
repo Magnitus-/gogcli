@@ -8,7 +8,7 @@ func (s *Sdk) fillManifestFiles(m *manifest.Manifest, concurrency int, pause int
 	idx := 0
 	for k, _ := range installersMap {
 		installerUrls[idx] = k
-		idx++;
+		idx++
 	}
 
 	downloadInfos, fileInfoErrs, danglingInstallerErrs := s.GetManyDownloadFileInfo(installerUrls, concurrency, pause, tolerateDangles)
@@ -19,14 +19,14 @@ func (s *Sdk) fillManifestFiles(m *manifest.Manifest, concurrency int, pause int
 		(*installersMap[downloadFileInfo.url]).Name = downloadFileInfo.name
 		(*installersMap[downloadFileInfo.url]).Checksum = downloadFileInfo.checksum
 		(*installersMap[downloadFileInfo.url]).VerifiedSize = downloadFileInfo.size
-	} 
+	}
 
 	extrasMap := (*m).GetUrlMappedExtras()
 	extraUrls := make([]string, len(extrasMap))
 	idx = 0
 	for k, _ := range extrasMap {
 		extraUrls[idx] = k
-		idx++;
+		idx++
 	}
 
 	var danglingExtraErrs []error
@@ -38,7 +38,7 @@ func (s *Sdk) fillManifestFiles(m *manifest.Manifest, concurrency int, pause int
 		(*extrasMap[downloadFileInfo.url]).Name = downloadFileInfo.name
 		(*extrasMap[downloadFileInfo.url]).Checksum = downloadFileInfo.checksum
 		(*extrasMap[downloadFileInfo.url]).VerifiedSize = downloadFileInfo.size
-	} 
+	}
 
 	return []error{}, append(danglingInstallerErrs, danglingExtraErrs...)
 }

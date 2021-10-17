@@ -3,9 +3,9 @@ package sdk
 import "time"
 
 type ProductReturn struct {
-	product Product
+	product  Product
 	dangling bool
-	err  error
+	err      error
 }
 
 func (s *Sdk) GetProductAsync(gameId int64, returnVal chan ProductReturn) {

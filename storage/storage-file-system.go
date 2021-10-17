@@ -3,8 +3,8 @@ package storage
 import (
 	"bytes"
 	"crypto/md5"
-	"encoding/json"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"gogcli/logging"
@@ -18,7 +18,7 @@ import (
 )
 
 type FileSystem struct {
-	Path string
+	Path   string
 	logger *logging.Logger
 }
 
@@ -53,9 +53,9 @@ func (f FileSystem) GetListing() (*StorageListing, error) {
 		}
 
 		gameListing := StorageListingGame{
-			Id: gameId,
+			Id:         gameId,
 			Installers: make([]string, 0),
-			Extras: make([]string, 0),
+			Extras:     make([]string, 0),
 		}
 
 		installers, err := ioutil.ReadDir(path.Join(f.Path, file.Name(), "installers"))
@@ -65,7 +65,7 @@ func (f FileSystem) GetListing() (*StorageListing, error) {
 		for _, installer := range installers {
 			gameListing.Installers = append(gameListing.Installers, installer.Name())
 		}
-		
+
 		extras, err := ioutil.ReadDir(path.Join(f.Path, file.Name(), "extras"))
 		if err != nil {
 			return nil, err
@@ -287,7 +287,7 @@ func (f FileSystem) RemoveActions() error {
 	}
 
 	if has {
-	    err = os.Remove(path.Join(f.Path, "actions.json"))
+		err = os.Remove(path.Join(f.Path, "actions.json"))
 	}
 	if err == nil {
 		f.logger.Debug("RemoveActions(...) -> Removed actions file")
@@ -302,7 +302,7 @@ func (f FileSystem) RemoveSource() error {
 	}
 
 	if has {
-	    err = os.Remove(path.Join(f.Path, "source.json"))
+		err = os.Remove(path.Join(f.Path, "source.json"))
 	}
 	if err == nil {
 		f.logger.Debug("RemoveSource(...) -> Removed source file")
@@ -343,7 +343,6 @@ func (f FileSystem) AddGame(gameId int64) error {
 		}
 	}
 
-	
 	f.logger.Debug(fmt.Sprintf("AddGame(gameId=%d) -> Created game directory", gameId))
 	return nil
 }

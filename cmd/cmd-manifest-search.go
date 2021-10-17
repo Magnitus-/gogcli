@@ -32,7 +32,7 @@ func generateManifestSearchCmd() *cobra.Command {
 				gameTitleFilters,
 				oses,
 				languages,
-				gameTagFilters, 
+				gameTagFilters,
 				downloads,
 				extras,
 				extraTypeFilters,

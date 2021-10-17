@@ -10,12 +10,12 @@ func addOwnedGamesPagesToMetadata(m *metadata.Metadata, pages []OwnedGamesPage) 
 	for _, page := range pages {
 		for _, product := range page.Products {
 			g := metadata.MetadataGame{
-				Id:    product.Id,
-				Title: product.Title,
-				Slug: product.Slug,
+				Id:       product.Id,
+				Title:    product.Title,
+				Slug:     product.Slug,
 				Category: product.Category,
-				Rating: product.Rating,
-				Dlcs: product.DlcCount,
+				Rating:   product.Rating,
+				Dlcs:     product.DlcCount,
 			}
 			tags := []string{}
 			for _, tag := range product.Tags {
@@ -56,19 +56,19 @@ func updateMetadataWithProducts(m *metadata.Metadata, products []Product) {
 		game := (*m).Games[idx]
 		product := productsMap[game.Id]
 		game.Description = metadata.GameMetadataDescription{
-			Summary: product.Description.Lead,
-			Full: product.Description.Full,
+			Summary:    product.Description.Lead,
+			Full:       product.Description.Full,
 			Highlights: product.Description.Whats_cool_about_it,
 		}
 		game.ReleaseDate = product.Release_date
 		game.Changelog = product.Changelog
-		
+
 		videos := []metadata.GameMetadataVideo{}
 		for _, vid := range product.Videos {
 			videos = append(videos, metadata.GameMetadataVideo{
 				ThumbnailUrl: vid.Thumbnail_url,
-				VideoUrl: vid.Video_url,
-				Provider: vid.Provider,
+				VideoUrl:     vid.Video_url,
+				Provider:     vid.Provider,
 			})
 		}
 		game.Videos = videos

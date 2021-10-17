@@ -18,7 +18,7 @@ func generateManifestMigrateCmd() *cobra.Command {
 		PreRun: func(cmd *cobra.Command, args []string) {
 			bs, err := ioutil.ReadFile(manifestFile)
 			processError(err)
-		
+
 			err = json.Unmarshal(bs, &m)
 			processError(err)
 		},

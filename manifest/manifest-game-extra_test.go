@@ -6,14 +6,14 @@ import (
 
 func TestManifestGameExtraHasOneOfTypeTerms(t *testing.T) {
 	extra := ManifestGameExtra{
-		Url: "/dontknowdontcare",
-		Title: "extra",
-		Name: "extra",
-		Type: "ost",
-		Info: 1,
+		Url:           "/dontknowdontcare",
+		Title:         "extra",
+		Name:          "extra",
+		Type:          "ost",
+		Info:          1,
 		EstimatedSize: "1kb",
-		VerifiedSize: 1000,
-		Checksum: "dfsdfsdfwe",
+		VerifiedSize:  1000,
+		Checksum:      "dfsdfsdfwe",
 	}
 
 	if extra.HasOneOfTypeTerms([]string{"manual", "wallpaper"}) {
@@ -27,25 +27,25 @@ func TestManifestGameExtraHasOneOfTypeTerms(t *testing.T) {
 
 func TestManifestGameExtraIsEquivalentTo(t *testing.T) {
 	extra := ManifestGameExtra{
-		Url: "/dontknowdontcare",
-		Title: "extra",
-		Name: "extra",
-		Type: "ost",
-		Info: 1,
+		Url:           "/dontknowdontcare",
+		Title:         "extra",
+		Name:          "extra",
+		Type:          "ost",
+		Info:          1,
 		EstimatedSize: "1kb",
-		VerifiedSize: 1000,
-		Checksum: "abcdefgh",
+		VerifiedSize:  1000,
+		Checksum:      "abcdefgh",
 	}
 
 	otherExtra := ManifestGameExtra{
-		Url: "/dontknowdontcare",
-		Title: "extra",
-		Name: "extra",
-		Type: "manual",
-		Info: 2,
+		Url:           "/dontknowdontcare",
+		Title:         "extra",
+		Name:          "extra",
+		Type:          "manual",
+		Info:          2,
 		EstimatedSize: "2kb",
-		VerifiedSize: 1000,
-		Checksum: "abcdefgh",
+		VerifiedSize:  1000,
+		Checksum:      "abcdefgh",
 	}
 
 	if !extra.IsEquivalentTo(&otherExtra, false, false) {

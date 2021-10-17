@@ -68,7 +68,7 @@ func ValidateManifest(s Storage, concurrency int) []error {
 	iterator := manifest.NewManifestFileInterator(m)
 	for true {
 		if jobsRunning > 0 && ((!iterator.HasMore()) || concurrency <= 0) {
-			err := <- errChan
+			err := <-errChan
 			if err != nil {
 				errs = append(errs, err)
 			}

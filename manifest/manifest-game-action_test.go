@@ -8,55 +8,55 @@ func TestUpdate(t *testing.T) {
 
 	fileAdditions := []FileAction{
 		FileAction{
-			Title: "one",
-			Name: "one",
-			Url: "donotcare",
-			Kind: "installer",
+			Title:  "one",
+			Name:   "one",
+			Url:    "donotcare",
+			Kind:   "installer",
 			Action: "add",
 		},
 		FileAction{
-			Title: "two",
-			Name: "two",
-			Url: "donotcare",
-			Kind: "installer",
+			Title:  "two",
+			Name:   "two",
+			Url:    "donotcare",
+			Kind:   "installer",
 			Action: "add",
 		},
 		FileAction{
-			Title: "three",
-			Name: "three",
-			Url: "donotcare",
-			Kind: "installer",
+			Title:  "three",
+			Name:   "three",
+			Url:    "donotcare",
+			Kind:   "installer",
 			Action: "add",
 		},
 	}
 
 	fileRemovals := []FileAction{
 		FileAction{
-			Title: "one",
-			Name: "one",
-			Url: "donotcare",
-			Kind: "installer",
+			Title:  "one",
+			Name:   "one",
+			Url:    "donotcare",
+			Kind:   "installer",
 			Action: "remove",
 		},
 		FileAction{
-			Title: "two",
-			Name: "two",
-			Url: "donotcare",
-			Kind: "installer",
+			Title:  "two",
+			Name:   "two",
+			Url:    "donotcare",
+			Kind:   "installer",
 			Action: "remove",
 		},
 		FileAction{
-			Title: "three",
-			Name: "three",
-			Url: "donotcare",
-			Kind: "installer",
+			Title:  "three",
+			Name:   "three",
+			Url:    "donotcare",
+			Kind:   "installer",
 			Action: "remove",
 		},
 	}
 
 	addAction := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "add",
 		InstallerActions: map[string]FileAction{
 			"one": fileAdditions[0],
@@ -68,8 +68,8 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 	addToRemoveAction := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "remove",
 		InstallerActions: map[string]FileAction{
 			"one": fileRemovals[0],
@@ -99,8 +99,8 @@ func TestUpdate(t *testing.T) {
 	}
 
 	addActionTakeTwo := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "add",
 		InstallerActions: map[string]FileAction{
 			"one": fileAdditions[0],
@@ -112,15 +112,15 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 	addToUpdateAction := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "update",
 		InstallerActions: map[string]FileAction{
-			"two": fileRemovals[1],
+			"two":   fileRemovals[1],
 			"three": fileAdditions[2],
 		},
 		ExtraActions: map[string]FileAction{
-			"two": fileRemovals[1],
+			"two":   fileRemovals[1],
 			"three": fileAdditions[2],
 		},
 	}
@@ -148,11 +148,11 @@ func TestUpdate(t *testing.T) {
 
 func TestGameActionIsNoOp(t *testing.T) {
 	addOnly := GameAction{
-		Title: "test",
-		Id: 1,
-		Action: "add",
+		Title:            "test",
+		Id:               1,
+		Action:           "add",
 		InstallerActions: map[string]FileAction{},
-		ExtraActions: map[string]FileAction{},
+		ExtraActions:     map[string]FileAction{},
 	}
 
 	if addOnly.IsNoOp() {
@@ -160,11 +160,11 @@ func TestGameActionIsNoOp(t *testing.T) {
 	}
 
 	removeOnly := GameAction{
-		Title: "test",
-		Id: 1,
-		Action: "remove",
+		Title:            "test",
+		Id:               1,
+		Action:           "remove",
 		InstallerActions: map[string]FileAction{},
-		ExtraActions: map[string]FileAction{},
+		ExtraActions:     map[string]FileAction{},
 	}
 
 	if removeOnly.IsNoOp() {
@@ -172,11 +172,11 @@ func TestGameActionIsNoOp(t *testing.T) {
 	}
 
 	updateOnly := GameAction{
-		Title: "test",
-		Id: 1,
-		Action: "update",
+		Title:            "test",
+		Id:               1,
+		Action:           "update",
 		InstallerActions: map[string]FileAction{},
-		ExtraActions: map[string]FileAction{},
+		ExtraActions:     map[string]FileAction{},
 	}
 
 	if !updateOnly.IsNoOp() {
@@ -184,24 +184,24 @@ func TestGameActionIsNoOp(t *testing.T) {
 	}
 
 	installerAction := FileAction{
-		Title: "installer",
-		Name: "installer",
-		Url: "donotcare",
-		Kind: "installer",
+		Title:  "installer",
+		Name:   "installer",
+		Url:    "donotcare",
+		Kind:   "installer",
 		Action: "add",
 	}
 
 	extraAction := FileAction{
-		Title: "extra",
-		Name: "extra",
-		Url: "donotcare",
-		Kind: "extra",
+		Title:  "extra",
+		Name:   "extra",
+		Url:    "donotcare",
+		Kind:   "extra",
 		Action: "add",
 	}
 
 	addAndFileActions := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "add",
 		InstallerActions: map[string]FileAction{
 			"installer": installerAction,
@@ -216,8 +216,8 @@ func TestGameActionIsNoOp(t *testing.T) {
 	}
 
 	removeAndFileActions := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "remove",
 		InstallerActions: map[string]FileAction{
 			"installer": installerAction,
@@ -232,8 +232,8 @@ func TestGameActionIsNoOp(t *testing.T) {
 	}
 
 	updateAndFileActions := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "update",
 		InstallerActions: map[string]FileAction{
 			"installer": installerAction,
@@ -250,17 +250,17 @@ func TestGameActionIsNoOp(t *testing.T) {
 
 func TestGameActionGetInstallerNames(t *testing.T) {
 	extraAction := FileAction{
-		Title: "extra",
-		Name: "extra",
-		Url: "donotcare",
-		Kind: "extra",
+		Title:  "extra",
+		Name:   "extra",
+		Url:    "donotcare",
+		Kind:   "extra",
 		Action: "add",
 	}
-	
+
 	noInstallers := GameAction{
-		Title: "test",
-		Id: 1,
-		Action: "add",
+		Title:            "test",
+		Id:               1,
+		Action:           "add",
 		InstallerActions: map[string]FileAction{},
 		ExtraActions: map[string]FileAction{
 			"extra": extraAction,
@@ -272,24 +272,24 @@ func TestGameActionGetInstallerNames(t *testing.T) {
 	}
 
 	installerOne := FileAction{
-		Title: "oneTitle",
-		Name: "oneName",
-		Url: "donotcare",
-		Kind: "installer",
+		Title:  "oneTitle",
+		Name:   "oneName",
+		Url:    "donotcare",
+		Kind:   "installer",
 		Action: "add",
 	}
 
 	installerTwo := FileAction{
-		Title: "twoTitle",
-		Name: "twoName",
-		Url: "donotcare",
-		Kind: "installer",
+		Title:  "twoTitle",
+		Name:   "twoName",
+		Url:    "donotcare",
+		Kind:   "installer",
 		Action: "add",
 	}
 
 	twoInstallers := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "add",
 		InstallerActions: map[string]FileAction{
 			"oneName": installerOne,
@@ -308,16 +308,16 @@ func TestGameActionGetInstallerNames(t *testing.T) {
 
 func TestGameActionGetExtraNames(t *testing.T) {
 	installerAction := FileAction{
-		Title: "installer",
-		Name: "installer",
-		Url: "donotcare",
-		Kind: "installer",
+		Title:  "installer",
+		Name:   "installer",
+		Url:    "donotcare",
+		Kind:   "installer",
 		Action: "add",
 	}
-	
+
 	noExtras := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "add",
 		InstallerActions: map[string]FileAction{
 			"installer": installerAction,
@@ -330,24 +330,24 @@ func TestGameActionGetExtraNames(t *testing.T) {
 	}
 
 	extraOne := FileAction{
-		Title: "oneTitle",
-		Name: "oneName",
-		Url: "donotcare",
-		Kind: "extra",
+		Title:  "oneTitle",
+		Name:   "oneName",
+		Url:    "donotcare",
+		Kind:   "extra",
 		Action: "add",
 	}
 
 	extraTwo := FileAction{
-		Title: "twoTitle",
-		Name: "twoName",
-		Url: "donotcare",
-		Kind: "extra",
+		Title:  "twoTitle",
+		Name:   "twoName",
+		Url:    "donotcare",
+		Kind:   "extra",
 		Action: "add",
 	}
 
 	twoExtras := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "add",
 		InstallerActions: map[string]FileAction{
 			"installer": installerAction,
@@ -366,11 +366,11 @@ func TestGameActionGetExtraNames(t *testing.T) {
 
 func TestGameActionCountFileActions(t *testing.T) {
 	noFileActions := GameAction{
-		Title: "test",
-		Id: 1,
-		Action: "add",
+		Title:            "test",
+		Id:               1,
+		Action:           "add",
 		InstallerActions: map[string]FileAction{},
-		ExtraActions: map[string]FileAction{},
+		ExtraActions:     map[string]FileAction{},
 	}
 
 	if noFileActions.CountFileActions() != 0 {
@@ -378,24 +378,24 @@ func TestGameActionCountFileActions(t *testing.T) {
 	}
 
 	installerOneAction := FileAction{
-		Title: "installer",
-		Name: "installerOne",
-		Url: "donotcare",
-		Kind: "installer",
+		Title:  "installer",
+		Name:   "installerOne",
+		Url:    "donotcare",
+		Kind:   "installer",
 		Action: "add",
 	}
 
 	installerTwoAction := FileAction{
-		Title: "installer",
-		Name: "installerTwo",
-		Url: "donotcare",
-		Kind: "installer",
+		Title:  "installer",
+		Name:   "installerTwo",
+		Url:    "donotcare",
+		Kind:   "installer",
 		Action: "add",
 	}
 
 	twoInstallerActions := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "add",
 		InstallerActions: map[string]FileAction{
 			"installerOne": installerOneAction,
@@ -409,17 +409,17 @@ func TestGameActionCountFileActions(t *testing.T) {
 	}
 
 	extraAction := FileAction{
-		Title: "extra",
-		Name: "extra",
-		Url: "donotcare",
-		Kind: "extra",
+		Title:  "extra",
+		Name:   "extra",
+		Url:    "donotcare",
+		Kind:   "extra",
 		Action: "add",
 	}
 
 	oneExtraActions := GameAction{
-		Title: "test",
-		Id: 1,
-		Action: "add",
+		Title:            "test",
+		Id:               1,
+		Action:           "add",
 		InstallerActions: map[string]FileAction{},
 		ExtraActions: map[string]FileAction{
 			"extra": extraAction,
@@ -431,8 +431,8 @@ func TestGameActionCountFileActions(t *testing.T) {
 	}
 
 	mixActions := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "add",
 		InstallerActions: map[string]FileAction{
 			"installerOne": installerOneAction,
@@ -450,32 +450,32 @@ func TestGameActionCountFileActions(t *testing.T) {
 
 func TestGameActionActionsLeft(t *testing.T) {
 	installerOneAction := FileAction{
-		Title: "installer",
-		Name: "installerOne",
-		Url: "donotcare",
-		Kind: "installer",
+		Title:  "installer",
+		Name:   "installerOne",
+		Url:    "donotcare",
+		Kind:   "installer",
 		Action: "add",
 	}
 
 	installerTwoAction := FileAction{
-		Title: "installer",
-		Name: "installerTwo",
-		Url: "donotcare",
-		Kind: "installer",
+		Title:  "installer",
+		Name:   "installerTwo",
+		Url:    "donotcare",
+		Kind:   "installer",
 		Action: "add",
 	}
 
 	extraAction := FileAction{
-		Title: "extra",
-		Name: "extra",
-		Url: "donotcare",
-		Kind: "extra",
+		Title:  "extra",
+		Name:   "extra",
+		Url:    "donotcare",
+		Kind:   "extra",
 		Action: "add",
 	}
 
 	mixActionsAdd := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "add",
 		InstallerActions: map[string]FileAction{
 			"installerOne": installerOneAction,
@@ -491,8 +491,8 @@ func TestGameActionActionsLeft(t *testing.T) {
 	}
 
 	mixActionsRemove := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "remove",
 		InstallerActions: map[string]FileAction{
 			"installerOne": installerOneAction,
@@ -508,8 +508,8 @@ func TestGameActionActionsLeft(t *testing.T) {
 	}
 
 	mixActionsUpdate := GameAction{
-		Title: "test",
-		Id: 1,
+		Title:  "test",
+		Id:     1,
 		Action: "update",
 		InstallerActions: map[string]FileAction{
 			"installerOne": installerOneAction,

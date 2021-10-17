@@ -19,7 +19,7 @@ func generateStorageDownloadActionsCmd() *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			gamesStorage, _ := getStorage(path, storageType, logSource, "")
-			
+
 			exists, err := gamesStorage.Exists()
 			processError(err)
 			if !exists {
@@ -42,6 +42,6 @@ func generateStorageDownloadActionsCmd() *cobra.Command {
 	storageDownloadActionsCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the actions will be output on the terminal instead of in a file")
 	storageDownloadActionsCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to your games' storage (directory if it is of type fs, json configuration file if it is of type s3)")
 	storageDownloadActionsCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
-	
+
 	return storageDownloadActionsCmd
 }

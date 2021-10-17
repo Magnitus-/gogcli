@@ -8,7 +8,7 @@ import (
 type GameActions map[int64]GameAction
 
 func (g *GameActions) Update(n *GameActions) error {
-	for gameId, _ := range (*n) {
+	for gameId, _ := range *n {
 		if gameAction, ok := (*g)[gameId]; ok {
 			newGameAction := (*n)[gameId]
 			err := gameAction.Update(&newGameAction)
@@ -20,7 +20,7 @@ func (g *GameActions) Update(n *GameActions) error {
 			(*g)[gameId] = (*n)[gameId]
 		}
 	}
-	
+
 	return nil
 }
 
@@ -36,7 +36,7 @@ func (g *GameActions) ActionsLeft() int {
 func (g *GameActions) ApplyAction(a Action) {
 	if a.IsFileAction {
 		game := (*g)[a.GameId]
-		if (*a.FileActionPtr).Kind == "installer" { 
+		if (*a.FileActionPtr).Kind == "installer" {
 			delete(game.InstallerActions, (*a.FileActionPtr).Name)
 		} else {
 			delete(game.ExtraActions, (*a.FileActionPtr).Name)
@@ -69,16 +69,16 @@ func (g *GameActions) GetGameIds() []int64 {
 	return gameIds
 }
 
-func (g *GameActions) DeepCopy() (*GameActions) {
+func (g *GameActions) DeepCopy() *GameActions {
 	new := GameActions(make(map[int64]GameAction))
 
-	for id, _ := range (*g) {
+	for id, _ := range *g {
 		newGame := GameAction{
-			Title: (*g)[id].Title,
-			Id: (*g)[id].Id,
-			Action: (*g)[id].Action,
+			Title:            (*g)[id].Title,
+			Id:               (*g)[id].Id,
+			Action:           (*g)[id].Action,
 			InstallerActions: make(map[string]FileAction),
-			ExtraActions: make(map[string]FileAction),
+			ExtraActions:     make(map[string]FileAction),
 		}
 
 		for name, inst := range (*g)[id].InstallerActions {
@@ -249,12 +249,12 @@ func (m *Manifest) GetFileActionFileInfo(gameId int64, action FileAction) (FileI
 					return FileInfo{}, err
 				}
 				return FileInfo{
-					GameId: gameId,
-					Kind: "installer",
-					Name: installer.Name,
+					GameId:   gameId,
+					Kind:     "installer",
+					Name:     installer.Name,
 					Checksum: installer.Checksum,
-					Size: installer.VerifiedSize,
-					Url: installer.Url,
+					Size:     installer.VerifiedSize,
+					Url:      installer.Url,
 				}, nil
 			} else {
 				extra, err := game.GetExtraNamed(action.Name)
@@ -262,12 +262,12 @@ func (m *Manifest) GetFileActionFileInfo(gameId int64, action FileAction) (FileI
 					return FileInfo{}, err
 				}
 				return FileInfo{
-					GameId: gameId,
-					Kind: "extra",
-					Name: extra.Name,
+					GameId:   gameId,
+					Kind:     "extra",
+					Name:     extra.Name,
 					Checksum: extra.Checksum,
-					Size: extra.VerifiedSize,
-					Url: extra.Url,	
+					Size:     extra.VerifiedSize,
+					Url:      extra.Url,
 				}, err
 			}
 		}

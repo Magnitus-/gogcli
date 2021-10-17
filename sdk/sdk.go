@@ -13,11 +13,11 @@ import (
 )
 
 type Sdk struct {
-	session string
-	al      string
-	maxRetries int64
+	session        string
+	al             string
+	maxRetries     int64
 	currentRetries int64
-	logger  *logging.Logger
+	logger         *logging.Logger
 }
 
 func NewSdk(cookie GogCookie, logSource *logging.Source) *Sdk {
@@ -44,7 +44,7 @@ func (s *Sdk) getClient(followRedirects bool) http.Client {
 		&http.Cookie{Name: "gog-al", Value: (*s).al},
 	}
 	j := Jar{cookies: cs}
-	if followRedirects{
+	if followRedirects {
 		return http.Client{Jar: &j}
 	} else {
 		return http.Client{
@@ -60,7 +60,7 @@ func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, int, err
 	c := (*s).getClient(true)
 
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fnCall, url))
-	
+
 	r, err := c.Get(url)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fnCall, err.Error())

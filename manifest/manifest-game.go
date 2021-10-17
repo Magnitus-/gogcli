@@ -9,7 +9,7 @@ import (
 )
 
 type GameFilenameDuplicates struct {
-	Id             int64
+	Id         int64
 	Installers []string
 	Extras     []string
 }
@@ -27,7 +27,7 @@ type ManifestGame struct {
 
 func (g *ManifestGame) CompressIdenticalInstallers() {
 	mappedInstallers := map[string]ManifestGameInstaller{}
-	
+
 	for _, installer := range (*g).Installers {
 		key := fmt.Sprintf("%s|%s|%d", installer.Name, installer.Checksum, installer.VerifiedSize)
 		if preExistingInst, ok := mappedInstallers[key]; ok {
@@ -106,9 +106,9 @@ func (g *ManifestGame) RenameDuplicateFilenames() GameFilenameDuplicates {
 	}
 
 	return GameFilenameDuplicates{
-		Id: (*g).Id,
+		Id:         (*g).Id,
 		Installers: duplicateInstallers,
-		Extras: duplicateExtras,
+		Extras:     duplicateExtras,
 	}
 }
 
@@ -141,7 +141,7 @@ func (g *ManifestGame) ImprintMissingChecksums(prev *ManifestGame) error {
 	previousExtras := make(map[string]ManifestGameExtra)
 
 	for _, installer := range (*prev).Installers {
-		previousInstallers[installer.Name] = installer 
+		previousInstallers[installer.Name] = installer
 	}
 
 	for _, extra := range (*prev).Extras {
@@ -151,7 +151,7 @@ func (g *ManifestGame) ImprintMissingChecksums(prev *ManifestGame) error {
 	for idx, installer := range (*g).Installers {
 		if prevInstaller, ok := previousInstallers[installer.Name]; ok {
 			if installer.IsEquivalentTo(&prevInstaller, true, false) {
-				if installer.Checksum == "" &&  prevInstaller.Checksum != "" {
+				if installer.Checksum == "" && prevInstaller.Checksum != "" {
 					installer.Checksum = prevInstaller.Checksum
 					(*g).Installers[idx] = installer
 				}
@@ -162,7 +162,7 @@ func (g *ManifestGame) ImprintMissingChecksums(prev *ManifestGame) error {
 	for idx, extra := range (*g).Extras {
 		if prevExtra, ok := previousExtras[extra.Name]; ok {
 			if extra.IsEquivalentTo(&prevExtra, true, false) {
-				if extra.Checksum == "" &&  prevExtra.Checksum != "" {
+				if extra.Checksum == "" && prevExtra.Checksum != "" {
 					extra.Checksum = prevExtra.Checksum
 					(*g).Extras[idx] = extra
 				}
@@ -242,7 +242,7 @@ func (g *ManifestGame) HasTitleTerms(titleTerms []string) bool {
 			return true
 		}
 	}
-	
+
 	return false
 }
 

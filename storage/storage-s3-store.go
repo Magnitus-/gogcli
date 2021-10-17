@@ -32,9 +32,9 @@ type S3Configs struct {
 }
 
 type S3Store struct {
-	client *minio.Client
+	client  *minio.Client
 	configs *S3Configs
-	logger *logging.Logger
+	logger  *logging.Logger
 }
 
 func GetS3StoreFromConfigFile(path string, logSource *logging.Source, tag string) (S3Store, error) {
@@ -81,9 +81,9 @@ func getS3Store(configs *S3Configs, logSource *logging.Source, tag string) (S3St
 	}
 
 	return S3Store{
-		client: client,
+		client:  client,
 		configs: configs,
-		logger: logSource.CreateLogger(os.Stdout, logPrefix, log.Lmsgprefix),
+		logger:  logSource.CreateLogger(os.Stdout, logPrefix, log.Lmsgprefix),
 	}, nil
 }
 
@@ -93,7 +93,7 @@ func (s S3Store) GetListing() (*StorageListing, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	gameFileRegex := regexp.MustCompile(`^(?P<id>\d+)/(?P<kind>(?:installers)|(?:extras))/(?P<file>.+)$`)
-	
+
 	objChan := s.client.ListObjects(ctx, configs.Bucket, minio.ListObjectsOptions{
 		Recursive: true,
 	})
@@ -103,13 +103,13 @@ func (s S3Store) GetListing() (*StorageListing, error) {
 		}
 		if gameFileRegex.MatchString(obj.Key) {
 			match := gameFileRegex.FindStringSubmatch(obj.Key)
-		    gameId, _ := strconv.ParseInt(match[1], 10, 64)
+			gameId, _ := strconv.ParseInt(match[1], 10, 64)
 			gameListing, ok := listing.Games[gameId]
 			if !ok {
 				gameListing = StorageListingGame{
-					Id: gameId,
+					Id:         gameId,
 					Installers: make([]string, 0),
-					Extras: make([]string, 0),
+					Extras:     make([]string, 0),
 				}
 			}
 			if match[2] == "installers" {
@@ -129,7 +129,7 @@ func (s S3Store) SupportsReaderAt() bool {
 
 func (s S3Store) GenerateSource() *Source {
 	src := Source{
-		Type: "s3",
+		Type:     "s3",
 		S3Params: (*s.configs),
 	}
 	return &src
@@ -149,9 +149,9 @@ func (s S3Store) Exists() (bool, error) {
 	}
 
 	if found {
-		s.logger.Debug("Exists() -> Bucket found")	
+		s.logger.Debug("Exists() -> Bucket found")
 	} else {
-		s.logger.Debug("Exists() -> Bucket not found")			
+		s.logger.Debug("Exists() -> Bucket not found")
 	}
 
 	return found, nil
@@ -197,7 +197,7 @@ func (s S3Store) HasActions() (bool, error) {
 			s.logger.Debug("HasActions() -> Actions not found")
 			return false, nil
 		}
-		
+
 		msg := fmt.Sprintf("HasActions() -> The following error occured while ascertaining actions' existance: %s", err.Error())
 		return true, errors.New(msg)
 	}
@@ -215,7 +215,7 @@ func (s S3Store) HasSource() (bool, error) {
 			s.logger.Debug("HasSource() -> Source not found")
 			return false, nil
 		}
-		
+
 		msg := fmt.Sprintf("HasSource() -> The following error occured while ascertaining source's existance: %s", err.Error())
 		return true, errors.New(msg)
 	}
@@ -229,7 +229,7 @@ func (s S3Store) StoreManifest(m *manifest.Manifest) error {
 	var buf bytes.Buffer
 	var output []byte
 	configs := *s.configs
-	
+
 	output, err = json.Marshal(*m)
 
 	if err != nil {
@@ -239,7 +239,7 @@ func (s S3Store) StoreManifest(m *manifest.Manifest) error {
 	json.Indent(&buf, output, "", "  ")
 	output = buf.Bytes()
 
-	_, err = s.client.PutObject(context.Background(), configs.Bucket, "manifest.json", bytes.NewReader(output), int64(len(output)), minio.PutObjectOptions{ContentType:"application/json"})
+	_, err = s.client.PutObject(context.Background(), configs.Bucket, "manifest.json", bytes.NewReader(output), int64(len(output)), minio.PutObjectOptions{ContentType: "application/json"})
 	if err == nil {
 		s.logger.Debug(fmt.Sprintf("StoreManifest(...) -> Stored manifest with %d games", len((*m).Games)))
 	}
@@ -261,7 +261,7 @@ func (s S3Store) StoreActions(a *manifest.GameActions) error {
 	json.Indent(&buf, output, "", "  ")
 	output = buf.Bytes()
 
-	_, err = s.client.PutObject(context.Background(), configs.Bucket, "actions.json", bytes.NewReader(output), int64(len(output)), minio.PutObjectOptions{ContentType:"application/json"})
+	_, err = s.client.PutObject(context.Background(), configs.Bucket, "actions.json", bytes.NewReader(output), int64(len(output)), minio.PutObjectOptions{ContentType: "application/json"})
 	if err == nil {
 		s.logger.Debug(fmt.Sprintf("StoreActions(...) -> Stored actions on %d games", len(*a)))
 	}
@@ -283,7 +283,7 @@ func (s S3Store) StoreSource(o *Source) error {
 	json.Indent(&buf, output, "", "  ")
 	output = buf.Bytes()
 
-	_, err = s.client.PutObject(context.Background(), configs.Bucket, "source.json", bytes.NewReader(output), int64(len(output)), minio.PutObjectOptions{ContentType:"application/json"})
+	_, err = s.client.PutObject(context.Background(), configs.Bucket, "source.json", bytes.NewReader(output), int64(len(output)), minio.PutObjectOptions{ContentType: "application/json"})
 	if err == nil {
 		s.logger.Debug(fmt.Sprintf("StoreSource(...) -> Stored source of type %s", o.Type))
 	}
@@ -409,10 +409,10 @@ func (s S3Store) UploadFile(source io.ReadCloser, gameId int64, kind string, nam
 	var fPath string
 	if kind == "installer" {
 		arr := []string{strconv.FormatInt(gameId, 10), "installers", name}
-		fPath = strings.Join(arr,"/")
+		fPath = strings.Join(arr, "/")
 	} else if kind == "extra" {
 		arr := []string{strconv.FormatInt(gameId, 10), "extras", name}
-		fPath = strings.Join(arr,"/")
+		fPath = strings.Join(arr, "/")
 	} else {
 		return "", errors.New("Unknown kind of file")
 	}
@@ -442,14 +442,14 @@ func (s S3Store) UploadFile(source io.ReadCloser, gameId int64, kind string, nam
 
 func (s S3Store) RemoveFile(gameId int64, kind string, name string) error {
 	configs := *s.configs
-	
+
 	var oPath string
 	if kind == "installer" {
 		arr := []string{strconv.FormatInt(gameId, 10), "installers", name}
-		oPath = strings.Join(arr,"/")
+		oPath = strings.Join(arr, "/")
 	} else if kind == "extra" {
 		arr := []string{strconv.FormatInt(gameId, 10), "extras", name}
-		oPath = strings.Join(arr,"/")
+		oPath = strings.Join(arr, "/")
 	} else {
 		return errors.New("Unknown kind of file")
 	}
@@ -477,10 +477,10 @@ func (s S3Store) DownloadFile(gameId int64, kind string, name string) (io.ReadCl
 	var fPath string
 	if kind == "installer" {
 		arr := []string{strconv.FormatInt(gameId, 10), "installers", name}
-		fPath = strings.Join(arr,"/")
+		fPath = strings.Join(arr, "/")
 	} else if kind == "extra" {
 		arr := []string{strconv.FormatInt(gameId, 10), "extras", name}
-		fPath = strings.Join(arr,"/")
+		fPath = strings.Join(arr, "/")
 	} else {
 		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Unknown kind of file", gameId, kind, name)
 		return nil, 0, errors.New(msg)

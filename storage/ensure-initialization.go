@@ -1,7 +1,7 @@
 package storage
 
 func EnsureInitialization(s Storage) error {
-	initialized, err:= s.Exists()
+	initialized, err := s.Exists()
 	if err != nil {
 		return err
 	}

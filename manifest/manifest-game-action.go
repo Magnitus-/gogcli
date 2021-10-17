@@ -3,11 +3,11 @@ package manifest
 import "errors"
 
 type FileAction struct {
-	Title        string
-	Name         string
-	Url          string
-	Kind         string
-	Action       string
+	Title  string
+	Name   string
+	Url    string
+	Kind   string
+	Action string
 }
 
 type GameAction struct {
@@ -22,7 +22,7 @@ func (g *GameAction) Update(n *GameAction) error {
 	if (*n).Action == "update" && (*g).Action == "Remove" {
 		return errors.New("Cannot change a game removal to a game update. This is an impossible situation.")
 	}
-	
+
 	if (*n).Action == "remove" || (*n).Action == "add" {
 		(*g).Action = (*n).Action
 	}
@@ -44,7 +44,7 @@ func (g *GameAction) IsNoOp() bool {
 
 func (g *GameAction) GetInstallerNames() []string {
 	installerNames := make([]string, len((*g).InstallerActions))
-	
+
 	idx := 0
 	for name, _ := range (*g).InstallerActions {
 		installerNames[idx] = name
@@ -56,7 +56,7 @@ func (g *GameAction) GetInstallerNames() []string {
 
 func (g *GameAction) GetExtraNames() []string {
 	extraNames := make([]string, len((*g).ExtraActions))
-	
+
 	idx := 0
 	for name, _ := range (*g).ExtraActions {
 		extraNames[idx] = name

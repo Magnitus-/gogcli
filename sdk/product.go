@@ -104,7 +104,7 @@ type Product struct {
 	Content_system_compatibility ProductOsCompatibility
 	Links                        ProductLinks
 	In_development               ProductDevelopmentInfo
-    Is_pre_order                 bool
+	Is_pre_order                 bool
 	Release_date                 string
 	Images                       ProductImages
 	Downloads                    ProductDownloads

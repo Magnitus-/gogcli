@@ -18,7 +18,7 @@ func generateStorageValidateCmd() *cobra.Command {
 		Short: "Validate that all the game files in the storage match the size and checksum values in the manifest",
 		Run: func(cmd *cobra.Command, args []string) {
 			gamesStorage, _ := getStorage(path, storageType, logSource, "")
-			
+
 			errs := storage.ValidateManifest(gamesStorage, concurrency)
 			if len(errs) > 0 {
 				for _, err := range errs {

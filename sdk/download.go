@@ -7,11 +7,11 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"path"
 	"regexp"
 	"strconv"
 	"strings"
-	"net/url"
 )
 
 func getFilenameFromUrl(location string, fn string) (string, error) {
@@ -25,7 +25,7 @@ func getFilenameFromUrl(location string, fn string) (string, error) {
 	pathParam, ok := queryParams["path"]
 	if !ok {
 		msg := fmt.Sprintf("%s -> Error location header url does not have the expected path query parameter", fn)
-		return "", errors.New(msg)	
+		return "", errors.New(msg)
 	}
 
 	return path.Base(pathParam[0]), nil
@@ -43,20 +43,21 @@ func convertDownloadUrlToMetadataUrl(downloadUrl string) (string, error) {
 
 type XmlFile struct {
 	XMLName  xml.Name `xml:"file"`
-	Name     string `xml:"name,attr"`
-	Checksum string `xml:"md5,attr"`
-	Size     int64 `xml:"total_size,attr"`
+	Name     string   `xml:"name,attr"`
+	Checksum string   `xml:"md5,attr"`
+	Size     int64    `xml:"total_size,attr"`
 	Chunks   []XmlFileChunk
 }
 
 type XmlFileChunk struct {
-	Id   int `xml:"id,attr"`
-	From int64 `xml:"from,attr"`
-	To   int64 `xml:"to,attr"`
+	Id       int    `xml:"id,attr"`
+	From     int64  `xml:"from,attr"`
+	To       int64  `xml:"to,attr"`
 	Checksum string `xml:",chardata"`
 }
 
 var DOWNLOAD_METADATA_REGEX *regexp.Regexp
+
 func getDownloadMetadataRegex() *regexp.Regexp {
 	//ex: <file name="planescape_torment_pl_2.0.0.14.pkg" available="1" notavailablemsg="" md5="4fd4855bc907665c964aebe457dd39eb" chunks="144" timestamp="2016-10-06 11:30:44" total_size="1506711017">
 	return regexp.MustCompile(`^<file name="(?P<name>.+)" available="(?:1|0)" notavailablemsg="(?:.*)" md5="(?P<checksum>[0-9a-z]+)" chunks="(?:\d+)" timestamp="(?:.+)" total_size="(?P<size>\d+)">$`)
@@ -146,11 +147,11 @@ func retrieveUrlContentLength(c http.Client, downloadUrl string, fn string) (int
 		msg := fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not found.", fn)
 		return int64(0), errors.New(msg), false, false
 	}
-	
+
 	length, lErr := strconv.ParseInt(clHeader[0], 10, 64)
 	if lErr != nil {
 		msg := fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not parsable.", fn)
-		return int64(0), errors.New(msg), false,false
+		return int64(0), errors.New(msg), false, false
 	}
 
 	return length, nil, false, false

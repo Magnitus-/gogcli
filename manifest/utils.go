@@ -24,7 +24,7 @@ func GetEstimateToBytes(est string) (int64, error) {
 		return 0, errors.New(fmt.Sprintf("%s -> Could not parse input", fn))
 	}
 	match := estSizeRegex.FindStringSubmatch(est)
-	
+
 	amount, err := strconv.ParseFloat(match[1], 64)
 	if err != nil {
 		return 0, errors.New(fmt.Sprintf("%s -> Could not convert amount to float", fn))
@@ -32,7 +32,7 @@ func GetEstimateToBytes(est string) (int64, error) {
 
 	unit := strings.ToLower(match[2])
 	if multiplier, ok := units[unit]; ok {
-		return int64(float64(multiplier)*amount), nil
+		return int64(float64(multiplier) * amount), nil
 	} else {
 		return 0, errors.New(fmt.Sprintf("%s -> Could not recognize unit", fn))
 	}
@@ -41,7 +41,7 @@ func GetEstimateToBytes(est string) (int64, error) {
 func GetBytesToEstimate(size int64) string {
 	unit := ""
 	for i, v := range unitsList {
-		if (float64(size)/float64(units[v])) < 1.0 {
+		if (float64(size) / float64(units[v])) < 1.0 {
 			if i > 0 {
 				unit = unitsList[i-1]
 			} else {
@@ -52,11 +52,11 @@ func GetBytesToEstimate(size int64) string {
 		}
 
 		if unit != "" {
-			break;
+			break
 		}
 	}
 
-	return fmt.Sprintf("%.2f %s", (float64(size)/float64(units[unit])), strings.ToUpper(unit))
+	return fmt.Sprintf("%.2f %s", (float64(size) / float64(units[unit])), strings.ToUpper(unit))
 }
 
 func ConcatStringSlicesUnique(slice1 []string, slice2 []string) []string {

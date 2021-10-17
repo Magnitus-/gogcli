@@ -24,7 +24,7 @@ func generateUrlPathInfoCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			filename, checksum, size, err, _ := sdkPtr.GetDownloadFileInfo(path)
 			if !jsonOutput {
-				processError(err) 
+				processError(err)
 				fmt.Println("File Name:", filename)
 				fmt.Println("Checksum:", checksum)
 				fmt.Println("Size:", size)
@@ -38,7 +38,7 @@ func generateUrlPathInfoCmd() *cobra.Command {
 						filename,
 						checksum,
 						size,
-					}, 
+					},
 					errs,
 					terminalOutput,
 					file,

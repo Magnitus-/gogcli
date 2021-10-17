@@ -6,16 +6,16 @@ import (
 
 func TestManifestGameInstallerHasOneOfOses(t *testing.T) {
 	installer := ManifestGameInstaller{
-		Languages: []string{"french"},
-		Os: "linux",
-		Url: "/dontknowdontcare",
-		Title: "installer",
-		Name: "installer",
-		Version: "vDontKnow",
-		Date: "2111-11-11",
+		Languages:     []string{"french"},
+		Os:            "linux",
+		Url:           "/dontknowdontcare",
+		Title:         "installer",
+		Name:          "installer",
+		Version:       "vDontKnow",
+		Date:          "2111-11-11",
 		EstimatedSize: "1kb",
-		VerifiedSize: 1000,
-		Checksum: "sdfdsfsdfdsfwe",
+		VerifiedSize:  1000,
+		Checksum:      "sdfdsfsdfdsfwe",
 	}
 
 	if installer.HasOneOfOses([]string{"windows", "macos"}) {
@@ -29,16 +29,16 @@ func TestManifestGameInstallerHasOneOfOses(t *testing.T) {
 
 func TestManifestGameInstallerHasOneOfLanguages(t *testing.T) {
 	installer := ManifestGameInstaller{
-		Languages: []string{"french"},
-		Os: "linux",
-		Url: "/dontknowdontcare",
-		Title: "installer",
-		Name: "installer",
-		Version: "vDontKnow",
-		Date: "2111-11-11",
+		Languages:     []string{"french"},
+		Os:            "linux",
+		Url:           "/dontknowdontcare",
+		Title:         "installer",
+		Name:          "installer",
+		Version:       "vDontKnow",
+		Date:          "2111-11-11",
 		EstimatedSize: "1kb",
-		VerifiedSize: 1000,
-		Checksum: "sdfdsfsdfdsfwe",
+		VerifiedSize:  1000,
+		Checksum:      "sdfdsfsdfdsfwe",
 	}
 
 	if installer.HasOneOfLanguages([]string{"english", "german"}) {
@@ -52,29 +52,29 @@ func TestManifestGameInstallerHasOneOfLanguages(t *testing.T) {
 
 func TestManifestGameInstallerIsEquivalentTo(t *testing.T) {
 	installer := ManifestGameInstaller{
-		Languages: []string{"french"},
-		Os: "linux",
-		Url: "/dontknowdontcare",
-		Title: "installer",
-		Name: "installer",
-		Version: "vDontKnow",
-		Date: "2111-11-11",
+		Languages:     []string{"french"},
+		Os:            "linux",
+		Url:           "/dontknowdontcare",
+		Title:         "installer",
+		Name:          "installer",
+		Version:       "vDontKnow",
+		Date:          "2111-11-11",
 		EstimatedSize: "1kb",
-		VerifiedSize: 1000,
-		Checksum: "icheck",
+		VerifiedSize:  1000,
+		Checksum:      "icheck",
 	}
 
 	otherInstaller := ManifestGameInstaller{
-		Languages: []string{"english"},
-		Os: "windows",
-		Url: "/dontknowdontcare",
-		Title: "installer",
-		Name: "installer",
-		Version: "vDontKnowToo",
-		Date: "2111-12-12",
+		Languages:     []string{"english"},
+		Os:            "windows",
+		Url:           "/dontknowdontcare",
+		Title:         "installer",
+		Name:          "installer",
+		Version:       "vDontKnowToo",
+		Date:          "2111-12-12",
 		EstimatedSize: "2kb",
-		VerifiedSize: 1000,
-		Checksum: "icheck",
+		VerifiedSize:  1000,
+		Checksum:      "icheck",
 	}
 
 	if !installer.IsEquivalentTo(&otherInstaller, false, false) {

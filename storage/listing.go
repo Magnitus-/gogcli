@@ -15,9 +15,9 @@ type StorageListingGame struct {
 
 func NewEmptyStorageListingGame(id int64) StorageListingGame {
 	return StorageListingGame{
-		Id: id,
+		Id:         id,
 		Installers: make([]string, 0),
-		Extras: make([]string, 0),
+		Extras:     make([]string, 0),
 	}
 }
 
@@ -37,7 +37,7 @@ func (g StorageListingGame) RetrieveFileInfo(name string, kind string, d Downloa
 	defer handle.Close()
 	if err != nil {
 		c <- ListingFileRetrieval{
-			File: manifest.FileInfo{},
+			File:  manifest.FileInfo{},
 			Error: err,
 		}
 		return
@@ -48,11 +48,11 @@ func (g StorageListingGame) RetrieveFileInfo(name string, kind string, d Downloa
 	checksum := hex.EncodeToString(h.Sum(nil))
 	c <- ListingFileRetrieval{
 		File: manifest.FileInfo{
-			GameId: g.Id,
-			Kind: kind,
-			Name: name,
+			GameId:   g.Id,
+			Kind:     kind,
+			Name:     name,
 			Checksum: checksum,
-			Size: size,
+			Size:     size,
 		},
 		Error: nil,
 	}
@@ -67,9 +67,9 @@ func (g StorageListingGame) RetrieveManifestGame(c chan ListingGameRetrieval, d 
 	var err error
 	fileChan := make(chan ListingFileRetrieval)
 	game := manifest.ManifestGame{
-		Id: g.Id,
+		Id:         g.Id,
 		Installers: make([]manifest.ManifestGameInstaller, 0),
-		Extras: make([]manifest.ManifestGameExtra, 0),
+		Extras:     make([]manifest.ManifestGameExtra, 0),
 	}
 
 	for _, inst := range g.Installers {
@@ -81,22 +81,22 @@ func (g StorageListingGame) RetrieveManifestGame(c chan ListingGameRetrieval, d 
 
 	filesCount := len(g.Installers) + len(g.Extras)
 	for idx := 0; idx < filesCount; idx++ {
-		fileRetrieval := <- fileChan
+		fileRetrieval := <-fileChan
 		if fileRetrieval.Error != nil {
 			err = fileRetrieval.Error
 		} else {
 			fileInfo := fileRetrieval.File
 			if fileInfo.Kind == "installer" {
 				game.Installers = append(game.Installers, manifest.ManifestGameInstaller{
-					Name: fileInfo.Name,
+					Name:         fileInfo.Name,
 					VerifiedSize: fileInfo.Size,
-					Checksum: fileInfo.Checksum,
+					Checksum:     fileInfo.Checksum,
 				})
 			} else {
 				game.Extras = append(game.Extras, manifest.ManifestGameExtra{
-					Name: fileInfo.Name,
+					Name:         fileInfo.Name,
 					VerifiedSize: fileInfo.Size,
-					Checksum: fileInfo.Checksum,				
+					Checksum:     fileInfo.Checksum,
 				})
 			}
 
@@ -104,14 +104,14 @@ func (g StorageListingGame) RetrieveManifestGame(c chan ListingGameRetrieval, d 
 	}
 
 	c <- ListingGameRetrieval{
-		Game: game,
+		Game:  game,
 		Error: err,
 	}
 }
 
 type StorageListing struct {
-	Games map[int64]StorageListingGame
-	downloads  Downloader
+	Games     map[int64]StorageListingGame
+	downloads Downloader
 }
 
 func (l *StorageListing) GetGameIds() []int64 {
@@ -126,7 +126,7 @@ func (l *StorageListing) GetGameIds() []int64 {
 
 func NewEmptyStorageListing(d Downloader) StorageListing {
 	return StorageListing{
-		Games: map[int64]StorageListingGame{},
+		Games:     map[int64]StorageListingGame{},
 		downloads: d,
 	}
 }
@@ -150,7 +150,7 @@ func (l *StorageListing) GetManifest(concurrency int) (*manifest.Manifest, error
 			go game.RetrieveManifestGame(gameChan, l.downloads)
 			processingGames++
 		} else {
-			gameRetrieval := <- gameChan
+			gameRetrieval := <-gameChan
 			if gameRetrieval.Error != nil {
 				err = gameRetrieval.Error
 			} else {

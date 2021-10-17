@@ -6,6 +6,7 @@ import (
 )
 
 var LANGUAGE_MAP map[string]string
+
 func getLanguageMap() map[string]string {
 	langMap := make(map[string]string)
 	langMap["english"] = "English"

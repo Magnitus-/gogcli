@@ -7,10 +7,10 @@ import (
 )
 
 type Action struct {
-	GameId int64
-	IsFileAction bool
+	GameId        int64
+	IsFileAction  bool
 	FileActionPtr *FileAction
-	GameAction string
+	GameAction    string
 }
 
 type ActionsIterator struct {
@@ -24,8 +24,8 @@ type ActionsIterator struct {
 }
 
 type ActionsIteratorSort struct {
-	gameIds []int64
-	criteria string
+	gameIds   []int64
+	criteria  string
 	ascending bool
 }
 
@@ -37,14 +37,14 @@ func NewActionIteratorSort(gameIds []int64, criteria string, ascending bool) Act
 	}
 }
 
-func (i *ActionsIterator) Sort(gamesSort ActionsIteratorSort, m* Manifest) {
+func (i *ActionsIterator) Sort(gamesSort ActionsIteratorSort, m *Manifest) {
 	manifestGames := make(map[int64]ManifestGame)
 	if gamesSort.criteria != "none" && gamesSort.criteria != "id" {
 		for _, game := range (*m).Games {
 			manifestGames[game.Id] = game
 		}
 	}
-	
+
 	if gamesSort.criteria != "none" {
 		sort.Slice((*i).gameIds, func(x, y int) bool {
 			gameIdX := (*i).gameIds[x]
@@ -59,7 +59,7 @@ func (i *ActionsIterator) Sort(gamesSort ActionsIteratorSort, m* Manifest) {
 				if gamesSort.ascending {
 					return manifestGames[gameIdX].Title < manifestGames[gameIdY].Title
 				}
-				
+
 				return manifestGames[gameIdY].Title < manifestGames[gameIdX].Title
 			}
 
@@ -101,13 +101,13 @@ func NewActionsIterator(a GameActions, maxGames int) *ActionsIterator {
 	extraNames := currentGameAction.GetExtraNames()
 	sort.Strings(extraNames)
 	new := &ActionsIterator{
-		gameActions: a,
-		gameIds: gameIds,
+		gameActions:           a,
+		gameIds:               gameIds,
 		currentGameActionDone: currentGameAction.Action == "update",
-		installerNames: installerNames,
-		extraNames: extraNames,
-		maxGames: maxGames,
-		processedGames: 0,
+		installerNames:        installerNames,
+		extraNames:            extraNames,
+		maxGames:              maxGames,
+		processedGames:        0,
 	}
 
 	return new
@@ -129,7 +129,6 @@ func (i *ActionsIterator) GetProgress() (int, int, int) {
 	return i.processedGames, len(i.gameIds), i.maxGames
 }
 
-
 func (i *ActionsIterator) ShouldContinue() bool {
 	return i.HasMore() && (i.maxGames == -1 || i.processedGames < i.maxGames)
 }
@@ -150,16 +149,16 @@ func (i *ActionsIterator) HasMore() bool {
 func (i *ActionsIterator) Next() (Action, error) {
 	if !i.ShouldContinue() {
 		return Action{
-			GameId: -1,
-			IsFileAction: false,
+			GameId:        -1,
+			IsFileAction:  false,
 			FileActionPtr: nil,
-			GameAction: "",
+			GameAction:    "",
 		}, errors.New("*ActionsIterator.Next() -> End of iterator, cannot fetch anymore")
 	}
 
 	currentGameId := i.gameIds[0]
 	currentGame := i.gameActions[currentGameId]
-	
+
 	remainingFileActions := len(i.extraNames) + len(i.installerNames)
 	onlyOneFileActionRemains := i.currentGameActionDone && remainingFileActions == 1
 	onlyOneGameActionRemains := (!i.currentGameActionDone) && remainingFileActions == 0
@@ -170,10 +169,10 @@ func (i *ActionsIterator) Next() (Action, error) {
 	if (!i.currentGameActionDone) && currentGame.Action == "add" {
 		i.currentGameActionDone = true
 		return Action{
-			GameId: currentGameId,
-			IsFileAction: false,
+			GameId:        currentGameId,
+			IsFileAction:  false,
 			FileActionPtr: nil,
-			GameAction: "add",
+			GameAction:    "add",
 		}, nil
 	}
 
@@ -182,10 +181,10 @@ func (i *ActionsIterator) Next() (Action, error) {
 		i.installerNames = i.installerNames[1:]
 		fileAction := currentGame.InstallerActions[name]
 		return Action{
-			GameId: currentGameId,
-			IsFileAction: true,
+			GameId:        currentGameId,
+			IsFileAction:  true,
 			FileActionPtr: &fileAction,
-			GameAction: "",
+			GameAction:    "",
 		}, nil
 	}
 
@@ -194,20 +193,20 @@ func (i *ActionsIterator) Next() (Action, error) {
 		i.extraNames = i.extraNames[1:]
 		fileAction := currentGame.ExtraActions[name]
 		return Action{
-			GameId: currentGameId,
-			IsFileAction: true,
+			GameId:        currentGameId,
+			IsFileAction:  true,
 			FileActionPtr: &fileAction,
-			GameAction: "",
+			GameAction:    "",
 		}, nil
 	}
 
 	if (!i.currentGameActionDone) && currentGame.Action == "remove" {
 		i.currentGameActionDone = true
 		return Action{
-			GameId: currentGameId,
-			IsFileAction: false,
+			GameId:        currentGameId,
+			IsFileAction:  false,
 			FileActionPtr: nil,
-			GameAction: "remove",
+			GameAction:    "remove",
 		}, nil
 	}
 

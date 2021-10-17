@@ -64,6 +64,13 @@ If you prefer, you can build the binary locally:
 - Get golang: https://golang.org/dl/
 - Run: ```go build```
 
+# Architecture
+
+The documentation below consists of quick howtos.
+
+For a deeper understanding of what the commands do, read the following doc: https://github.com/Magnitus-/gogcli/tree/main/architecture-documentation
+
+
 # Common Use Case Examples
 
 Here, I assume that the gogcli binary is in the **PATH** so that I just type **gogcli** without having to use a relative path (ex: **./gogcli**).
@@ -103,19 +110,22 @@ So now, you are ready to upload your games in your storage.
 If you want to store your games in your filesystem, say in the **/home/eric/games** directory, you would type:
 
 ```
-gogcli storage apply --path=/home/eric/games --storage=fs
+gogcli storage apply manifest --path=/home/eric/games --storage=fs
+gogcli storage execute-actions --path=/home/eric/games --storage=fs
 ```
 
 If instead, you have an s3 store whose configuration information is in the file s3.json (see instructions above for how to configure s3 stores), you would type:
 
 ```
-gogcli storage apply --path=s3.json --storage=s3
+gogcli storage apply manifest --path=s3.json --storage=s3
+gogcli storage execute-actions --path=s3.json --storage=s3
 ```
 
 If you have 1000 games to upload and would like to only upload 50 games for now and do the rest later, you would type:
 
 ```
-gogcli storage apply --path=s3.json --storage=s3 --maximum=50
+gogcli storage apply manifest --path=s3.json --storage=s3
+gogcli storage execute-actions --path=s3.json --storage=s3 --maximum=50
 ```
 
 And if of those 1000 games, you to download your smaller indie games first and **Faster Than Light** first of all (because it is such a great game), you would first type the following to get FTL's game id:
@@ -127,7 +137,8 @@ gogcli manifest search --title=FTL
 And then type:
 
 ```
-gogcli storage apply --path=s3.json --storage=s3 --maximum=50 --sort-criterion=size --preferred-ids=1207659102
+gogcli storage apply manifest --path=s3.json --storage=s3
+gogcli storage execute-actions --path=s3.json --storage=s3 --maximum=50 --sort-criterion=size --preferred-ids=1207659102
 ```
 
 If you'd like to look at what's left to download, you can download all the actions that have yet to run by typing:
@@ -149,7 +160,7 @@ gogcli manifest search --title=Blackwell
 Then, you will type the following to download the next 50 games, with the **Blackwell** games first
 
 ```
-gogcli storage resume --path=s3.json --storage=s3 --maximum=50 --sort-criterion=size --preferred-ids=1207662883 --preferred-ids=1207662893 --preferred-ids=1207662903 --preferred-ids=1207662913 --preferred-ids=1207664393
+gogcli storage execute-actions--path=s3.json --storage=s3 --maximum=50 --sort-criterion=size --preferred-ids=1207662883 --preferred-ids=1207662893 --preferred-ids=1207662903 --preferred-ids=1207662913 --preferred-ids=1207664393
 ```
 
 And so forth...
@@ -233,13 +244,15 @@ The actions will be in the **actions.json** file.
 You can apply your modifed manifest by typing:
 
 ```
-gogcli storage apply --path=/home/eric/games --storage=fs
+gogcli storage apply manifest --path=/home/eric/games --storage=fs
+gogcli storage execute-actions --path=/home/eric/games --storage=fs
 ```
 
 Again, if you wish for extras without checksum to count as the same file if the file name and file size match, you type this instead:
 
 ```
-gogcli storage apply --empty-checksum --path=/home/eric/games --storage=fs
+gogcli storage apply manifest --empty-checksum --path=/home/eric/games --storage=fs
+gogcli storage execute-actions --path=/home/eric/games --storage=fs
 ```
 
 Afterwards, if you want to copy the modifications from your filesystem to your s3 store, you can type:
@@ -273,7 +286,8 @@ Anyways, the actions will be listed in the **actions.json** file.
 If you are satisfied with the actions that will run, you can now apply your manifest by typing:
 
 ```
-gogcli storage apply --empty-checksum --path=/home/eric/games --storage=fs
+gogcli storage apply manifest --empty-checksum --path=/home/eric/games --storage=fs
+gogcli storage execute-actions --path=/home/eric/games --storage=fs
 ```
 
 Afterwards, you can copy the changes from your filesystem to your s3 store by typing:
@@ -288,25 +302,25 @@ Ok, so you started storing your games from your manifest using the **gogcli stor
 
 You took a break and in the interim, gog updated some games and now you're stuck with a storage that has some half-uploaded manifest that is no longer valid.
 
-What do you do?
+What do you do? The same thing you would if there were no pending actions. To recap below...
 
 First of all, you produce an updated **manifest.json** manifest using the **gogcli storage download manifest** + **gogcli update generate** + **gogcli manifest update** commands (option 1)... or you just use a **gogcli manifest generate** command (option 2).
 
-After that, you just run the following:
+After that, you run:
 
 ```
-gogcli storage update-actions --path=s3.json --storage=s3
+gogcli storage apply manifest --path=s3.json --storage=s3
+gogcli storage execute-actions --path=s3.json --storage=s3
 ```
 
 Or if you really don't want to redownload extras that don't have a checksum and trust that the file was not updated if the file name and size matches:
 
 ```
-gogcli storage update-actions --empty-checksum --path=s3.json --storage=s3 
+gogcli storage apply manifest --empty-checksum --path=s3.json --storage=s3
+gogcli storage execute-actions --path=s3.json --storage=s3 
 ```
 
 What just happened? Your storage's manifest got updated and the remaining actions got adjusted to include additional actions from the change in your manifest.
-
-From there, you can just run **gogcli storage resume** normally.
 
 ## Repair Broken Storage
 
@@ -322,10 +336,10 @@ gogcli storage repair --path=s3.json --storage=s3
 
 After running the command, you'll possibly have a bunch of pending actions in your storage if adjustments were needed.
 
-You will run the pending actions in your storage just as you would resume an unfinished **gogli storage apply** by running:
+You will execute those actions just like you would with an apply by running:
 
 ```
-gogcli storage resume --path=s3.json --storage=s3 
+gogcli storage execute-actions --path=s3.json --storage=s3 
 ```
 
 ## Dealing With Repeated Download Mismatch
@@ -354,7 +368,7 @@ gogcli manifest update --id=1207659025
 And finally, update the actions list in your storage with your updated manifest:
 
 ```
-gogcli storage update-actions --empty-checksum --path=s3.json --storage=s3
+gogcli storage apply manifest --empty-checksum --path=s3.json --storage=s3
 ```
 
 ## Migration From gogcli 0.9.x

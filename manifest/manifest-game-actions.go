@@ -7,6 +7,12 @@ import (
 
 type GameActions map[int64]GameAction
 
+const (
+	ChecksumValidation string   = "mandatory"
+	ChecksumValidationIfPresent = "ifPresent"
+	ChecksumNoValidation        = "noValidation"
+)
+
 func (g *GameActions) Update(n *GameActions) error {
 	for gameId, _ := range *n {
 		if gameAction, ok := (*g)[gameId]; ok {
@@ -131,7 +137,7 @@ func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, er
 	return g, nil
 }
 
-func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksumOk bool, ignoreMetadata bool) GameAction {
+func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, checksumValidation string, ignoreMetadata bool) GameAction {
 	g := GameAction{
 		Title:            (*curr).Title,
 		Id:               (*curr).Id,
@@ -153,7 +159,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksu
 
 	for name, inst := range futureInstallers {
 		if val, ok := currentInstallers[name]; ok {
-			if !inst.IsEquivalentTo(&val, emptyChecksumOk, ignoreMetadata) {
+			if !inst.IsEquivalentTo(&val, checksumValidation, ignoreMetadata) {
 				//Overwrite
 				g.InstallerActions[name] = FileAction{Title: inst.Title, Name: inst.Name, Url: inst.Url, Kind: "installer", Action: "add"}
 			}
@@ -183,7 +189,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksu
 
 	for name, extr := range futureExtras {
 		if val, ok := currentExtras[name]; ok {
-			if !extr.IsEquivalentTo(&val, emptyChecksumOk, ignoreMetadata) {
+			if !extr.IsEquivalentTo(&val, checksumValidation, ignoreMetadata) {
 				//Overwrite
 				g.ExtraActions[name] = FileAction{Title: extr.Title, Name: extr.Name, Url: extr.Url, Kind: "extra", Action: "add"}
 			}
@@ -203,7 +209,7 @@ func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, emptyChecksu
 	return g
 }
 
-func (curr *Manifest) Plan(next *Manifest, emptyChecksumOk bool, ignoreMetadata bool) *GameActions {
+func (curr *Manifest) Plan(next *Manifest, checksumValidation string, ignoreMetadata bool) *GameActions {
 	actions := GameActions(make(map[int64]GameAction))
 	currentGames := make(map[int64]ManifestGame)
 	futureGames := make(map[int64]ManifestGame)
@@ -220,7 +226,7 @@ func (curr *Manifest) Plan(next *Manifest, emptyChecksumOk bool, ignoreMetadata 
 		if val, ok := currentGames[id]; !ok {
 			actions[id], _ = planManifestGameAddOrRemove(&game, "add")
 		} else {
-			actions[id] = planManifestGameUpdate(&val, &game, emptyChecksumOk, ignoreMetadata)
+			actions[id] = planManifestGameUpdate(&val, &game, checksumValidation, ignoreMetadata)
 		}
 	}
 

@@ -4,7 +4,7 @@ import (
 	"gogcli/manifest"
 )
 
-func PlanManifest(m *manifest.Manifest, s Storage, emptyChecksumOk bool) (*manifest.GameActions, error) {
+func PlanManifest(m *manifest.Manifest, s Storage, checksumValidation string) (*manifest.GameActions, error) {
 	var storedManifest *manifest.Manifest
 	var loadManifestErr error
 
@@ -33,7 +33,7 @@ func PlanManifest(m *manifest.Manifest, s Storage, emptyChecksumOk bool) (*manif
 			return nil, loadActionsErr
 		}
 
-		actionsUpdate := storedManifest.Plan(m, emptyChecksumOk, false)
+		actionsUpdate := storedManifest.Plan(m, checksumValidation, false)
 		updateErr := storedActions.Update(actionsUpdate)
 		if updateErr != nil {
 			return nil, updateErr
@@ -42,5 +42,5 @@ func PlanManifest(m *manifest.Manifest, s Storage, emptyChecksumOk bool) (*manif
 		return storedActions, nil
 	}
 
-	return storedManifest.Plan(m, emptyChecksumOk, false), nil
+	return storedManifest.Plan(m, checksumValidation, false), nil
 }

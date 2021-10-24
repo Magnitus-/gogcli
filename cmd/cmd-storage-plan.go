@@ -56,7 +56,12 @@ func generateStoragePlanCmd() *cobra.Command {
 			err := storage.EnsureInitialization(gamesStorage)
 			processError(err)
 
-			actions, err = storage.PlanManifest(&m, storage.GetFileSystem(path, logSource, ""), allowEmptyCheckum)
+			checksumValidation := manifest.ChecksumValidation
+			if allowEmptyCheckum {
+				checksumValidation = manifest.ChecksumValidationIfPresent
+			}
+
+			actions, err = storage.PlanManifest(&m, storage.GetFileSystem(path, logSource, ""), checksumValidation)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)

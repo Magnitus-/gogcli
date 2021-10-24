@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-func validateFile(info manifest.FileInfo, s Storage, errChan chan error) {
+func validateFile(info manifest.FileInfo, s Storage, verifyChecksum bool, errChan chan error) {
 	downloadHandle, size, err := s.DownloadFile(info.GameId, info.Kind, info.Name)
 	if err != nil {
 		msg := fmt.Sprintf("validateFile(FileInfo{GameId: %d, Kind: %s, Name: %s}, ...) -> Error occured while getting the file's download handle: %s", info.GameId, info.Kind, info.Name, err.Error())
@@ -33,7 +33,7 @@ func validateFile(info manifest.FileInfo, s Storage, errChan chan error) {
 		return
 	}
 
-	if checksum != info.Checksum {
+	if verifyChecksum && checksum != info.Checksum {
 		msg := fmt.Sprintf("validateFile(FileInfo{GameId: %d, Kind: %s, Name: %s}, ...) -> Actual file checksum of %s did not match the expected checksum of %s", info.GameId, info.Kind, info.Name, checksum, info.Checksum)
 		errChan <- errors.New(msg)
 		return
@@ -42,7 +42,7 @@ func validateFile(info manifest.FileInfo, s Storage, errChan chan error) {
 	errChan <- nil
 }
 
-func ValidateManifest(s Storage, concurrency int) []error {
+func ValidateManifest(s Storage, concurrency int, verifyChecksum bool) []error {
 	jobsRunning := 0
 	errChan := make(chan error)
 
@@ -81,7 +81,7 @@ func ValidateManifest(s Storage, concurrency int) []error {
 			if err != nil {
 				errs = append(errs, err)
 			} else {
-				go validateFile(file, s, errChan)
+				go validateFile(file, s, verifyChecksum, errChan)
 				jobsRunning++
 				concurrency--
 			}

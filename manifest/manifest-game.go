@@ -150,7 +150,7 @@ func (g *ManifestGame) ImprintMissingChecksums(prev *ManifestGame) error {
 
 	for idx, installer := range (*g).Installers {
 		if prevInstaller, ok := previousInstallers[installer.Name]; ok {
-			if installer.IsEquivalentTo(&prevInstaller, true, false) {
+			if installer.IsEquivalentTo(&prevInstaller, ChecksumValidationIfPresent, false) {
 				if installer.Checksum == "" && prevInstaller.Checksum != "" {
 					installer.Checksum = prevInstaller.Checksum
 					(*g).Installers[idx] = installer
@@ -161,7 +161,7 @@ func (g *ManifestGame) ImprintMissingChecksums(prev *ManifestGame) error {
 
 	for idx, extra := range (*g).Extras {
 		if prevExtra, ok := previousExtras[extra.Name]; ok {
-			if extra.IsEquivalentTo(&prevExtra, true, false) {
+			if extra.IsEquivalentTo(&prevExtra, ChecksumValidationIfPresent, false) {
 				if extra.Checksum == "" && prevExtra.Checksum != "" {
 					extra.Checksum = prevExtra.Checksum
 					(*g).Extras[idx] = extra

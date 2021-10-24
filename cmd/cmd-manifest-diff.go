@@ -26,7 +26,12 @@ func generateManifestDiffCmd() *cobra.Command {
 			processError(err)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			a := curr.Plan(&next, allowEmptyCheckum, false)
+			checksumValidation := manifest.ChecksumValidation
+			if allowEmptyCheckum {
+				checksumValidation = manifest.ChecksumValidationIfPresent
+			}
+
+			a := curr.Plan(&next, checksumValidation, false)
 			processSerializableOutput(a, []error{}, terminalOutput, file)
 		},
 	}

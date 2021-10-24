@@ -21,7 +21,12 @@ func ApplyManifest(m *manifest.Manifest, s Storage, src Source, emptyChecksumOk 
 		}
 	}
 
-	actions, err = PlanManifest(m, s, emptyChecksumOk)
+	checksumValidation := manifest.ChecksumValidation
+	if emptyChecksumOk {
+		checksumValidation = manifest.ChecksumValidationIfPresent
+	}
+
+	actions, err = PlanManifest(m, s, checksumValidation)
 	if err != nil {
 		return err
 	}

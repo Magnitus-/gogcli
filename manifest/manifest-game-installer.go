@@ -33,14 +33,14 @@ func (i *ManifestGameInstaller) HasOneOfLanguages(languages []string) bool {
 	return false
 }
 
-func (i *ManifestGameInstaller) IsEquivalentTo(o *ManifestGameInstaller, emptyChecksumOk bool, ignoreMetadata bool) bool {
+func (i *ManifestGameInstaller) IsEquivalentTo(o *ManifestGameInstaller, checksumValidation string, ignoreMetadata bool) bool {
 	sameName := (*i).Name == (*o).Name
 	sameTitle := ((*i).Title == (*o).Title) || ignoreMetadata
 	sameUrl := ((*i).Url == (*o).Url) || ignoreMetadata
 	sameVerifiedSize := (*o).VerifiedSize != 0 && (*i).VerifiedSize == (*o).VerifiedSize
-	checksumIsEmptyAndItsOk := emptyChecksumOk && ((*i).Checksum == "" || (*o).Checksum == "")
+	checksumIsEmptyAndItsOk := checksumValidation == ChecksumValidationIfPresent && ((*i).Checksum == "" || (*o).Checksum == "")
 	sameChecksum := (*o).Checksum != "" && (*i).Checksum == (*o).Checksum
-	return sameName && sameTitle && sameUrl && sameVerifiedSize && (sameChecksum || checksumIsEmptyAndItsOk)
+	return sameName && sameTitle && sameUrl && sameVerifiedSize && (checksumValidation == ChecksumNoValidation || sameChecksum || checksumIsEmptyAndItsOk)
 }
 
 func (i *ManifestGameInstaller) GetEstimatedSizeInBytes() (int64, error) {

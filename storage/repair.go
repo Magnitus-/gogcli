@@ -2,7 +2,7 @@ package storage
 
 import "gogcli/manifest"
 
-func Repair(m *manifest.Manifest, s Storage, src Source, concurrency int) error {
+func Repair(m *manifest.Manifest, s Storage, src Source, concurrency int, verifyChecksum bool) error {
 	hasActions, actErr := s.HasActions()
 	if actErr != nil {
 		return actErr
@@ -40,7 +40,12 @@ func Repair(m *manifest.Manifest, s Storage, src Source, concurrency int) error 
 		return err
 	}
 
-	actions := filesManifest.Plan(m, false, true)
+	checksumValidation := manifest.ChecksumNoValidation
+	if verifyChecksum {
+		checksumValidation = manifest.ChecksumValidation
+	}
+
+	actions := filesManifest.Plan(m, checksumValidation, true)
 	if len(*actions) > 0 {
 		srcErr = s.StoreSource(&src)
 		if srcErr != nil {

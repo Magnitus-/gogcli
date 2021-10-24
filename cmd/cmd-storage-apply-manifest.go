@@ -32,7 +32,12 @@ func generateStorageApplyManifestCmd() *cobra.Command {
 			processError(err)
 
 			if !allowGameDeletions {
-				actions, err := storage.PlanManifest(&m, gamesStorage, allowEmptyCheckum)
+				checksumValidation := manifest.ChecksumValidation
+				if allowEmptyCheckum {
+					checksumValidation = manifest.ChecksumValidationIfPresent
+				}
+
+				actions, err := storage.PlanManifest(&m, gamesStorage, checksumValidation)
 				processError(err)
 				summary := actions.GetSummary()
 				if summary.GameDeletions > 0 {

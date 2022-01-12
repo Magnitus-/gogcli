@@ -105,28 +105,28 @@ func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (boo
 	return true, fileInfo.Name, fileInfo.Checksum, fileInfo.Size, nil, false
 }
 
-func retrieveUrlRedirectLocation(c http.Client, redirectingUrl string, fn string) (string, error, bool) {
+func retrieveUrlRedirectLocation(c http.Client, redirectingUrl string, fn string) (string, error, bool, bool) {
 	var location string
 	r, err := c.Get(redirectingUrl)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
-		return "", errors.New(msg), false
+		return "", errors.New(msg), false, false
 	}
 	defer r.Body.Close()
 
 	if r.StatusCode != 302 {
 		msg := fmt.Sprintf("%s -> Expected response status code of 302, but got %d", fn, r.StatusCode)
-		return "", errors.New(msg), r.StatusCode >= 500
+		return "", errors.New(msg), r.StatusCode == 403 || r.StatusCode == 404, r.StatusCode >= 500
 	}
 
 	locHeader, ok := r.Header["Location"]
 	if !ok {
 		msg := fmt.Sprintf("%s -> Expected location header in response, but it was missing", fn)
-		return "", errors.New(msg), false
+		return "", errors.New(msg), false, false
 	} else {
 		location = locHeader[0]
 	}
-	return location, nil, false
+	return location, nil, false, false
 }
 
 func retrieveUrlContentLength(c http.Client, downloadUrl string, fn string) (int64, error, bool, bool) {
@@ -170,7 +170,7 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 	c := (*s).getClient(false)
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
 
-	filenameLoc, err, serverUnavailable = retrieveUrlRedirectLocation(c, u, fn)
+	filenameLoc, err, dangling, serverUnavailable = retrieveUrlRedirectLocation(c, u, fn)
 	if err != nil {
 		if serverUnavailable && (!(*s).maxRetriesReached()) {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed due to server error. Will retry.", fn, u))
@@ -178,9 +178,9 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 			return (*s).GetDownloadFileInfo(downloadPath)
 		}
 		(*s).resetRetries()
-		return "", "", int64(0), err, false
+		return "", "", int64(0), err, dangling
 	}
-	downloadLoc, err, serverUnavailable = retrieveUrlRedirectLocation(c, filenameLoc, fn)
+	downloadLoc, err, dangling, serverUnavailable = retrieveUrlRedirectLocation(c, filenameLoc, fn)
 	if err != nil {
 		if serverUnavailable && (!(*s).maxRetriesReached()) {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed due to server error. Will retry.", fn, u))
@@ -188,7 +188,7 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 			return (*s).GetDownloadFileInfo(downloadPath)
 		}
 		(*s).resetRetries()
-		return "", "", int64(0), err, false
+		return "", "", int64(0), err, dangling
 	}
 
 	//Finally, retrieve the metadata
@@ -242,7 +242,7 @@ func (s *Sdk) GetDownloadFilename(downloadPath string) (string, error) {
 	c := (*s).getClient(false)
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
 
-	redirectLocation, err, serverUnavailable := retrieveUrlRedirectLocation(c, u, fn)
+	redirectLocation, err, _, serverUnavailable := retrieveUrlRedirectLocation(c, u, fn)
 	if err != nil {
 		if serverUnavailable && (!(*s).maxRetriesReached()) {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed due to server error. Will retry.", fn, u))

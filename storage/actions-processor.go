@@ -205,7 +205,12 @@ func (p ActionsProcessor) launchActions(m *manifest.Manifest, iterator *manifest
 		endWhenPossible := (!iterator.ShouldContinue()) || (len(errs) > 0)
 		allDone := endWhenPossible && jobsRunning == 0
 		if allDone {
-			p.logger.Info("Downloads completed")
+			if len(errs) == 0 {
+				p.logger.Info("Downloads completed")
+			} else {
+				p.logger.Warning("Downloads Interrupted")
+			}
+			
 			break
 		} else if (concurrency <= 0 && jobsRunning > 0) || (endWhenPossible && jobsRunning > 0) {
 			err := <-p.actionErrChan

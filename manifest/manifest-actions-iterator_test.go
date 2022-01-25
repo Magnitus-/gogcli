@@ -560,3 +560,17 @@ func TestMax2DescSizeSort(t *testing.T) {
 	}
 	expect(*iterator, expectedActions, t)
 }
+
+func TestNoActionsSort(t *testing.T) {
+	manifest, _ := getFixtures()
+	actions := GameActions{}
+	iterator := NewActionsIterator(actions, -1)
+	iterator.Sort(ActionsIteratorSort{
+		[]int64{},
+		"size",
+		false,
+	}, &manifest)
+
+	expectedActions := []Action{}
+	expect(*iterator, expectedActions, t)
+}

@@ -83,6 +83,10 @@ func (i *ActionsIterator) Sort(gamesSort ActionsIteratorSort, m *Manifest) {
 		}
 	}
 
+	if len((*i).gameIds) == 0 {
+		return
+	}
+
 	currentGameAction := (*i).gameActions[(*i).gameIds[0]]
 	installerNames := currentGameAction.GetInstallerNames()
 	sort.Strings(installerNames)
@@ -95,6 +99,20 @@ func (i *ActionsIterator) Sort(gamesSort ActionsIteratorSort, m *Manifest) {
 
 func NewActionsIterator(a GameActions, maxGames int) *ActionsIterator {
 	gameIds := a.GetGameIds()
+
+	if len(gameIds) == 0 {
+		new := &ActionsIterator{
+			gameActions:           GameActions{},
+			gameIds:               []int64{},
+			currentGameActionDone: true,
+			installerNames:        []string{},
+			extraNames:            []string{},
+			maxGames:              maxGames,
+			processedGames:        0,
+		}
+		return new
+	}
+
 	currentGameAction := a[gameIds[0]]
 	installerNames := currentGameAction.GetInstallerNames()
 	sort.Strings(installerNames)

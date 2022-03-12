@@ -74,7 +74,7 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 	}
 }
 
-func (s *Sdk) GetManifestFromIds(f manifest.ManifestFilter, gameIds []int64, concurrency int, pause int, tolerateDangles bool) (*manifest.Manifest, []error, []error) {
+func (s *Sdk) GetManifestFromIds(f manifest.ManifestFilter, gameIds []int64, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) (*manifest.Manifest, []error, []error) {
 	m := manifest.NewEmptyManifest(f)
 
 	details, detailsErrs := s.GetManyGameDetails(gameIds, concurrency, pause)
@@ -85,6 +85,6 @@ func (s *Sdk) GetManifestFromIds(f manifest.ManifestFilter, gameIds []int64, con
 	addGameDetailsToManifest(m, details)
 	m.Trim()
 
-	errs, warnings := s.fillManifestFiles(m, concurrency, pause, tolerateDangles)
+	errs, warnings := s.fillManifestFiles(m, concurrency, pause, tolerateDangles, tolerateBadMetadata)
 	return m, errs, warnings
 }

@@ -1,6 +1,8 @@
 package sdk
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -63,29 +65,29 @@ func getDownloadMetadataRegex() *regexp.Regexp {
 	return regexp.MustCompile(`^<file name="(?P<name>.+)" available="(?:1|0)" notavailablemsg="(?:.*)" md5="(?P<checksum>[0-9a-z]+)" chunks="(?:\d+)" timestamp="(?:.+)" total_size="(?P<size>\d+)">$`)
 }
 
-func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (bool, string, string, int64, error, bool) {
+func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (bool, string, string, int64, error, bool, bool) {
 	fileInfo := XmlFile{Chunks: make([]XmlFileChunk, 0)}
 
 	r, err := c.Get(metadataUrl)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
-		return true, "", "", int64(-1), errors.New(msg), false
+		return true, "", "", int64(-1), errors.New(msg), false, false
 	}
 	defer r.Body.Close()
 
 	if r.StatusCode != 200 {
 		if r.StatusCode == 404 || r.StatusCode == 403 {
-			return false, "", "", int64(-1), nil, false
+			return false, "", "", int64(-1), nil, false, false
 		} else {
 			msg := fmt.Sprintf("%s -> Expected response status code of 200, but got %d", fn, r.StatusCode)
-			return true, "", "", int64(-1), errors.New(msg), r.StatusCode >= 500
+			return true, "", "", int64(-1), errors.New(msg), r.StatusCode >= 500, false
 		}
 	}
 
 	b, bErr := ioutil.ReadAll(r.Body)
 	if bErr != nil {
 		msg := fmt.Sprintf("%s -> retrieval body error: %s", fn, bErr.Error())
-		return true, "", "", int64(-1), errors.New(msg), false
+		return true, "", "", int64(-1), errors.New(msg), false, true
 	}
 
 	err = xml.Unmarshal(b, &fileInfo)
@@ -94,15 +96,15 @@ func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (boo
 		first_line := strings.Split(string(b), "\n")[0]
 		if !DOWNLOAD_METADATA_REGEX.MatchString(first_line) {
 			msg := fmt.Sprintf("%s -> Could not parse file xml metadata and the first line was not the expected format: %s", fn, err.Error())
-			return true, "", "", int64(-1), errors.New(msg), false
+			return true, "", "", int64(-1), errors.New(msg), false, false
 		}
 
 		match := DOWNLOAD_METADATA_REGEX.FindStringSubmatch(first_line)
 		size, _ := strconv.ParseInt(match[3], 10, 64)
-		return true, match[1], match[2], size, nil, false
+		return true, match[1], match[2], size, nil, false, false
 	}
 
-	return true, fileInfo.Name, fileInfo.Checksum, fileInfo.Size, nil, false
+	return true, fileInfo.Name, fileInfo.Checksum, fileInfo.Size, nil, false, false
 }
 
 func retrieveUrlRedirectLocation(c http.Client, redirectingUrl string, fn string) (string, error, bool, bool) {
@@ -158,7 +160,7 @@ func retrieveUrlContentLength(c http.Client, downloadUrl string, fn string) (int
 }
 
 //Gets the filename and checksum of the url path, requires 3 requests
-func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, error, bool) {
+func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, error, bool, bool) {
 	var filenameLoc string
 	var downloadLoc string
 	var serverUnavailable bool
@@ -178,7 +180,7 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 			return (*s).GetDownloadFileInfo(downloadPath)
 		}
 		(*s).resetRetries()
-		return "", "", int64(0), err, dangling
+		return "", "", int64(0), err, dangling, false
 	}
 	downloadLoc, err, dangling, serverUnavailable = retrieveUrlRedirectLocation(c, filenameLoc, fn)
 	if err != nil {
@@ -188,17 +190,17 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 			return (*s).GetDownloadFileInfo(downloadPath)
 		}
 		(*s).resetRetries()
-		return "", "", int64(0), err, dangling
+		return "", "", int64(0), err, dangling, false
 	}
 
 	//Finally, retrieve the metadata
 	metadataUrl, metadataUrlErr := convertDownloadUrlToMetadataUrl(downloadLoc)
 	if metadataUrlErr != nil {
 		(*s).resetRetries()
-		return "", "", int64(0), metadataUrlErr, false
+		return "", "", int64(0), metadataUrlErr, false, false
 	}
 
-	found, filename, checksum, size, retrieveMetaErr, serverUnavailable := retrieveDownloadMetadata(c, metadataUrl, fn)
+	found, filename, checksum, size, retrieveMetaErr, serverUnavailable, badMetadata := retrieveDownloadMetadata(c, metadataUrl, fn)
 	if retrieveMetaErr != nil {
 		if serverUnavailable && (!(*s).maxRetriesReached()) {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed due to server error. Will retry.", fn, u))
@@ -206,13 +208,13 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 			return (*s).GetDownloadFileInfo(downloadPath)
 		}
 		(*s).resetRetries()
-		return "", "", int64(0), retrieveMetaErr, false
+		return "", "", int64(0), retrieveMetaErr, false, badMetadata
 	}
 	if !found {
 		filename, err = getFilenameFromUrl(filenameLoc, fn)
 		if err != nil {
 			(*s).resetRetries()
-			return "", "", int64(0), err, false
+			return "", "", int64(0), err, false, false
 		}
 
 		size, err, dangling, serverUnavailable = retrieveUrlContentLength(c, downloadLoc, fn)
@@ -223,14 +225,14 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 				return (*s).GetDownloadFileInfo(downloadPath)
 			}
 			(*s).resetRetries()
-			return "", "", int64(0), err, dangling
+			return "", "", int64(0), err, dangling, false
 		}
 
 		(*s).resetRetries()
-		return filename, "", size, nil, false
+		return filename, "", size, nil, false, false
 	} else {
 		(*s).resetRetries()
-		return filename, checksum, size, nil, false
+		return filename, checksum, size, nil, false, false
 	}
 }
 
@@ -276,6 +278,17 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, stri
 		return nil, int64(0), "", errors.New(msg)
 	}
 
+	if r.StatusCode < 200 || r.StatusCode > 299 {
+		if r.StatusCode >= 500 && (!(*s).maxRetriesReached()) {
+			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed with code %d. Will retry.", fn, u, r.StatusCode))
+			(*s).incRetries()
+			return (*s).GetDownloadHandle(downloadPath)
+		}
+		(*s).resetRetries()
+		msg := fmt.Sprintf("%s -> file download handle retrieval error: did not expect status code of %d", fn, r.StatusCode)
+		return  nil, int64(0), "", errors.New(msg)
+	}
+
 	body = r.Body
 
 	clHeader, ok := r.Header["Content-Length"]
@@ -297,4 +310,21 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, stri
 	filename = path.Base(p)
 
 	return body, bodyLength, filename, nil
+}
+
+func (s *Sdk) GetDownloadFileInfoWorkaroundWay(downloadPath string) (string, string, int64, error) {
+	fn := fmt.Sprintf(" GetDownloadFileInfoWorkaroundWay(downloadPath=%s)", downloadPath)
+	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
+
+	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
+
+	downloadHandle, size, filename, err := (*s).GetDownloadHandle(downloadPath)
+	if err != nil {
+		return  "", "", int64(0), err
+	}
+
+	h := md5.New()
+	io.Copy(h, downloadHandle)
+	checksum := hex.EncodeToString(h.Sum(nil))
+	return filename, checksum, size, nil
 }

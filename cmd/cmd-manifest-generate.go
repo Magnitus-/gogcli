@@ -21,6 +21,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 	var tolerateDangles bool
 	var warningFile string
 	var duplicatesFile string
+	var tolerateBadFileMetadata bool
 
 	manifestGenerateCmd := &cobra.Command{
 		Use:   "generate",
@@ -35,19 +36,19 @@ func generateManifestGenerateCmd() *cobra.Command {
 				extras,
 				extraTypeFilters,
 			)
-			m, errs, errs404 := sdkPtr.GetManifest(f, concurrency, pause, tolerateDangles)
+			m, errs, warnings := sdkPtr.GetManifest(f, concurrency, pause, tolerateDangles, tolerateBadFileMetadata)
 			duplicates := m.Finalize()
 			processSerializableOutput(m, errs, terminalOutput, file)
 
 			if len(duplicates) > 0 {
 				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
 			}
-			if len(errs404) > 0 {
-				errs404Output := Errors{make([]string, len(errs404))}
-				for idx, _ := range errs404 {
-					errs404Output.Errors[idx] = errs404[idx].Error()
+			if len(warnings) > 0 {
+				warningsOutput := Errors{make([]string, len(warnings))}
+				for idx, _ := range warnings {
+					warningsOutput.Errors[idx] = warnings[idx].Error()
 				}
-				processSerializableOutput(errs404Output, []error{}, false, warningFile)
+				processSerializableOutput(warningsOutput, []error{}, false, warningFile)
 			}
 		},
 	}
@@ -66,5 +67,6 @@ func generateManifestGenerateCmd() *cobra.Command {
 	manifestGenerateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "d", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent manifest generation")
 	manifestGenerateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
 	manifestGenerateCmd.Flags().StringVarP(&duplicatesFile, "duplicates-file", "u", "duplicates.json", "Files that had duplicate filenames within the same game and had to be renamed will be listed in this file")
+	manifestGenerateCmd.Flags().BoolVarP(&tolerateBadFileMetadata, "tolerate-bad-metadata", "b", false, "Tolerate files for which metadata cannot be retrieved. The checksum will be infered by performing a throwaway file download instead.")
 	return manifestGenerateCmd
 }

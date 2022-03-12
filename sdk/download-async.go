@@ -1,6 +1,9 @@
 package sdk
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type DownloadFileInfo struct {
 	url      string
@@ -10,22 +13,33 @@ type DownloadFileInfo struct {
 }
 
 type DownloadFileInfoReturn struct {
-	url      string
-	name     string
-	checksum string
-	size     int64
-	err      error
-	dangling bool
+	url         string
+	name        string
+	checksum    string
+	size        int64
+	err         error
+	dangling    bool
+	badMetadata bool
 }
 
-func (s *Sdk) GetDownloadFilenInfoAsync(downloadPath string, returnVal chan DownloadFileInfoReturn) {
-	name, checksum, size, err, dangling := s.GetDownloadFileInfo(downloadPath)
-	returnVal <- DownloadFileInfoReturn{url: downloadPath, name: name, checksum: checksum, size: size, err: err, dangling: dangling}
+func (s *Sdk) GetDownloadFilenInfoAsync(downloadPath string, tolerateBadFileMetadata bool, returnVal chan DownloadFileInfoReturn) {
+	name, checksum, size, err, dangling, badMetadata := s.GetDownloadFileInfo(downloadPath)
+	if badMetadata && tolerateBadFileMetadata {
+		var workaroundErr error
+		name, checksum, size, workaroundErr = s.GetDownloadFileInfoWorkaroundWay(downloadPath)
+		if workaroundErr != nil {
+			returnVal <- DownloadFileInfoReturn{url: downloadPath, name: name, checksum: checksum, size: size, err: workaroundErr, dangling: false, badMetadata: false}
+			return
+		}
+		returnVal <- DownloadFileInfoReturn{url: downloadPath, name: name, checksum: checksum, size: size, err: err, dangling: false, badMetadata: true}
+		return
+	}
+	returnVal <- DownloadFileInfoReturn{url: downloadPath, name: name, checksum: checksum, size: size, err: err, dangling: dangling, badMetadata: false}
 }
 
-func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, pause int, tolerateDangles bool) ([]DownloadFileInfo, []error, []error) {
+func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, pause int, tolerateDangles bool, tolerateBadFileMetadata bool) ([]DownloadFileInfo, []error, []error) {
 	var errs []error
-	var danglingErrs []error
+	var warnings []error
 	var downloadFileInfos []DownloadFileInfo
 	c := make(chan DownloadFileInfoReturn)
 
@@ -34,7 +48,7 @@ func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, p
 		beginning := i
 		target := min(len(downloadPaths), i+concurrency)
 		for i < target {
-			go s.GetDownloadFilenInfoAsync(downloadPaths[i], c)
+			go s.GetDownloadFilenInfoAsync(downloadPaths[i], tolerateBadFileMetadata, c)
 			i++
 		}
 
@@ -42,8 +56,13 @@ func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, p
 		for y < target {
 			returnVal := <-c
 			if returnVal.err != nil {
-				if returnVal.dangling && tolerateDangles {
-					danglingErrs = append(danglingErrs, returnVal.err)
+				if returnVal.badMetadata && tolerateBadFileMetadata {
+					(*s).logger.Warning(fmt.Sprintf("Bad metadata for %s: File metadata was still fetched using much longer workaround method.", returnVal.url))
+					warnings = append(warnings, returnVal.err)
+					downloadFileInfos = append(downloadFileInfos, DownloadFileInfo{url: returnVal.url, name: returnVal.name, checksum: returnVal.checksum, size: returnVal.size})
+				} else if returnVal.dangling && tolerateDangles {
+					(*s).logger.Warning(fmt.Sprintf("Bad download link for %s: File was not added to manifest.", returnVal.url))
+					warnings = append(warnings, returnVal.err)
 				} else {
 					errs = append(errs, returnVal.err)
 				}
@@ -54,7 +73,7 @@ func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, p
 		}
 
 		if len(errs) > 0 {
-			return downloadFileInfos, errs, danglingErrs
+			return downloadFileInfos, errs, warnings
 		}
 
 		if i < len(downloadPaths) {
@@ -62,5 +81,5 @@ func (s *Sdk) GetManyDownloadFileInfo(downloadPaths []string, concurrency int, p
 		}
 	}
 
-	return downloadFileInfos, nil, danglingErrs
+	return downloadFileInfos, nil, warnings
 }

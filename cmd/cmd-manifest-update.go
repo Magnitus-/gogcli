@@ -21,6 +21,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 	var concurrency int
 	var pause int
 	var tolerateDangles bool
+	var tolerateBadFileMetadata bool
 
 	manifestUpdateCmd := &cobra.Command{
 		Use:   "update",
@@ -58,7 +59,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 				ids = append(ids, (*u).UpdatedGames...)
 			}
 
-			uManifest, errs, errs404 := sdkPtr.GetManifestFromIds(m.Filter, ids, concurrency, pause, tolerateDangles)
+			uManifest, errs, warnings := sdkPtr.GetManifestFromIds(m.Filter, ids, concurrency, pause, tolerateDangles, tolerateBadFileMetadata)
 			m.OverwriteGames(uManifest.Games)
 			duplicates := m.Finalize()
 			processSerializableOutput(m, errs, false, manifestFile)
@@ -66,12 +67,12 @@ func generateManifestUpdateCmd() *cobra.Command {
 			if len(duplicates) > 0 {
 				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
 			}
-			if len(errs404) > 0 {
-				errs404Output := Errors{make([]string, len(errs404))}
-				for idx, _ := range errs404 {
-					errs404Output.Errors[idx] = errs404[idx].Error()
+			if len(warnings) > 0 {
+				warningsOutput := Errors{make([]string, len(warnings))}
+				for idx, _ := range warnings {
+					warningsOutput.Errors[idx] = warnings[idx].Error()
 				}
-				processSerializableOutput(errs404Output, []error{}, false, warningFile)
+				processSerializableOutput(warningsOutput, []error{}, false, warningFile)
 			}
 		},
 	}
@@ -83,7 +84,8 @@ func generateManifestUpdateCmd() *cobra.Command {
 	manifestUpdateCmd.MarkFlagFilename("manifest")
 	manifestUpdateCmd.Flags().StringVarP(&updateFile, "update", "u", "", "Optional update file containing new and updated game ids")
 	manifestUpdateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "d", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent manifest generation")
-	manifestUpdateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-404-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
+	manifestUpdateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
 	manifestUpdateCmd.Flags().StringVarP(&duplicatesFile, "duplicates-file", "l", "duplicates.json", "Files that had duplicate filenames within the same game and had to be renamed will be listed in this file")
+	manifestUpdateCmd.Flags().BoolVarP(&tolerateBadFileMetadata, "tolerate-bad-metadata", "b", false, "Tolerate files for which metadata cannot be retrieved. The checksum will be infered by performing a throwaway file download instead.")
 	return manifestUpdateCmd
 }

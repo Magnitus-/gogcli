@@ -130,7 +130,7 @@ func updateManifestWithGameDetails(m *manifest.Manifest, gameDetails []GameDetai
 	}
 }
 
-func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int, tolerateDangles bool) (manifest.Manifest, []error, []error) {
+func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) (manifest.Manifest, []error, []error) {
 	m := manifest.NewEmptyManifest(f)
 
 	pages, errs := s.GetAllOwnedGamesPages("", concurrency, pause)
@@ -154,6 +154,6 @@ func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int,
 	updateManifestWithGameDetails(m, details)
 	m.Trim()
 
-	errs, warnings := s.fillManifestFiles(m, concurrency, pause, tolerateDangles)
+	errs, warnings := s.fillManifestFiles(m, concurrency, pause, tolerateDangles, tolerateBadMetadata)
 	return *m, errs, warnings
 }

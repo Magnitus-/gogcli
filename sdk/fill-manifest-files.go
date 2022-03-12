@@ -2,7 +2,7 @@ package sdk
 
 import "gogcli/manifest"
 
-func (s *Sdk) fillManifestFiles(m *manifest.Manifest, concurrency int, pause int, tolerateDangles bool) ([]error, []error) {
+func (s *Sdk) fillManifestFiles(m *manifest.Manifest, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) ([]error, []error) {
 	installersMap := (*m).GetUrlMappedInstallers()
 	installerUrls := make([]string, len(installersMap))
 	idx := 0
@@ -11,7 +11,7 @@ func (s *Sdk) fillManifestFiles(m *manifest.Manifest, concurrency int, pause int
 		idx++
 	}
 
-	downloadInfos, fileInfoErrs, danglingInstallerErrs := s.GetManyDownloadFileInfo(installerUrls, concurrency, pause, tolerateDangles)
+	downloadInfos, fileInfoErrs, danglingInstallerErrs := s.GetManyDownloadFileInfo(installerUrls, concurrency, pause, tolerateDangles, tolerateBadMetadata)
 	if len(fileInfoErrs) > 0 {
 		return fileInfoErrs, danglingInstallerErrs
 	}
@@ -30,7 +30,7 @@ func (s *Sdk) fillManifestFiles(m *manifest.Manifest, concurrency int, pause int
 	}
 
 	var danglingExtraErrs []error
-	downloadInfos, fileInfoErrs, danglingExtraErrs = s.GetManyDownloadFileInfo(extraUrls, concurrency, pause, tolerateDangles)
+	downloadInfos, fileInfoErrs, danglingExtraErrs = s.GetManyDownloadFileInfo(extraUrls, concurrency, pause, tolerateDangles, tolerateBadMetadata)
 	if len(fileInfoErrs) > 0 {
 		return fileInfoErrs, append(danglingInstallerErrs, danglingExtraErrs...)
 	}

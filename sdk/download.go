@@ -274,6 +274,12 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, stri
 
 	r, err := c.Get(u)
 	if err != nil {
+		if !(*s).maxRetriesReached() {
+			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed with retrieval request error %s. Will retry.", fn, u, err.Error()))
+			(*s).incRetries()
+			return (*s).GetDownloadHandle(downloadPath)
+		}
+		(*s).resetRetries()
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
 		return nil, int64(0), "", errors.New(msg)
 	}
@@ -309,6 +315,7 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, stri
 	p := (*r.Request.URL).Path
 	filename = path.Base(p)
 
+	(*s).resetRetries()
 	return body, bodyLength, filename, nil
 }
 
@@ -324,7 +331,22 @@ func (s *Sdk) GetDownloadFileInfoWorkaroundWay(downloadPath string) (string, str
 	}
 
 	h := md5.New()
-	io.Copy(h, downloadHandle)
+	copiedAmount, copyErr := io.Copy(h, downloadHandle)
+	if copiedAmount != size || copyErr != nil {
+		if copyErr == nil {
+			copyErr = errors.New(fmt.Sprintf("Checksum computation processed %d bytes and expected %d", copiedAmount, size))
+		}
+		if !(*s).maxRetriesReached() {
+			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s checksum computation failed with error: %s. Will retry.", fn, u, copyErr.Error()))
+			(*s).incRetries()
+			return (*s).GetDownloadFileInfoWorkaroundWay(downloadPath)
+		}
+		(*s).resetRetries()
+		msg := fmt.Sprintf("%s -> checksum computation failed with error: %s", fn, copyErr.Error())
+		return "", "", int64(0), errors.New(msg)
+	}
+	(*s).resetRetries()
+
 	checksum := hex.EncodeToString(h.Sum(nil))
 	return filename, checksum, size, nil
 }

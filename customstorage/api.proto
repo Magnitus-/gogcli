@@ -1,0 +1,268 @@
+syntax = "proto3";
+
+package custom_storage;
+option go_package=".;customstorage";
+
+message StorageListingGame {
+    int64 Id = 1;
+    repeated string Installers = 2;
+    repeated string Extras = 3;
+}
+
+message ManifestGameInstaller {
+    string Name = 1;
+    string Title = 2;
+    string Url = 3;
+    enum Os {
+        WINDOWS = 0;
+        MACOS = 1;
+        LINUX = 2;
+    }
+    Os TargetOs = 4;
+    repeated string Languages = 5;
+    string Version = 6;
+    string Date = 7;
+    string EstimatedSize = 8;
+    int64 VerifiedSize = 9;
+    string Checksum = 10;
+}
+
+message ManifestGameExtra {
+    string Name = 1;
+    string Title = 2;
+    string Url = 3;
+    string Type = 4;
+    int64 Info = 5;
+    string EstimatedSize = 6;
+    int64 VerifiedSize = 7;
+    string Checksum = 8;
+}
+
+message ManifestGame {
+    int64 Id = 1;
+    string Title = 2;
+    string CdKey = 3;
+    repeated string Tags = 4;
+    repeated ManifestGameInstaller Installers = 5;
+    repeated ManifestGameExtra Extras = 6;
+    string EstimatedSize = 7;
+    int64 VerifiedSize = 8;
+}
+
+message ManifestFilter {
+    repeated string Titles = 1;
+    enum Os {
+        WINDOWS = 0;
+        MACOS = 1;
+        LINUX = 2;
+    }
+    repeated Os Oses = 2;
+    repeated string Languages = 3;
+    repeated string Tags = 4;
+    bool Instrallers = 5;
+    bool Extras = 6;
+    repeated string ExtraTypes = 7;
+    repeated ManifestFilter Intersections = 8;
+}
+
+message FileAction {
+    string Title = 1;
+    string Name = 2;
+    string Url = 3;
+    string Kind = 4;
+    string Action = 5;
+}
+
+message GameAction {
+    string Title = 1;
+    int64 Id = 2;
+    string Action = 3;
+    repeated FileAction InstallerActions = 4;
+    repeated FileAction ExtraActions = 5;
+}
+
+message S3Configs {
+    string Endpoint = 1;
+    string Region = 2;
+    string Bucket = 3;
+    string Tls = 4;
+    string AccessKey = 5;
+    string SecretKey = 6;
+}
+
+message Source {
+    string Type = 1;
+    S3Configs S3Params = 2;
+    string FsPath = 3;
+}
+
+message GetListingRequest {}
+
+message GetListingResponse {
+    StorageListingGame ListingGame = 1;
+}
+
+message GetPrintableSummaryRequest {}
+
+message GetPrintableSummaryResponse {
+    string Response = 1;
+}
+
+message ExistsRequest {}
+
+message ExistsResponse {
+    bool Exists = 1;
+}
+
+message InitializeRequest {}
+
+message InitializeResponse {}
+
+message HasManifestRequest {}
+
+message HasManifestResponse {
+    bool HasManifest = 1;
+}
+
+message HasActionsRequest {}
+
+message HasActionsResponse {
+    bool HasActions = 1;
+}
+
+message HasSourceRequest {}
+
+message HasSourceResponse {
+    bool HasSource = 1;
+}
+
+/*
+The first message will define fields 2, 3 and 4 for the entire manifest
+Further messages will only defined field 1 for a game in the manifest
+*/
+message StoreManifestRequest {
+    ManifestGame Game = 1;
+    string EstimatedSize = 2;
+    int64 VerifiedSize = 3;
+    ManifestFilter Filter = 4;
+}
+
+message StoreManifestResponse {}
+
+message StoreActionsRequest {
+    GameAction GameAction = 1;
+}
+
+message StoreActionsResponse {}
+
+message StoreSourceRequest {
+    Source Source = 1;
+}
+
+message StoreSourceResponse {}
+
+message LoadManifestRequest {}
+
+/*
+The first message will define fields 2, 3 and 4 for the entire manifest
+Further messages will only defined field 1 for a game in the manifest
+*/
+message LoadManifestResponse {
+    ManifestGame Game = 1;
+    string EstimatedSize = 2;
+    int64 VerifiedSize = 3;
+    ManifestFilter Filter = 4;
+}
+
+message LoadActionsRequest {}
+message LoadActionsResponse {
+    GameAction GameAction = 1;
+}
+
+message LoadSourceRequest {}
+
+message LoadSourceResponse {
+    Source Source = 1;
+}
+
+message RemoveActionsRequest {}
+
+message RemoveActionsResponse {}
+
+message RemoveSourceRequest {}
+
+message RemoveSourceResponse {}
+
+message AddGameRequest {
+    int64 GameId = 1;
+}
+
+message AddGameResponse {}
+
+message RemoveGameRequest {
+    int64 GameId = 1;
+}
+
+message RemoveGameResponse {}
+
+/*
+The first message will define fields 1, 2, 3 and 4 for the file metadata
+Further messages will only define field 5 for the data
+*/
+message UploadFileRequest {
+    int64 GameId = 1;
+    string Kind = 2;
+    string Name = 3;
+    int64 ExpectedSize = 4;
+    bytes Data = 5;
+}
+
+message UploadFileResponse {
+    string Checksum = 1;
+}
+
+message RemoveFileRequest {
+    int64 GameId = 1;
+    string Kind = 2;
+    string Name = 3;
+}
+
+message RemoveFileResponse {}
+
+message DownloadFileRequest {
+    int64 GameId = 1;
+    string Kind = 2;
+    string Name = 3;
+}
+
+/*
+The first message will define fields 1 for the expected file size
+Further messages will only define field 2 for the data
+*/
+message DownloadFileResponse {
+    int64 ExpectedSize = 1;
+    bytes Data = 2;
+}
+
+service StorageService {
+    rpc GetListing(GetListingRequest) returns (stream GetListingResponse) {};
+    rpc GetPrintableSummary(GetPrintableSummaryRequest) returns (GetPrintableSummaryResponse) {};
+    rpc Exists(ExistsRequest) returns (ExistsResponse) {};
+    rpc Initialize(InitializeRequest) returns (InitializeResponse) {};
+    rpc HasManifest(HasManifestRequest) returns (HasManifestResponse) {};
+    rpc HasActions(HasActionsRequest) returns (HasActionsResponse) {};
+    rpc HasSource(HasSourceRequest) returns (HasSourceResponse) {};
+    rpc StoreManifest(stream StoreManifestRequest) returns (StoreManifestResponse) {};
+    rpc StoreActions(stream StoreActionsRequest) returns (StoreActionsResponse) {};
+    rpc StoreSource(StoreSourceRequest) returns (StoreSourceResponse) {};
+    rpc LoadManifest(LoadManifestRequest) returns (stream LoadManifestResponse) {};
+    rpc LoadActions(LoadActionsRequest) returns (stream LoadActionsResponse) {};
+    rpc LoadSource(LoadSourceRequest) returns (LoadSourceResponse) {};
+    rpc RemoveActions(RemoveActionsRequest) returns (RemoveActionsResponse) {};
+    rpc RemoveSource(RemoveSourceRequest) returns (RemoveSourceResponse) {};
+    rpc AddGame(AddGameRequest) returns (AddGameResponse) {};
+    rpc RemoveGame(RemoveGameRequest) returns (RemoveGameResponse) {};
+    rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse) {};
+    rpc RemoveFile(RemoveFileRequest) returns (RemoveFileResponse) {};
+    rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse) {};
+}

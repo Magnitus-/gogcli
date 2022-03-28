@@ -16,6 +16,7 @@ type GameFilenameDuplicates struct {
 
 type ManifestGame struct {
 	Id            int64
+	Slug          string
 	Title         string
 	CdKey         string
 	Tags          []string

@@ -74,6 +74,20 @@ func addGameDetailsToManifest(m *manifest.Manifest, gameDetails []GameDetailsWit
 	}
 }
 
+func addSlugsToManifest(m *manifest.Manifest, pages []OwnedGamesPage) {
+	mappedSlugs := map[int64]string{}
+	for _, page := range pages {
+		for _, product := range page.Products {
+			mappedSlugs[product.Id] = product.Slug
+		}
+	}
+
+	for idx, game := range m.Games {
+	    game.Slug = mappedSlugs[game.Id]
+		m.Games[idx] = game
+	}
+}
+
 func (s *Sdk) GetManifestFromIds(f manifest.ManifestFilter, gameIds []int64, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) (*manifest.Manifest, []error, []error) {
 	m := manifest.NewEmptyManifest(f)
 
@@ -83,6 +97,14 @@ func (s *Sdk) GetManifestFromIds(f manifest.ManifestFilter, gameIds []int64, con
 	}
 
 	addGameDetailsToManifest(m, details)
+
+	pages, errs := s.GetAllOwnedGamesPages("", concurrency, pause)
+	if len(errs) > 0 {
+		return m, errs, []error{}
+	}
+
+	addSlugsToManifest(m, pages)
+
 	m.Trim()
 
 	errs, warnings := s.fillManifestFiles(m, concurrency, pause, tolerateDangles, tolerateBadMetadata)

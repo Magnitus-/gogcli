@@ -9,12 +9,12 @@ import (
 )
 
 func generateManifestMigrateCmd() *cobra.Command {
-	var m migration.ManifestV0_9
+	var m migration.ManifestV0_18
 	var manifestFile string
 
 	manifestMigrateCmd := &cobra.Command{
 		Use:   "migrate",
-		Short: "Migrate a manifest file from version v0.9.x to the current format",
+		Short: "Migrate a manifest file from version v0.10.x-0.18.x to the current format",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			bs, err := ioutil.ReadFile(manifestFile)
 			processError(err)
@@ -23,8 +23,8 @@ func generateManifestMigrateCmd() *cobra.Command {
 			processError(err)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			next := m.Migrate()
-			processSerializableOutput(next, []error{}, false, manifestFile)
+			next, errs := m.Migrate(sdkPtr)
+			processSerializableOutput(next, errs, false, manifestFile)
 		},
 	}
 

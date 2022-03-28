@@ -79,6 +79,7 @@ func TestManifestGameImprintMissingChecksums(t *testing.T) {
 
 	nextGame := ManifestGame{
 		Id:            1,
+		Slug:          "game",
 		Title:         "game",
 		CdKey:         "key",
 		Tags:          []string{"COMPLETED"},
@@ -162,6 +163,7 @@ func TestManifestGameImprintMissingChecksums(t *testing.T) {
 
 	prevGame := ManifestGame{
 		Id:            1,
+		Slug:          "game",
 		Title:         "game",
 		CdKey:         "key",
 		Tags:          []string{"COMPLETED"},

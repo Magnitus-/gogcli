@@ -48,6 +48,7 @@ func addOwnedGamesPagesToManifest(m *manifest.Manifest, pages []OwnedGamesPage) 
 			g := manifest.ManifestGame{
 				Id:    product.Id,
 				Title: product.Title,
+				Slug:  product.Slug,
 			}
 			(*m).Games = append(
 				(*m).Games,

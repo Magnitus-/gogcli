@@ -96,6 +96,21 @@ message Source {
     string FsPath = 3;
 }
 
+message GameInfo {
+	int64 Id = 1;
+	string Slug = 2;
+	string Title = 3;
+}
+
+message FileInfo {
+    GameInfo Game = 1;
+    string Kind = 2;
+    string Name = 3;
+    string Url = 4;
+    string Size = 5;
+    string Checksum = 6;
+}
+
 message GetListingRequest {}
 
 message GetListingResponse {
@@ -164,8 +179,8 @@ message StoreSourceResponse {}
 message LoadManifestRequest {}
 
 /*
-The first message will define fields 2, 3 and 4 for the entire manifest
-Further messages will only defined field 1 for a game in the manifest
+The first message is expected to define fields 2, 3 and 4 for the entire manifest
+Further messages are expected to define field 1 for a game in the manifest
 */
 message LoadManifestResponse {
     ManifestGame Game = 1;
@@ -194,27 +209,24 @@ message RemoveSourceRequest {}
 message RemoveSourceResponse {}
 
 message AddGameRequest {
-    int64 GameId = 1;
+    GameInfo Game = 1;
 }
 
 message AddGameResponse {}
 
 message RemoveGameRequest {
-    int64 GameId = 1;
+    GameInfo Game = 1;
 }
 
 message RemoveGameResponse {}
 
 /*
-The first message will define fields 1, 2, 3 and 4 for the file metadata
-Further messages will only define field 5 for the data
+The first message is expected to define field 1 for the file metadata
+Further messages are expected to define field 2 for the data
 */
 message UploadFileRequest {
-    int64 GameId = 1;
-    string Kind = 2;
-    string Name = 3;
-    int64 ExpectedSize = 4;
-    bytes Data = 5;
+    FileInfo File = 1;
+    bytes Data = 2;
 }
 
 message UploadFileResponse {
@@ -230,14 +242,12 @@ message RemoveFileRequest {
 message RemoveFileResponse {}
 
 message DownloadFileRequest {
-    int64 GameId = 1;
-    string Kind = 2;
-    string Name = 3;
+    FileInfo File = 1;
 }
 
 /*
-The first message will define fields 1 for the expected file size
-Further messages will only define field 2 for the data
+The first message is expected to define fields 1 for the expected file size
+Further messages are expected define field 2 for the data
 */
 message DownloadFileResponse {
     int64 ExpectedSize = 1;

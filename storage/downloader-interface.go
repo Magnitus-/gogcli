@@ -6,7 +6,7 @@ import (
 )
 
 type Downloader interface {
-	Download(int64, manifest.FileAction) (io.ReadCloser, int64, string, error)
+	Download(file manifest.FileInfo) (io.ReadCloser, int64, string, error)
 }
 
 type Source struct {

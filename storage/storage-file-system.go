@@ -310,8 +310,8 @@ func (f FileSystem) RemoveSource() error {
 	return err
 }
 
-func (f FileSystem) AddGame(gameId int64) error {
-	gameDir := path.Join(f.Path, strconv.FormatInt(gameId, 10))
+func (f FileSystem) AddGame(game manifest.GameInfo) error {
+	gameDir := path.Join(f.Path, strconv.FormatInt(game.Id, 10))
 	instDir := path.Join(gameDir, "installers")
 	extrDir := path.Join(gameDir, "extras")
 
@@ -320,11 +320,11 @@ func (f FileSystem) AddGame(gameId int64) error {
 		if os.IsNotExist(err) {
 			err = os.MkdirAll(instDir, 0755)
 			if err != nil {
-				msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while creating installers directory exists: %s", gameId, err.Error())
+				msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while creating installers directory exists: %s", game.Id, err.Error())
 				return errors.New(msg)
 			}
 		} else {
-			msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while checking if installers directory exists: %s", gameId, err.Error())
+			msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while checking if installers directory exists: %s", game.Id, err.Error())
 			return errors.New(msg)
 		}
 	}
@@ -334,21 +334,21 @@ func (f FileSystem) AddGame(gameId int64) error {
 		if os.IsNotExist(err) {
 			err = os.Mkdir(extrDir, 0755)
 			if err != nil {
-				msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while creating extras directory exists: %s", gameId, err.Error())
+				msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while creating extras directory exists: %s", game.Id, err.Error())
 				return errors.New(msg)
 			}
 		} else {
-			msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while checking if extras directory exists: %s", gameId, err.Error())
+			msg := fmt.Sprintf("AddGame(gameId=%d) -> Error occured while checking if extras directory exists: %s", game.Id, err.Error())
 			return errors.New(msg)
 		}
 	}
 
-	f.logger.Debug(fmt.Sprintf("AddGame(gameId=%d) -> Created game directory", gameId))
+	f.logger.Debug(fmt.Sprintf("AddGame(gameId=%d) -> Created game directory", game.Id))
 	return nil
 }
 
-func (f FileSystem) RemoveGame(gameId int64) error {
-	gameDir := path.Join(f.Path, strconv.FormatInt(gameId, 10))
+func (f FileSystem) RemoveGame(game manifest.GameInfo) error {
+	gameDir := path.Join(f.Path, strconv.FormatInt(game.Id, 10))
 
 	_, err := os.Stat(gameDir)
 	if err != nil {
@@ -362,17 +362,17 @@ func (f FileSystem) RemoveGame(gameId int64) error {
 	err = os.RemoveAll(gameDir)
 
 	if err == nil {
-		f.logger.Debug(fmt.Sprintf("RemoveGame(gameId=%d) -> Removed game directory", gameId))
+		f.logger.Debug(fmt.Sprintf("RemoveGame(gameId=%d) -> Removed game directory", game.Id))
 	}
 	return err
 }
 
-func (f FileSystem) UploadFile(source io.ReadCloser, gameId int64, kind string, name string, expectedSize int64) (string, error) {
+func (f FileSystem) UploadFile(source io.ReadCloser, file manifest.FileInfo) (string, error) {
 	var fPath string
-	if kind == "installer" {
-		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "installers", name)
-	} else if kind == "extra" {
-		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "extras", name)
+	if file.Kind == "installer" {
+		fPath = path.Join(f.Path, strconv.FormatInt(file.Game.Id, 10), "installers", file.Name)
+	} else if file.Kind == "extra" {
+		fPath = path.Join(f.Path, strconv.FormatInt(file.Game.Id, 10), "extras", file.Name)
 	} else {
 		return "", errors.New("Unknown kind of file")
 	}
@@ -391,21 +391,21 @@ func (f FileSystem) UploadFile(source io.ReadCloser, gameId int64, kind string, 
 	info, infoErr := os.Stat(fPath)
 	if infoErr != nil {
 		return "", infoErr
-	} else if info.Size() != expectedSize {
-		msg := fmt.Sprintf("Created file at %d has size %d which doesn't match expected size %s", fPath, info.Size(), expectedSize)
+	} else if info.Size() != file.Size {
+		msg := fmt.Sprintf("Created file at %d has size %d which doesn't match expected size %s", fPath, info.Size(), file.Size)
 		return "", errors.New(msg)
 	}
 
-	f.logger.Debug(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", gameId, kind, name))
+	f.logger.Debug(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", file.Game.Id, file.Kind, file.Name))
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
-func (f FileSystem) RemoveFile(gameId int64, kind string, name string) error {
+func (f FileSystem) RemoveFile(file manifest.FileInfo) error {
 	var fPath string
-	if kind == "installer" {
-		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "installers", name)
-	} else if kind == "extra" {
-		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "extras", name)
+	if file.Kind == "installer" {
+		fPath = path.Join(f.Path, strconv.FormatInt(file.Game.Id, 10), "installers", file.Name)
+	} else if file.Kind == "extra" {
+		fPath = path.Join(f.Path, strconv.FormatInt(file.Game.Id, 10), "extras", file.Name)
 	} else {
 		return errors.New("Unknown kind of file")
 	}
@@ -415,34 +415,34 @@ func (f FileSystem) RemoveFile(gameId int64, kind string, name string) error {
 		return err
 	}
 
-	f.logger.Debug(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", gameId, kind, name))
+	f.logger.Debug(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", file.Game.Id, file.Kind, file.Name))
 	return nil
 }
 
-func (f FileSystem) DownloadFile(gameId int64, kind string, name string) (io.ReadCloser, int64, error) {
+func (f FileSystem) DownloadFile(file manifest.FileInfo) (io.ReadCloser, int64, error) {
 	var fPath string
-	if kind == "installer" {
-		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "installers", name)
-	} else if kind == "extra" {
-		fPath = path.Join(f.Path, strconv.FormatInt(gameId, 10), "extras", name)
+	if file.Kind == "installer" {
+		fPath = path.Join(f.Path, strconv.FormatInt(file.Game.Id, 10), "installers", file.Name)
+	} else if file.Kind == "extra" {
+		fPath = path.Join(f.Path, strconv.FormatInt(file.Game.Id, 10), "extras", file.Name)
 	} else {
-		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Unknown kind of file", gameId, kind, name)
+		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Unknown kind of file", file.Game.Id, file.Kind, file.Name)
 		return nil, 0, errors.New(msg)
 	}
 
 	fi, err := os.Stat(fPath)
 	if err != nil {
-		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while retrieving file size: %s", gameId, kind, name, err.Error())
+		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while retrieving file size: %s", file.Game.Id, file.Kind, file.Name, err.Error())
 		return nil, 0, errors.New(msg)
 	}
 	size := fi.Size()
 
 	downloadHandle, openErr := os.Open(fPath)
 	if openErr != nil {
-		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while opening file for download: %s", gameId, kind, name, openErr.Error())
+		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while opening file for download: %s", file.Game.Id, file.Kind, file.Name, openErr.Error())
 		return nil, 0, errors.New(msg)
 	}
 
-	f.logger.Debug(fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Fetched file download handle", gameId, kind, name))
+	f.logger.Debug(fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Fetched file download handle", file.Game.Id, file.Kind, file.Name))
 	return downloadHandle, size, nil
 }

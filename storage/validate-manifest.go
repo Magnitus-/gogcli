@@ -10,9 +10,9 @@ import (
 )
 
 func validateFile(info manifest.FileInfo, s Storage, verifyChecksum bool, errChan chan error) {
-	downloadHandle, size, err := s.DownloadFile(info.GameId, info.Kind, info.Name)
+	downloadHandle, size, err := s.DownloadFile(info)
 	if err != nil {
-		msg := fmt.Sprintf("validateFile(FileInfo{GameId: %d, Kind: %s, Name: %s}, ...) -> Error occured while getting the file's download handle: %s", info.GameId, info.Kind, info.Name, err.Error())
+		msg := fmt.Sprintf("validateFile(FileInfo{Game: {id: %d, ...}, Kind: %s, Name: %s, ...}, ...) -> Error occured while getting the file's download handle: %s", info.Game.Id, info.Kind, info.Name, err.Error())
 		errChan <- errors.New(msg)
 		return
 	}
@@ -22,19 +22,19 @@ func validateFile(info manifest.FileInfo, s Storage, verifyChecksum bool, errCha
 	checksum := hex.EncodeToString(h.Sum(nil))
 
 	if size != info.Size {
-		msg := fmt.Sprintf("validateFile(FileInfo{GameId: %d, Kind: %s, Name: %s}, ...) -> Actual file size of %d did not match the expected size of %d", info.GameId, info.Kind, info.Name, size, info.Size)
+		msg := fmt.Sprintf("validateFile(FileInfo{Game: {id: %d, ...}, Kind: %s, Name: %s, ...}, ...) -> Actual file size of %d did not match the expected size of %d", info.Game.Id, info.Kind, info.Name, size, info.Size)
 		errChan <- errors.New(msg)
 		return
 	}
 
 	if size != info.Size {
-		msg := fmt.Sprintf("validateFile(FileInfo{GameId: %d, Kind: %s, Name: %s}, ...) -> Actual file size of %d did not match the expected size of %d", info.GameId, info.Kind, info.Name, size, info.Size)
+		msg := fmt.Sprintf("validateFile(FileInfo{Game: {id: %d, ...}, Kind: %s, Name: %s, ...}, ...) -> Actual file size of %d did not match the expected size of %d", info.Game.Id, info.Kind, info.Name, size, info.Size)
 		errChan <- errors.New(msg)
 		return
 	}
 
 	if verifyChecksum && checksum != info.Checksum {
-		msg := fmt.Sprintf("validateFile(FileInfo{GameId: %d, Kind: %s, Name: %s}, ...) -> Actual file checksum of %s did not match the expected checksum of %s", info.GameId, info.Kind, info.Name, checksum, info.Checksum)
+		msg := fmt.Sprintf("validateFile(FileInfo{Game: {id: %d, ...}, Kind: %s, Name: %s, ...}, ...) -> Actual file checksum of %s did not match the expected checksum of %s", info.Game.Id, info.Kind, info.Name, checksum, info.Checksum)
 		errChan <- errors.New(msg)
 		return
 	}

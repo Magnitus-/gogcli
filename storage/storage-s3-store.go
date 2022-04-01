@@ -393,36 +393,36 @@ func (s S3Store) RemoveSource() error {
 	return err
 }
 
-func (s S3Store) AddGame(gameId int64) error {
-	s.logger.Debug(fmt.Sprintf("AddGame(gameId=%d) -> No-op as s3 store doesn't have a real directory structure", gameId))
+func (s S3Store) AddGame(game manifest.GameInfo) error {
+	s.logger.Debug(fmt.Sprintf("AddGame(game={Id=%d, ...}) -> No-op as s3 store doesn't have a real directory structure", game.Id))
 	return nil
 }
 
-func (s S3Store) RemoveGame(gameId int64) error {
-	s.logger.Debug(fmt.Sprintf("RemoveGame(gameId=%d) -> No-op as s3 store doesn't have a real directory structure", gameId))
+func (s S3Store) RemoveGame(game manifest.GameInfo) error {
+	s.logger.Debug(fmt.Sprintf("RemoveGame(game={Id=%d, ...}) -> No-op as s3 store doesn't have a real directory structure", game.Id))
 	return nil
 }
 
-func (s S3Store) UploadFile(source io.ReadCloser, gameId int64, kind string, name string, expectedSize int64) (string, error) {
+func (s S3Store) UploadFile(source io.ReadCloser, file manifest.FileInfo) (string, error) {
 	configs := *s.configs
 
 	var fPath string
-	if kind == "installer" {
-		arr := []string{strconv.FormatInt(gameId, 10), "installers", name}
+	if file.Kind == "installer" {
+		arr := []string{strconv.FormatInt(file.Game.Id, 10), "installers", file.Name}
 		fPath = strings.Join(arr, "/")
-	} else if kind == "extra" {
-		arr := []string{strconv.FormatInt(gameId, 10), "extras", name}
+	} else if file.Kind == "extra" {
+		arr := []string{strconv.FormatInt(file.Game.Id, 10), "extras", file.Name}
 		fPath = strings.Join(arr, "/")
 	} else {
 		return "", errors.New("Unknown kind of file")
 	}
 
-	_, err := s.client.PutObject(context.Background(), configs.Bucket, fPath, source, expectedSize, minio.PutObjectOptions{})
+	_, err := s.client.PutObject(context.Background(), configs.Bucket, fPath, source, file.Size, minio.PutObjectOptions{})
 	if err != nil {
 		return "", err
 	}
 
-	downloadHandle, size, downErr := s.DownloadFile(gameId, kind, name)
+	downloadHandle, size, downErr := s.DownloadFile(file)
 	if downErr != nil {
 		return "", downErr
 	}
@@ -431,24 +431,24 @@ func (s S3Store) UploadFile(source io.ReadCloser, gameId int64, kind string, nam
 	io.Copy(h, downloadHandle)
 	checksum := hex.EncodeToString(h.Sum(nil))
 
-	if size != expectedSize {
-		msg := fmt.Sprintf("Object %s has a size of %d which doesn't match expected size of %d", fPath, size, expectedSize)
+	if size != file.Size {
+		msg := fmt.Sprintf("Object %s has a size of %d which doesn't match expected size of %d", fPath, size, file.Size)
 		return "", errors.New(msg)
 	}
 
-	s.logger.Debug(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", gameId, kind, name))
+	s.logger.Debug(fmt.Sprintf("UploadFile(source=..., gameId=%d, kind=%s, name=%s) -> Uploaded file", file.Game.Id, file.Kind, file.Name))
 	return checksum, nil
 }
 
-func (s S3Store) RemoveFile(gameId int64, kind string, name string) error {
+func (s S3Store) RemoveFile(file manifest.FileInfo) error {
 	configs := *s.configs
 
 	var oPath string
-	if kind == "installer" {
-		arr := []string{strconv.FormatInt(gameId, 10), "installers", name}
+	if file.Kind == "installer" {
+		arr := []string{strconv.FormatInt(file.Game.Id, 10), "installers", file.Name}
 		oPath = strings.Join(arr, "/")
-	} else if kind == "extra" {
-		arr := []string{strconv.FormatInt(gameId, 10), "extras", name}
+	} else if file.Kind == "extra" {
+		arr := []string{strconv.FormatInt(file.Game.Id, 10), "extras", file.Name}
 		oPath = strings.Join(arr, "/")
 	} else {
 		return errors.New("Unknown kind of file")
@@ -467,38 +467,38 @@ func (s S3Store) RemoveFile(gameId int64, kind string, name string) error {
 		}
 	}
 
-	s.logger.Debug(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", gameId, kind, name))
+	s.logger.Debug(fmt.Sprintf("RemoveFile(gameId=%d, kind=%s, name=%s) -> Removed file", file.Game.Id, file.Kind, file.Name))
 	return nil
 }
 
-func (s S3Store) DownloadFile(gameId int64, kind string, name string) (io.ReadCloser, int64, error) {
+func (s S3Store) DownloadFile(file manifest.FileInfo) (io.ReadCloser, int64, error) {
 	configs := *s.configs
 
 	var fPath string
-	if kind == "installer" {
-		arr := []string{strconv.FormatInt(gameId, 10), "installers", name}
+	if file.Kind == "installer" {
+		arr := []string{strconv.FormatInt(file.Game.Id, 10), "installers", file.Name}
 		fPath = strings.Join(arr, "/")
-	} else if kind == "extra" {
-		arr := []string{strconv.FormatInt(gameId, 10), "extras", name}
+	} else if file.Kind == "extra" {
+		arr := []string{strconv.FormatInt(file.Game.Id, 10), "extras", file.Name}
 		fPath = strings.Join(arr, "/")
 	} else {
-		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Unknown kind of file", gameId, kind, name)
+		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Unknown kind of file", file.Game.Id, file.Kind, file.Name)
 		return nil, 0, errors.New(msg)
 	}
 
 	fi, err := s.client.StatObject(context.Background(), configs.Bucket, fPath, minio.StatObjectOptions{})
 	if err != nil {
-		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while retrieving file size: %s", gameId, kind, name, err.Error())
+		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while retrieving file size: %s", file.Game.Id, file.Kind, file.Name, err.Error())
 		return nil, 0, errors.New(msg)
 	}
 	size := fi.Size
 
 	downloadHandle, openErr := s.client.GetObject(context.Background(), configs.Bucket, fPath, minio.GetObjectOptions{})
 	if openErr != nil {
-		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while opening file for download: %s", gameId, kind, name, openErr.Error())
+		msg := fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Error occured while opening file for download: %s", file.Game.Id, file.Kind, file.Name, openErr.Error())
 		return nil, 0, errors.New(msg)
 	}
 
-	s.logger.Debug(fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Fetched file download handle", gameId, kind, name))
+	s.logger.Debug(fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Fetched file download handle", file.Game.Id, file.Kind, file.Name))
 	return downloadHandle, size, nil
 }

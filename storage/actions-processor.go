@@ -63,8 +63,6 @@ func GetActionsProcessor(
 }
 
 func (p ActionsProcessor) addFileAction(
-	gameId int64,
-	fileKind string,
 	fileInfo manifest.FileInfo,
 	action manifest.FileAction,
 	s Storage,
@@ -77,20 +75,20 @@ func (p ActionsProcessor) addFileAction(
 			return
 		}
 
-		p.logger.Warning(fmt.Sprintf("Problem updating/creating file %d/%ss/%s (%d retries left) => %s", gameId, fileKind, fileInfo.Name, retriesLeft, err.Error()))
-		p.addFileAction(gameId, fileKind, fileInfo, action, s, d, retriesLeft-1)
+		p.logger.Warning(fmt.Sprintf("Problem updating/creating file %d/%ss/%s (%d retries left) => %s", fileInfo.Game.Id, fileInfo.Kind, fileInfo.Name, retriesLeft, err.Error()))
+		p.addFileAction(fileInfo, action, s, d, retriesLeft-1)
 	}
 
-	fn := fmt.Sprintf("addFileAction(gameId=%d, fileInfo={Kind=%s, Name=%s, ...}, ...)", gameId, fileInfo.Kind, fileInfo.Name)
+	fn := fmt.Sprintf("addFileAction(fileInfo={Game={Id=%d, ...}, Kind=%s, Name=%s, ...}, ...)", fileInfo.Game.Id, fileInfo.Kind, fileInfo.Name)
 	r := ActionResult{
-		gameId:   gameId,
-		fileKind: fileKind,
+		gameId:   fileInfo.Game.Id,
+		fileKind: fileInfo.Kind,
 		action:   action,
 		fileName: action.Name,
 		end:      false,
 	}
 
-	handle, fSize, _, err := d.Download(gameId, action)
+	handle, fSize, _, err := d.Download(fileInfo)
 	if err != nil {
 		r.err = err
 		handleErr(err)
@@ -106,7 +104,8 @@ func (p ActionsProcessor) addFileAction(
 	}
 
 	r.fileSize = fSize
-	fChecksum, uploadErr := s.UploadFile(handle, gameId, fileKind, action.Name, fSize)
+	fileInfo.Size = fSize
+	fChecksum, uploadErr := s.UploadFile(handle, fileInfo)
 	if err != nil {
 		r.err = uploadErr
 		handleErr(uploadErr)
@@ -121,7 +120,7 @@ func (p ActionsProcessor) addFileAction(
 	}
 
 	if fileInfo.Checksum == "" && strings.HasSuffix(fileInfo.Name, ".zip") {
-		err = ValidateZipArchive(s, gameId, fileKind, fileInfo.Name)
+		err = ValidateZipArchive(s, fileInfo)
 		if err != nil {
 			msg := fmt.Sprintf("%s -> Error occured while validating Zip archive %s: %s", fn, fileInfo.Name, err.Error())
 			r.err = errors.New(msg)
@@ -133,7 +132,7 @@ func (p ActionsProcessor) addFileAction(
 	r.fileChecksum = fChecksum
 	p.actionResultChan <- r
 	p.actionErrChan <- nil
-	p.logger.Info(fmt.Sprintf("Created/Updated file: %d/%ss/%s", gameId, fileKind, fileInfo.Name))
+	p.logger.Info(fmt.Sprintf("Created/Updated file: %d/%ss/%s", fileInfo.Game.Id, fileInfo.Kind, fileInfo.Name))
 }
 
 func (p ActionsProcessor) launchActions(m *manifest.Manifest, iterator *manifest.ActionsIterator, s Storage, d Downloader) {
@@ -141,6 +140,11 @@ func (p ActionsProcessor) launchActions(m *manifest.Manifest, iterator *manifest
 	jobsRunning := 0
 	concurrency := p.concurrency
 	gamesToDo := -1
+
+	gamesMap := map[int64]manifest.ManifestGame{}
+	for _, game := range (*m).Games {
+		gamesMap[game.Id] = game
+	}
 
 	for true {
 		_, iterGamesToDo, _ := iterator.GetProgress()
@@ -154,8 +158,10 @@ func (p ActionsProcessor) launchActions(m *manifest.Manifest, iterator *manifest
 			if nextErr != nil {
 				errs = append(errs, nextErr)
 			} else if !action.IsFileAction {
+				game := gamesMap[action.GameId]
+				gameInfo := manifest.GameInfo{Id: game.Id, Slug: game.Slug, Title: game.Title}
 				if action.GameAction == "add" {
-					err := s.AddGame(action.GameId)
+					err := s.AddGame(gameInfo)
 					if err != nil {
 						errs = append(errs, err)
 					} else {
@@ -163,7 +169,7 @@ func (p ActionsProcessor) launchActions(m *manifest.Manifest, iterator *manifest
 						p.logger.Info(fmt.Sprintf("Created directory for new game: %d", action.GameId))
 					}
 				} else if action.GameAction == "remove" {
-					err := s.RemoveGame(action.GameId)
+					err := s.RemoveGame(gameInfo)
 					if err != nil {
 						errs = append(errs, err)
 					} else {
@@ -173,16 +179,16 @@ func (p ActionsProcessor) launchActions(m *manifest.Manifest, iterator *manifest
 				}
 			} else {
 				fileActionPtr := action.FileActionPtr
-				if (*fileActionPtr).Action == "add" {
-					fileInfo, err := (*m).GetFileActionFileInfo(action.GameId, (*fileActionPtr))
-					if err != nil {
-						errs = append(errs, err)
-					} else {
+				game := gamesMap[action.GameId]
+				gameInfo := manifest.GameInfo{Id: game.Id, Slug: game.Slug, Title: game.Title}
+				fileInfo, err := (*m).GetFileActionFileInfo(gameInfo, (*fileActionPtr))
+				if err == nil {
+					errs = append(errs, err)
+				} else {
+					if (*fileActionPtr).Action == "add" {
 						concurrency--
 						jobsRunning++
 						go p.addFileAction(
-							action.GameId,
-							(*fileActionPtr).Kind,
 							fileInfo,
 							(*fileActionPtr),
 							s,
@@ -190,14 +196,14 @@ func (p ActionsProcessor) launchActions(m *manifest.Manifest, iterator *manifest
 							p.retries,
 						)
 						p.logger.Info(fmt.Sprintf("Creating/Updating file: %d/%ss/%s", action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name))
-					}
-				} else if (*fileActionPtr).Action == "remove" {
-					err := s.RemoveFile(action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name)
-					if err != nil {
-						errs = append(errs, err)
-					} else {
-						p.doneActionChan <- DoneAction{action: action, end: false}
-						p.logger.Info(fmt.Sprintf("Deleted file: %d/%ss/%s", action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name))
+					} else if (*fileActionPtr).Action == "remove" {
+						err = s.RemoveFile(fileInfo)
+						if err != nil {
+							errs = append(errs, err)
+						} else {
+							p.doneActionChan <- DoneAction{action: action, end: false}
+							p.logger.Info(fmt.Sprintf("Deleted file: %d/%ss/%s", action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name))
+						}
 					}
 				}
 			}

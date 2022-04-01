@@ -23,9 +23,9 @@ type Storage interface {
 	LoadSource() (*Source, error)
 	RemoveActions() error
 	RemoveSource() error
-	AddGame(gameId int64) error
-	RemoveGame(gameId int64) error
-	UploadFile(source io.ReadCloser, gameId int64, kind string, name string, expectedSize int64) (string, error)
-	RemoveFile(gameId int64, kind string, name string) error
-	DownloadFile(gameId int64, kind string, name string) (io.ReadCloser, int64, error)
+	AddGame(game manifest.GameInfo) error
+	RemoveGame(game manifest.GameInfo) error
+	UploadFile(source io.ReadCloser, file manifest.FileInfo) (string, error)
+	RemoveFile(file manifest.FileInfo) error
+	DownloadFile(file manifest.FileInfo) (io.ReadCloser, int64, error)
 }

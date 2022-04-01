@@ -2,8 +2,14 @@ package manifest
 
 import "errors"
 
+type GameInfo struct {
+	Id int64
+	Slug          string
+	Title         string
+}
+
 type FileInfo struct {
-	GameId   int64
+	Game     GameInfo
 	Kind     string
 	Name     string
 	Checksum string
@@ -45,7 +51,7 @@ func (i *ManifestFileIterator) HasMore() bool {
 func (i *ManifestFileIterator) Next() (FileInfo, error) {
 	if !i.HasMore() {
 		return FileInfo{
-			GameId:   -1,
+			Game:     GameInfo{Id: -1, Slug: "", Title: ""},
 			Kind:     "",
 			Name:     "",
 			Checksum: "",
@@ -57,7 +63,7 @@ func (i *ManifestFileIterator) Next() (FileInfo, error) {
 	currentGame := (*(*i).manifestPtr).Games[(*i).currentGame]
 	if (*i).currentInstaller < len(currentGame.Installers) {
 		new := FileInfo{
-			GameId:   currentGame.Id,
+			Game:     GameInfo{Id: currentGame.Id, Slug: currentGame.Slug, Title: currentGame.Title},
 			Kind:     "installer",
 			Name:     currentGame.Installers[(*i).currentInstaller].Name,
 			Checksum: currentGame.Installers[(*i).currentInstaller].Checksum,
@@ -68,7 +74,7 @@ func (i *ManifestFileIterator) Next() (FileInfo, error) {
 		return new, nil
 	} else if (*i).currentExtra < len(currentGame.Extras) {
 		new := FileInfo{
-			GameId:   currentGame.Id,
+			Game:   GameInfo{Id: currentGame.Id, Slug: currentGame.Slug, Title: currentGame.Title},
 			Kind:     "extra",
 			Name:     currentGame.Extras[(*i).currentExtra].Name,
 			Checksum: currentGame.Extras[(*i).currentExtra].Checksum,

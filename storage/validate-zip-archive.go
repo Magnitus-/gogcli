@@ -4,18 +4,19 @@ import (
 	"archive/zip"
 	"errors"
 	"fmt"
+	"gogcli/manifest"
 	"io"
 	"io/ioutil"
 )
 
-func ValidateZipArchive(s Storage, gameId int64, fileKind string, fileName string) error {
-	fn := fmt.Sprintf("ValidateZipArchive(.., gameId=%d, fileKind=%s, fileName=%s)", gameId, fileKind, fileName)
+func ValidateZipArchive(s Storage, file manifest.FileInfo) error {
+	fn := fmt.Sprintf("ValidateZipArchive(..., file={game={Id=%d, ...}, Kind=%s, Name=%s, ...})", file.Game.Id, file.Kind, file.Name)
 	if !s.SupportsReaderAt() {
 		msg := fmt.Sprintf("%s -> Provided storage doesn't support downloading fixed length subset of file from a given offset", fn)
 		return errors.New(msg)
 	}
 
-	download, size, err := s.DownloadFile(gameId, fileKind, fileName)
+	download, size, err := s.DownloadFile(file)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> Error occurred getting download from store: %s", fn, err.Error())
 		return errors.New(msg)

@@ -245,9 +245,9 @@ func (curr *Manifest) Plan(next *Manifest, checksumValidation string, ignoreMeta
 	return &actions
 }
 
-func (m *Manifest) GetFileActionFileInfo(gameId int64, action FileAction) (FileInfo, error) {
+func (m *Manifest) GetFileActionFileInfo(gameInfo GameInfo, action FileAction) (FileInfo, error) {
 	for idx, _ := range (*m).Games {
-		if (*m).Games[idx].Id == gameId {
+		if (*m).Games[idx].Id == gameInfo.Id {
 			game := (*m).Games[idx]
 			if action.Kind == "installer" {
 				installer, err := game.GetInstallerNamed(action.Name)
@@ -255,7 +255,7 @@ func (m *Manifest) GetFileActionFileInfo(gameId int64, action FileAction) (FileI
 					return FileInfo{}, err
 				}
 				return FileInfo{
-					GameId:   gameId,
+					Game:     gameInfo,
 					Kind:     "installer",
 					Name:     installer.Name,
 					Checksum: installer.Checksum,
@@ -268,7 +268,7 @@ func (m *Manifest) GetFileActionFileInfo(gameId int64, action FileAction) (FileI
 					return FileInfo{}, err
 				}
 				return FileInfo{
-					GameId:   gameId,
+					Game:     gameInfo,
 					Kind:     "extra",
 					Name:     extra.Name,
 					Checksum: extra.Checksum,
@@ -279,6 +279,6 @@ func (m *Manifest) GetFileActionFileInfo(gameId int64, action FileAction) (FileI
 		}
 	}
 
-	msg := fmt.Sprintf("*Manifest.GetFileActionFileInfo(gameId=%d, ...) -> Game with given id not found in manifest", gameId)
+	msg := fmt.Sprintf("*Manifest.GetFileActionFileInfo(gameId=%d, ...) -> Game with given id not found in manifest", gameInfo.Id)
 	return FileInfo{}, errors.New(msg)
 }

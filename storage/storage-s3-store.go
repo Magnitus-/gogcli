@@ -107,15 +107,17 @@ func (s S3Store) GetListing() (*StorageListing, error) {
 			gameListing, ok := listing.Games[gameId]
 			if !ok {
 				gameListing = StorageListingGame{
-					Id:         gameId,
-					Installers: make([]string, 0),
-					Extras:     make([]string, 0),
+					Game:       manifest.GameInfo{Id: gameId},
+					Installers: make([]manifest.FileInfo, 0),
+					Extras:     make([]manifest.FileInfo, 0),
 				}
 			}
 			if match[2] == "installers" {
-				gameListing.Installers = append(gameListing.Installers, match[3])
+				fileInfo := manifest.FileInfo{Game: listing.Games[gameId].Game, Name: match[3], Kind: "installer"}
+				gameListing.Installers = append(gameListing.Installers, fileInfo)
 			} else {
-				gameListing.Extras = append(gameListing.Extras, match[3])
+				fileInfo := manifest.FileInfo{Game: listing.Games[gameId].Game, Name: match[3], Kind: "extra"}
+				gameListing.Extras = append(gameListing.Extras, fileInfo)
 			}
 			listing.Games[gameId] = gameListing
 		}

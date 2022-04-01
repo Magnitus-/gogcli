@@ -52,10 +52,11 @@ func (f FileSystem) GetListing() (*StorageListing, error) {
 			continue
 		}
 
+		gameInfo := manifest.GameInfo{Id: gameId}
 		gameListing := StorageListingGame{
-			Id:         gameId,
-			Installers: make([]string, 0),
-			Extras:     make([]string, 0),
+			Game:       gameInfo,
+			Installers: make([]manifest.FileInfo, 0),
+			Extras:     make([]manifest.FileInfo, 0),
 		}
 
 		installers, err := ioutil.ReadDir(path.Join(f.Path, file.Name(), "installers"))
@@ -63,7 +64,8 @@ func (f FileSystem) GetListing() (*StorageListing, error) {
 			return nil, err
 		}
 		for _, installer := range installers {
-			gameListing.Installers = append(gameListing.Installers, installer.Name())
+			fileInfo := manifest.FileInfo{Game: gameInfo, Name: installer.Name(), Kind: "installer"}
+			gameListing.Installers = append(gameListing.Installers, fileInfo)
 		}
 
 		extras, err := ioutil.ReadDir(path.Join(f.Path, file.Name(), "extras"))
@@ -71,7 +73,8 @@ func (f FileSystem) GetListing() (*StorageListing, error) {
 			return nil, err
 		}
 		for _, extra := range extras {
-			gameListing.Extras = append(gameListing.Extras, extra.Name())
+			fileInfo := manifest.FileInfo{Game: gameInfo, Name: extra.Name(), Kind: "extra"}
+			gameListing.Extras = append(gameListing.Extras, fileInfo)
 		}
 
 		listing.Games[gameId] = gameListing

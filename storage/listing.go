@@ -8,17 +8,9 @@ import (
 )
 
 type StorageListingGame struct {
-	Id         int64
-	Installers []string
-	Extras     []string
-}
-
-func NewEmptyStorageListingGame(id int64) StorageListingGame {
-	return StorageListingGame{
-		Id:         id,
-		Installers: make([]string, 0),
-		Extras:     make([]string, 0),
-	}
+	Game       manifest.GameInfo
+	Installers []manifest.FileInfo
+	Extras     []manifest.FileInfo
 }
 
 type ListingFileRetrieval struct {
@@ -26,14 +18,8 @@ type ListingFileRetrieval struct {
 	Error error
 }
 
-func (g StorageListingGame) RetrieveFileInfo(name string, kind string, d Downloader, c chan ListingFileRetrieval) {
-	handle, size, name, err := d.Download(
-		g.Id,
-		manifest.FileAction{
-			Name: name,
-			Kind: kind,
-		},
-	)
+func (g StorageListingGame) RetrieveFileInfo(f manifest.FileInfo, d Downloader, c chan ListingFileRetrieval) {
+	handle, size, _, err := d.Download(f)
 	defer handle.Close()
 	if err != nil {
 		c <- ListingFileRetrieval{
@@ -48,9 +34,9 @@ func (g StorageListingGame) RetrieveFileInfo(name string, kind string, d Downloa
 	checksum := hex.EncodeToString(h.Sum(nil))
 	c <- ListingFileRetrieval{
 		File: manifest.FileInfo{
-			GameId:   g.Id,
-			Kind:     kind,
-			Name:     name,
+			Game:     g.Game,
+			Kind:     f.Kind,
+			Name:     f.Name,
 			Checksum: checksum,
 			Size:     size,
 		},
@@ -67,16 +53,18 @@ func (g StorageListingGame) RetrieveManifestGame(c chan ListingGameRetrieval, d 
 	var err error
 	fileChan := make(chan ListingFileRetrieval)
 	game := manifest.ManifestGame{
-		Id:         g.Id,
+		Id:         g.Game.Id,
+		Slug:       g.Game.Slug,
+		Title:      g.Game.Title,
 		Installers: make([]manifest.ManifestGameInstaller, 0),
 		Extras:     make([]manifest.ManifestGameExtra, 0),
 	}
 
 	for _, inst := range g.Installers {
-		go g.RetrieveFileInfo(inst, "installer", d, fileChan)
+		go g.RetrieveFileInfo(inst, d, fileChan)
 	}
 	for _, extr := range g.Extras {
-		go g.RetrieveFileInfo(extr, "extra", d, fileChan)
+		go g.RetrieveFileInfo(extr, d, fileChan)
 	}
 
 	filesCount := len(g.Installers) + len(g.Extras)

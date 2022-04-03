@@ -182,7 +182,7 @@ func (p ActionsProcessor) launchActions(m *manifest.Manifest, iterator *manifest
 				game := gamesMap[action.GameId]
 				gameInfo := manifest.GameInfo{Id: game.Id, Slug: game.Slug, Title: game.Title}
 				fileInfo, err := (*m).GetFileActionFileInfo(gameInfo, (*fileActionPtr))
-				if err == nil {
+				if err != nil {
 					errs = append(errs, err)
 				} else {
 					if (*fileActionPtr).Action == "add" {

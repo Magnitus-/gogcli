@@ -111,6 +111,13 @@ message FileInfo {
     string Checksum = 6;
 }
 
+message FileInfoNoCheck {
+    GameInfo Game = 1;
+    string Kind = 2;
+    string Name = 3;
+    string Url = 4;
+}
+
 message GetListingRequest {}
 
 message GetListingResponse {
@@ -234,9 +241,7 @@ message UploadFileResponse {
 }
 
 message RemoveFileRequest {
-    int64 GameId = 1;
-    string Kind = 2;
-    string Name = 3;
+    FileInfoNoCheck File = 1;
 }
 
 message RemoveFileResponse {}

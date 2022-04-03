@@ -124,6 +124,12 @@ message GetListingResponse {
     StorageListingGame ListingGame = 1;
 }
 
+message IsSelfVerifyingRequest {}
+
+message IsSelfVerifyingResponse {
+    bool IsSelfVerifying = 1;
+}
+
 message GetPrintableSummaryRequest {}
 
 message GetPrintableSummaryResponse {
@@ -261,6 +267,7 @@ message DownloadFileResponse {
 
 service StorageService {
     rpc GetListing(GetListingRequest) returns (stream GetListingResponse) {};
+    rpc IsSelfVerifying(IsSelfVerifyingRequest) returns (IsSelfVerifyingResponse) {};
     rpc GetPrintableSummary(GetPrintableSummaryRequest) returns (GetPrintableSummaryResponse) {};
     rpc Exists(ExistsRequest) returns (ExistsResponse) {};
     rpc Initialize(InitializeRequest) returns (InitializeResponse) {};

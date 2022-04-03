@@ -87,6 +87,10 @@ func (f FileSystem) SupportsReaderAt() bool {
 	return true
 }
 
+func (f FileSystem) IsSelfVerifying() bool {
+	return false
+}
+
 func (f FileSystem) GenerateSource() *Source {
 	src := Source{Type: "fs", FsPath: f.Path}
 	return &src

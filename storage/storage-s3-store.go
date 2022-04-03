@@ -129,6 +129,10 @@ func (s S3Store) SupportsReaderAt() bool {
 	return true
 }
 
+func (s S3Store) IsSelfVerifying() bool {
+	return false
+}
+
 func (s S3Store) GenerateSource() *Source {
 	src := Source{
 		Type:     "s3",

@@ -115,7 +115,7 @@ func expect(i ActionsIterator, actions []Action, t *testing.T) {
 		}
 
 		next, _ := i.Next()
-		if next.IsFileAction != action.IsFileAction || next.GameId != action.GameId || next.GameAction != action.GameAction || (!equivalentFileActions(next.FileActionPtr, action.FileActionPtr)) {
+		if next.IsFileAction != action.IsFileAction || next.Game.Id != action.Game.Id || next.GameAction != action.GameAction || (!equivalentFileActions(next.FileActionPtr, action.FileActionPtr)) {
 			t.Errorf("Expected action %v and got %v", next, action)
 		}
 	}
@@ -176,51 +176,54 @@ func TestFullIdSort(t *testing.T) {
 		Kind:   "extra",
 		Action: "remove",
 	}
+	gameInfoId1 := GameInfo{Id: 1}
+	gameInfoId2 := GameInfo{Id: 2}
+	gameInfoId3 := GameInfo{Id: 3}
 	expectedActions := []Action{
 		Action{
-			1,
+			gameInfoId1,
 			true,
 			&fileAction1,
 			"",
 		},
 		Action{
-			1,
+			gameInfoId1,
 			true,
 			&fileAction2,
 			"",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			false,
 			nil,
 			"add",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			true,
 			&fileAction3,
 			"",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			true,
 			&fileAction4,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			true,
 			&fileAction5,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			true,
 			&fileAction6,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			false,
 			nil,
 			"remove",
@@ -280,51 +283,54 @@ func TestFullIdSortWithPreferredId(t *testing.T) {
 		Kind:   "extra",
 		Action: "remove",
 	}
+	gameInfoId1 := GameInfo{Id: 1}
+	gameInfoId2 := GameInfo{Id: 2}
+	gameInfoId3 := GameInfo{Id: 3}
 	expectedActions := []Action{
 		Action{
-			3,
+			gameInfoId3,
 			true,
 			&fileAction5,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			true,
 			&fileAction6,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			false,
 			nil,
 			"remove",
 		},
 		Action{
-			1,
+			gameInfoId1,
 			true,
 			&fileAction1,
 			"",
 		},
 		Action{
-			1,
+			gameInfoId1,
 			true,
 			&fileAction2,
 			"",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			false,
 			nil,
 			"add",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			true,
 			&fileAction3,
 			"",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			true,
 			&fileAction4,
 			"",
@@ -370,39 +376,41 @@ func TestMax2TitleSort(t *testing.T) {
 		Kind:   "extra",
 		Action: "remove",
 	}
+	gameInfoId2 := GameInfo{Id: 2}
+	gameInfoId3 := GameInfo{Id: 3}
 	expectedActions := []Action{
 		Action{
-			3,
+			gameInfoId3,
 			true,
 			&fileAction5,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			true,
 			&fileAction6,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			false,
 			nil,
 			"remove",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			false,
 			nil,
 			"add",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			true,
 			&fileAction3,
 			"",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			true,
 			&fileAction4,
 			"",
@@ -448,33 +456,35 @@ func TestMax2SizeSort(t *testing.T) {
 		Kind:   "extra",
 		Action: "remove",
 	}
+	gameInfoId1 := GameInfo{Id: 1}
+	gameInfoId3 := GameInfo{Id: 3}
 	expectedActions := []Action{
 		Action{
-			1,
+			gameInfoId1,
 			true,
 			&fileAction1,
 			"",
 		},
 		Action{
-			1,
+			gameInfoId1,
 			true,
 			&fileAction2,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			true,
 			&fileAction5,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			true,
 			&fileAction6,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			false,
 			nil,
 			"remove",
@@ -520,39 +530,41 @@ func TestMax2DescSizeSort(t *testing.T) {
 		Kind:   "extra",
 		Action: "remove",
 	}
+	gameInfoId2 := GameInfo{Id: 2}
+	gameInfoId3 := GameInfo{Id: 3}
 	expectedActions := []Action{
 		Action{
-			2,
+			gameInfoId2,
 			false,
 			nil,
 			"add",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			true,
 			&fileAction3,
 			"",
 		},
 		Action{
-			2,
+			gameInfoId2,
 			true,
 			&fileAction4,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			true,
 			&fileAction5,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			true,
 			&fileAction6,
 			"",
 		},
 		Action{
-			3,
+			gameInfoId3,
 			false,
 			nil,
 			"remove",

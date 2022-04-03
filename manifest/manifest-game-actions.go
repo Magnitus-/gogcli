@@ -40,8 +40,9 @@ func (g *GameActions) ActionsLeft() int {
 }
 
 func (g *GameActions) ApplyAction(a Action) {
+	gameId := a.Game.Id
 	if a.IsFileAction {
-		game := (*g)[a.GameId]
+		game := (*g)[gameId]
 		if (*a.FileActionPtr).Kind == "installer" {
 			delete(game.InstallerActions, (*a.FileActionPtr).Name)
 		} else {
@@ -50,15 +51,15 @@ func (g *GameActions) ApplyAction(a Action) {
 		if game.IsNoOp() {
 			delete((*g), game.Id)
 		} else {
-			(*g)[a.GameId] = game
+			(*g)[gameId] = game
 		}
 	} else {
 		if a.GameAction == "add" {
-			game := (*g)[a.GameId]
+			game := (*g)[gameId]
 			game.Action = "update"
-			(*g)[a.GameId] = game
+			(*g)[gameId] = game
 		} else {
-			delete((*g), a.GameId)
+			delete((*g), gameId)
 		}
 	}
 }

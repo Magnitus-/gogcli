@@ -16,7 +16,7 @@ type DoneAction struct {
 }
 
 type ActionResult struct {
-	gameId       int64
+	game         manifest.GameInfo
 	fileKind     string
 	action       manifest.FileAction
 	fileName     string
@@ -81,7 +81,7 @@ func (p ActionsProcessor) addFileAction(
 
 	fn := fmt.Sprintf("addFileAction(fileInfo={Game={Id=%d, ...}, Kind=%s, Name=%s, ...}, ...)", fileInfo.Game.Id, fileInfo.Kind, fileInfo.Name)
 	r := ActionResult{
-		gameId:   fileInfo.Game.Id,
+		game:     fileInfo.Game,
 		fileKind: fileInfo.Kind,
 		action:   action,
 		fileName: action.Name,
@@ -158,52 +158,49 @@ func (p ActionsProcessor) launchActions(m *manifest.Manifest, iterator *manifest
 			if nextErr != nil {
 				errs = append(errs, nextErr)
 			} else if !action.IsFileAction {
-				game := gamesMap[action.GameId]
-				gameInfo := manifest.GameInfo{Id: game.Id, Slug: game.Slug, Title: game.Title}
 				if action.GameAction == "add" {
-					err := s.AddGame(gameInfo)
+					err := s.AddGame(action.Game)
 					if err != nil {
 						errs = append(errs, err)
 					} else {
 						p.doneActionChan <- DoneAction{action: action, end: false}
-						p.logger.Info(fmt.Sprintf("Created directory for new game: %d", action.GameId))
+						p.logger.Info(fmt.Sprintf("Created directory for new game: %d", action.Game.Id))
 					}
 				} else if action.GameAction == "remove" {
-					err := s.RemoveGame(gameInfo)
+					err := s.RemoveGame(action.Game)
 					if err != nil {
 						errs = append(errs, err)
 					} else {
 						p.doneActionChan <- DoneAction{action: action, end: false}
-						p.logger.Info(fmt.Sprintf("Deleted directory for deleted game: %d", action.GameId))
+						p.logger.Info(fmt.Sprintf("Deleted directory for deleted game: %d", action.Game.Id))
 					}
 				}
 			} else {
-				fileActionPtr := action.FileActionPtr
-				game := gamesMap[action.GameId]
-				gameInfo := manifest.GameInfo{Id: game.Id, Slug: game.Slug, Title: game.Title}
-				fileInfo, err := (*m).GetFileActionFileInfo(gameInfo, (*fileActionPtr))
-				if err != nil {
-					errs = append(errs, err)
-				} else {
-					if (*fileActionPtr).Action == "add" {
+				fileAction := (*action.FileActionPtr)
+				if fileAction.Action == "add" {
+					fileInfo, err := (*m).GetFileActionFileInfo(action.Game, fileAction)
+					if err != nil {
+						errs = append(errs, err)
+					} else {
 						concurrency--
 						jobsRunning++
 						go p.addFileAction(
 							fileInfo,
-							(*fileActionPtr),
+							fileAction,
 							s,
 							d,
 							p.retries,
 						)
-						p.logger.Info(fmt.Sprintf("Creating/Updating file: %d/%ss/%s", action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name))
-					} else if (*fileActionPtr).Action == "remove" {
-						err = s.RemoveFile(fileInfo)
-						if err != nil {
-							errs = append(errs, err)
-						} else {
-							p.doneActionChan <- DoneAction{action: action, end: false}
-							p.logger.Info(fmt.Sprintf("Deleted file: %d/%ss/%s", action.GameId, (*fileActionPtr).Kind, (*fileActionPtr).Name))
-						}
+						p.logger.Info(fmt.Sprintf("Creating/Updating file: %d/%ss/%s", action.Game.Id, fileAction.Kind, fileAction.Name))
+					}
+				} else if fileAction.Action == "remove" {
+					fileInfo := manifest.FileInfo{Game: action.Game, Kind: fileAction.Kind, Name: fileAction.Name, Url: fileAction.Url}
+					err := s.RemoveFile(fileInfo)
+					if err != nil {
+						errs = append(errs, err)
+					} else {
+						p.doneActionChan <- DoneAction{action: action, end: false}
+						p.logger.Info(fmt.Sprintf("Deleted file: %d/%ss/%s", action.Game.Id, fileAction.Kind, fileAction.Name))
 					}
 				}
 			}
@@ -237,7 +234,7 @@ func (p ActionsProcessor) keepManifestUpdated(m *manifest.Manifest, s Storage) {
 		if r.end {
 			break
 		}
-		err := m.FillMissingFileInfo(r.gameId, r.fileKind, r.fileName, r.fileSize, r.fileChecksum)
+		err := m.FillMissingFileInfo(r.game.Id, r.fileKind, r.fileName, r.fileSize, r.fileChecksum)
 		if err != nil {
 			errs = append(errs, err)
 		} else {
@@ -246,7 +243,7 @@ func (p ActionsProcessor) keepManifestUpdated(m *manifest.Manifest, s Storage) {
 				errs = append(errs, err)
 			} else {
 				action := manifest.Action{
-					GameId:        r.gameId,
+					Game:          r.game,
 					IsFileAction:  true,
 					FileActionPtr: &r.action,
 					GameAction:    "",

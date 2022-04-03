@@ -7,7 +7,7 @@ import (
 )
 
 type Action struct {
-	GameId        int64
+	Game          GameInfo
 	IsFileAction  bool
 	FileActionPtr *FileAction
 	GameAction    string
@@ -167,7 +167,7 @@ func (i *ActionsIterator) HasMore() bool {
 func (i *ActionsIterator) Next() (Action, error) {
 	if !i.ShouldContinue() {
 		return Action{
-			GameId:        -1,
+			Game:          GameInfo{},
 			IsFileAction:  false,
 			FileActionPtr: nil,
 			GameAction:    "",
@@ -176,6 +176,7 @@ func (i *ActionsIterator) Next() (Action, error) {
 
 	currentGameId := i.gameIds[0]
 	currentGame := i.gameActions[currentGameId]
+	currentGameInfo := GameInfo{Id: currentGame.Id, Slug: currentGame.Slug, Title: currentGame.Title}
 
 	remainingFileActions := len(i.extraNames) + len(i.installerNames)
 	onlyOneFileActionRemains := i.currentGameActionDone && remainingFileActions == 1
@@ -187,7 +188,7 @@ func (i *ActionsIterator) Next() (Action, error) {
 	if (!i.currentGameActionDone) && currentGame.Action == "add" {
 		i.currentGameActionDone = true
 		return Action{
-			GameId:        currentGameId,
+			Game:          currentGameInfo,
 			IsFileAction:  false,
 			FileActionPtr: nil,
 			GameAction:    "add",
@@ -199,7 +200,7 @@ func (i *ActionsIterator) Next() (Action, error) {
 		i.installerNames = i.installerNames[1:]
 		fileAction := currentGame.InstallerActions[name]
 		return Action{
-			GameId:        currentGameId,
+			Game:          currentGameInfo,
 			IsFileAction:  true,
 			FileActionPtr: &fileAction,
 			GameAction:    "",
@@ -211,7 +212,7 @@ func (i *ActionsIterator) Next() (Action, error) {
 		i.extraNames = i.extraNames[1:]
 		fileAction := currentGame.ExtraActions[name]
 		return Action{
-			GameId:        currentGameId,
+			Game:          currentGameInfo,
 			IsFileAction:  true,
 			FileActionPtr: &fileAction,
 			GameAction:    "",
@@ -221,7 +222,7 @@ func (i *ActionsIterator) Next() (Action, error) {
 	if (!i.currentGameActionDone) && currentGame.Action == "remove" {
 		i.currentGameActionDone = true
 		return Action{
-			GameId:        currentGameId,
+			Game:          currentGameInfo,
 			IsFileAction:  false,
 			FileActionPtr: nil,
 			GameAction:    "remove",

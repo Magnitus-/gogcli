@@ -81,6 +81,7 @@ func (g *GameActions) DeepCopy() *GameActions {
 	for id, _ := range *g {
 		newGame := GameAction{
 			Title:            (*g)[id].Title,
+			Slug:             (*g)[id].Slug,
 			Id:               (*g)[id].Id,
 			Action:           (*g)[id].Action,
 			InstallerActions: make(map[string]FileAction),
@@ -104,6 +105,7 @@ func (g *GameActions) DeepCopy() *GameActions {
 func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, error) {
 	g := GameAction{
 		Title:            (*m).Title,
+		Slug:             (*m).Slug,
 		Id:               (*m).Id,
 		Action:           action,
 		InstallerActions: make(map[string]FileAction),
@@ -140,6 +142,7 @@ func planManifestGameAddOrRemove(m *ManifestGame, action string) (GameAction, er
 func planManifestGameUpdate(curr *ManifestGame, next *ManifestGame, checksumValidation string, ignoreMetadata bool) GameAction {
 	g := GameAction{
 		Title:            (*curr).Title,
+		Slug:             (*curr).Slug,
 		Id:               (*curr).Id,
 		Action:           "update",
 		InstallerActions: make(map[string]FileAction),

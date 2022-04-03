@@ -12,6 +12,7 @@ type FileAction struct {
 
 type GameAction struct {
 	Title            string
+	Slug             string
 	Id               int64
 	Action           string
 	InstallerActions map[string]FileAction

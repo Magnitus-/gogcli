@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package custom_storage;
-option go_package=".;storageplugin";
+option go_package="./;storageplugin";
 
 message StorageListingGame {
     int64 Id = 1;

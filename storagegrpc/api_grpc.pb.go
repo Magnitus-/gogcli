@@ -19,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StorageServiceClient interface {
 	GetListing(ctx context.Context, in *GetListingRequest, opts ...grpc.CallOption) (StorageService_GetListingClient, error)
-	IsSelfVerifying(ctx context.Context, in *IsSelfVerifyingRequest, opts ...grpc.CallOption) (*IsSelfVerifyingResponse, error)
+	IsSelfValidating(ctx context.Context, in *IsSelfValidatingRequest, opts ...grpc.CallOption) (*IsSelfValidatingResponse, error)
 	GetPrintableSummary(ctx context.Context, in *GetPrintableSummaryRequest, opts ...grpc.CallOption) (*GetPrintableSummaryResponse, error)
 	Exists(ctx context.Context, in *ExistsRequest, opts ...grpc.CallOption) (*ExistsResponse, error)
 	Initialize(ctx context.Context, in *InitializeRequest, opts ...grpc.CallOption) (*InitializeResponse, error)
@@ -81,9 +81,9 @@ func (x *storageServiceGetListingClient) Recv() (*GetListingResponse, error) {
 	return m, nil
 }
 
-func (c *storageServiceClient) IsSelfVerifying(ctx context.Context, in *IsSelfVerifyingRequest, opts ...grpc.CallOption) (*IsSelfVerifyingResponse, error) {
-	out := new(IsSelfVerifyingResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/IsSelfVerifying", in, out, opts...)
+func (c *storageServiceClient) IsSelfValidating(ctx context.Context, in *IsSelfValidatingRequest, opts ...grpc.CallOption) (*IsSelfValidatingResponse, error) {
+	out := new(IsSelfValidatingResponse)
+	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/IsSelfValidating", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -410,7 +410,7 @@ func (x *storageServiceDownloadFileClient) Recv() (*DownloadFileResponse, error)
 // for forward compatibility
 type StorageServiceServer interface {
 	GetListing(*GetListingRequest, StorageService_GetListingServer) error
-	IsSelfVerifying(context.Context, *IsSelfVerifyingRequest) (*IsSelfVerifyingResponse, error)
+	IsSelfValidating(context.Context, *IsSelfValidatingRequest) (*IsSelfValidatingResponse, error)
 	GetPrintableSummary(context.Context, *GetPrintableSummaryRequest) (*GetPrintableSummaryResponse, error)
 	Exists(context.Context, *ExistsRequest) (*ExistsResponse, error)
 	Initialize(context.Context, *InitializeRequest) (*InitializeResponse, error)
@@ -440,8 +440,8 @@ type UnimplementedStorageServiceServer struct {
 func (UnimplementedStorageServiceServer) GetListing(*GetListingRequest, StorageService_GetListingServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetListing not implemented")
 }
-func (UnimplementedStorageServiceServer) IsSelfVerifying(context.Context, *IsSelfVerifyingRequest) (*IsSelfVerifyingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method IsSelfVerifying not implemented")
+func (UnimplementedStorageServiceServer) IsSelfValidating(context.Context, *IsSelfValidatingRequest) (*IsSelfValidatingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsSelfValidating not implemented")
 }
 func (UnimplementedStorageServiceServer) GetPrintableSummary(context.Context, *GetPrintableSummaryRequest) (*GetPrintableSummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPrintableSummary not implemented")
@@ -534,20 +534,20 @@ func (x *storageServiceGetListingServer) Send(m *GetListingResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _StorageService_IsSelfVerifying_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IsSelfVerifyingRequest)
+func _StorageService_IsSelfValidating_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsSelfValidatingRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StorageServiceServer).IsSelfVerifying(ctx, in)
+		return srv.(StorageServiceServer).IsSelfValidating(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/IsSelfVerifying",
+		FullMethod: "/custom_storage.StorageService/IsSelfValidating",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).IsSelfVerifying(ctx, req.(*IsSelfVerifyingRequest))
+		return srv.(StorageServiceServer).IsSelfValidating(ctx, req.(*IsSelfValidatingRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -935,8 +935,8 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*StorageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "IsSelfVerifying",
-			Handler:    _StorageService_IsSelfVerifying_Handler,
+			MethodName: "IsSelfValidating",
+			Handler:    _StorageService_IsSelfValidating_Handler,
 		},
 		{
 			MethodName: "GetPrintableSummary",

@@ -1,25 +1,94 @@
 package storage
 
 import (
+	"context"
 	"gogcli/manifest"
-	_ "gogcli/storagegrpc"
+    "gogcli/storagegrpc"
 	"io"
+
+	"google.golang.org/grpc"
+	_ "google.golang.org/grpc/codes"
 )
 
 type GrpcStore struct {
 	Endpoint  string
+	Connection *grpc.ClientConn
+	Client storagegrpc.StorageServiceClient
+}
+
+func getGrpcStore(endpoint string) (GrpcStore, error) {
+	conn, err := grpc.Dial(endpoint)
+	if err != nil {
+		return GrpcStore{}, err
+	}
+
+	return GrpcStore{endpoint, conn, storagegrpc.NewStorageServiceClient(conn)}, nil
 }
 
 func (g GrpcStore) GetListing() (*StorageListing, error) {
-	return nil, nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	listing := NewEmptyStorageListing(GrpcStoreDownloader{g})
+
+	req := &storagegrpc.GetListingRequest{}
+	resStream, err := g.Client.GetListing(ctx, req)
+	if err != nil {
+		err = convertGrpcError(err)
+		return &listing, err
+	}
+	
+	for {
+		msg, err := resStream.Recv()
+		if err == io.EOF {
+			break;
+		}
+
+		if err != nil {
+			err = convertGrpcError(err)
+			return &listing, err
+		}
+
+		listingGame := msg.GetListingGame()
+		
+		game := convertGrpcGameInfo(listingGame.GetGame())
+
+		installers := []manifest.FileInfo{}
+		for _, installer := range listingGame.GetInstallers() {
+			installers = append(installers, convertGrpcFileInfo(installer))
+		}
+
+		extras := []manifest.FileInfo{}
+		for _, extra := range listingGame.GetExtras() {
+			extras = append(extras, convertGrpcFileInfo(extra))
+		}
+		
+		listing.Games[game.Id] = StorageListingGame{
+			Game: game,
+			Installers: installers,
+			Extras: extras,
+		}
+	}
+
+	return &listing, nil
 }
 
 func (g GrpcStore) SupportsReaderAt() bool {
 	return true
 }
 
-func (g GrpcStore) IsSelfVerifying() bool {
-	return false
+func (g GrpcStore) IsSelfValidating() (bool, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.IsSelfValidatingRequest{}
+	res, err := g.Client.IsSelfValidating(ctx, req)
+	if err != nil {
+		err = convertGrpcError(err)
+		return false, err
+	}
+
+	return res.GetIsSelfValidating(), nil
 }
 
 func (g GrpcStore) GenerateSource() *Source {

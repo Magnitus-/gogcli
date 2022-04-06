@@ -8,7 +8,7 @@ import (
 type Storage interface {
 	GetListing() (*StorageListing, error)
 	SupportsReaderAt() bool
-	IsSelfVerifying() bool
+	IsSelfValidating() (bool, error)
 	GenerateSource() *Source
 	GetPrintableSummary() string
 	Exists() (bool, error)

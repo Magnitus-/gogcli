@@ -3,10 +3,32 @@ syntax = "proto3";
 package custom_storage;
 option go_package="./;storagegrpc";
 
+message GameInfo {
+	int64 Id = 1;
+	string Slug = 2;
+	string Title = 3;
+}
+
+message FileInfo {
+    GameInfo Game = 1;
+    string Kind = 2;
+    string Name = 3;
+    string Url = 4;
+    int64  Size = 5;
+    string Checksum = 6;
+}
+
+message FileInfoNoCheck {
+    GameInfo Game = 1;
+    string Kind = 2;
+    string Name = 3;
+    string Url = 4;
+}
+
 message StorageListingGame {
-    int64 Id = 1;
-    repeated string Installers = 2;
-    repeated string Extras = 3;
+	GameInfo Game = 1;
+    repeated FileInfo Installers = 2;
+    repeated FileInfo Extras = 3;
 }
 
 message ManifestGameInstaller {
@@ -96,38 +118,16 @@ message Source {
     string FsPath = 3;
 }
 
-message GameInfo {
-	int64 Id = 1;
-	string Slug = 2;
-	string Title = 3;
-}
-
-message FileInfo {
-    GameInfo Game = 1;
-    string Kind = 2;
-    string Name = 3;
-    string Url = 4;
-    string Size = 5;
-    string Checksum = 6;
-}
-
-message FileInfoNoCheck {
-    GameInfo Game = 1;
-    string Kind = 2;
-    string Name = 3;
-    string Url = 4;
-}
-
 message GetListingRequest {}
 
 message GetListingResponse {
     StorageListingGame ListingGame = 1;
 }
 
-message IsSelfVerifyingRequest {}
+message IsSelfValidatingRequest {}
 
-message IsSelfVerifyingResponse {
-    bool IsSelfVerifying = 1;
+message IsSelfValidatingResponse {
+    bool IsSelfValidating = 1;
 }
 
 message GetPrintableSummaryRequest {}
@@ -267,7 +267,7 @@ message DownloadFileResponse {
 
 service StorageService {
     rpc GetListing(GetListingRequest) returns (stream GetListingResponse) {};
-    rpc IsSelfVerifying(IsSelfVerifyingRequest) returns (IsSelfVerifyingResponse) {};
+    rpc IsSelfValidating(IsSelfValidatingRequest) returns (IsSelfValidatingResponse) {};
     rpc GetPrintableSummary(GetPrintableSummaryRequest) returns (GetPrintableSummaryResponse) {};
     rpc Exists(ExistsRequest) returns (ExistsResponse) {};
     rpc Initialize(InitializeRequest) returns (InitializeResponse) {};

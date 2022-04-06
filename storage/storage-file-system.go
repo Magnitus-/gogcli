@@ -87,8 +87,8 @@ func (f FileSystem) SupportsReaderAt() bool {
 	return true
 }
 
-func (f FileSystem) IsSelfVerifying() bool {
-	return false
+func (f FileSystem) IsSelfValidating() (bool, error) {
+	return false, nil
 }
 
 func (f FileSystem) GenerateSource() *Source {

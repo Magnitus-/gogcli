@@ -11,8 +11,13 @@ func ExecuteActions(s Storage, d Downloader, a ActionsProcessor) []error {
 		return []error{err}
 	}
 
+	summary, summaryErr := s.GetPrintableSummary()
+
 	if !exists {
-		msg := fmt.Sprintf("Storage %s does not exist", s.GetPrintableSummary())
+		if summaryErr != nil {
+			return []error{errors.New("Storage does not exist")}
+		}
+		msg := fmt.Sprintf("Storage %s does not exist", summary)
 		return []error{errors.New(msg)}
 	}
 
@@ -22,7 +27,10 @@ func ExecuteActions(s Storage, d Downloader, a ActionsProcessor) []error {
 	}
 
 	if !hasManifest {
-		msg := fmt.Sprintf("Storage %s does not have a manifest", s.GetPrintableSummary())
+		if summaryErr != nil {
+			return []error{errors.New("Storage does not have a manifest")}
+		}
+		msg := fmt.Sprintf("Storage %s does not have a manifest", summary)
 		return []error{errors.New(msg)}
 	}
 
@@ -37,7 +45,10 @@ func ExecuteActions(s Storage, d Downloader, a ActionsProcessor) []error {
 	}
 
 	if !hasActions {
-		msg := fmt.Sprintf("Storage %s does not actions to execute", s.GetPrintableSummary())
+		if summaryErr != nil {
+			return []error{errors.New("Storage does not have actions to execute")}
+		}
+		msg := fmt.Sprintf("Storage %s does not have actions to execute", summary)
 		return []error{errors.New(msg)}
 	}
 

@@ -50,7 +50,7 @@ func NewStorageServiceClient(cc grpc.ClientConnInterface) StorageServiceClient {
 }
 
 func (c *storageServiceClient) GetListing(ctx context.Context, in *GetListingRequest, opts ...grpc.CallOption) (StorageService_GetListingClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[0], "/custom_storage.StorageService/GetListing", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[0], "/grpc_storage.StorageService/GetListing", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (x *storageServiceGetListingClient) Recv() (*GetListingResponse, error) {
 
 func (c *storageServiceClient) IsSelfValidating(ctx context.Context, in *IsSelfValidatingRequest, opts ...grpc.CallOption) (*IsSelfValidatingResponse, error) {
 	out := new(IsSelfValidatingResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/IsSelfValidating", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/IsSelfValidating", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (c *storageServiceClient) IsSelfValidating(ctx context.Context, in *IsSelfV
 
 func (c *storageServiceClient) GetPrintableSummary(ctx context.Context, in *GetPrintableSummaryRequest, opts ...grpc.CallOption) (*GetPrintableSummaryResponse, error) {
 	out := new(GetPrintableSummaryResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/GetPrintableSummary", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/GetPrintableSummary", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (c *storageServiceClient) GetPrintableSummary(ctx context.Context, in *GetP
 
 func (c *storageServiceClient) Exists(ctx context.Context, in *ExistsRequest, opts ...grpc.CallOption) (*ExistsResponse, error) {
 	out := new(ExistsResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/Exists", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/Exists", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (c *storageServiceClient) Exists(ctx context.Context, in *ExistsRequest, op
 
 func (c *storageServiceClient) Initialize(ctx context.Context, in *InitializeRequest, opts ...grpc.CallOption) (*InitializeResponse, error) {
 	out := new(InitializeResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/Initialize", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/Initialize", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (c *storageServiceClient) Initialize(ctx context.Context, in *InitializeReq
 
 func (c *storageServiceClient) HasManifest(ctx context.Context, in *HasManifestRequest, opts ...grpc.CallOption) (*HasManifestResponse, error) {
 	out := new(HasManifestResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/HasManifest", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/HasManifest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (c *storageServiceClient) HasManifest(ctx context.Context, in *HasManifestR
 
 func (c *storageServiceClient) HasActions(ctx context.Context, in *HasActionsRequest, opts ...grpc.CallOption) (*HasActionsResponse, error) {
 	out := new(HasActionsResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/HasActions", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/HasActions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (c *storageServiceClient) HasActions(ctx context.Context, in *HasActionsReq
 
 func (c *storageServiceClient) HasSource(ctx context.Context, in *HasSourceRequest, opts ...grpc.CallOption) (*HasSourceResponse, error) {
 	out := new(HasSourceResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/HasSource", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/HasSource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (c *storageServiceClient) HasSource(ctx context.Context, in *HasSourceReque
 }
 
 func (c *storageServiceClient) StoreManifest(ctx context.Context, opts ...grpc.CallOption) (StorageService_StoreManifestClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[1], "/custom_storage.StorageService/StoreManifest", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[1], "/grpc_storage.StorageService/StoreManifest", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (x *storageServiceStoreManifestClient) CloseAndRecv() (*StoreManifestRespon
 }
 
 func (c *storageServiceClient) StoreActions(ctx context.Context, opts ...grpc.CallOption) (StorageService_StoreActionsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[2], "/custom_storage.StorageService/StoreActions", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[2], "/grpc_storage.StorageService/StoreActions", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (x *storageServiceStoreActionsClient) CloseAndRecv() (*StoreActionsResponse
 
 func (c *storageServiceClient) StoreSource(ctx context.Context, in *StoreSourceRequest, opts ...grpc.CallOption) (*StoreSourceResponse, error) {
 	out := new(StoreSourceResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/StoreSource", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/StoreSource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ func (c *storageServiceClient) StoreSource(ctx context.Context, in *StoreSourceR
 }
 
 func (c *storageServiceClient) LoadManifest(ctx context.Context, in *LoadManifestRequest, opts ...grpc.CallOption) (StorageService_LoadManifestClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[3], "/custom_storage.StorageService/LoadManifest", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[3], "/grpc_storage.StorageService/LoadManifest", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +254,7 @@ func (x *storageServiceLoadManifestClient) Recv() (*LoadManifestResponse, error)
 }
 
 func (c *storageServiceClient) LoadActions(ctx context.Context, in *LoadActionsRequest, opts ...grpc.CallOption) (StorageService_LoadActionsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[4], "/custom_storage.StorageService/LoadActions", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[4], "/grpc_storage.StorageService/LoadActions", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +287,7 @@ func (x *storageServiceLoadActionsClient) Recv() (*LoadActionsResponse, error) {
 
 func (c *storageServiceClient) LoadSource(ctx context.Context, in *LoadSourceRequest, opts ...grpc.CallOption) (*LoadSourceResponse, error) {
 	out := new(LoadSourceResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/LoadSource", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/LoadSource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +296,7 @@ func (c *storageServiceClient) LoadSource(ctx context.Context, in *LoadSourceReq
 
 func (c *storageServiceClient) RemoveActions(ctx context.Context, in *RemoveActionsRequest, opts ...grpc.CallOption) (*RemoveActionsResponse, error) {
 	out := new(RemoveActionsResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/RemoveActions", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/RemoveActions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func (c *storageServiceClient) RemoveActions(ctx context.Context, in *RemoveActi
 
 func (c *storageServiceClient) RemoveSource(ctx context.Context, in *RemoveSourceRequest, opts ...grpc.CallOption) (*RemoveSourceResponse, error) {
 	out := new(RemoveSourceResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/RemoveSource", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/RemoveSource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -314,7 +314,7 @@ func (c *storageServiceClient) RemoveSource(ctx context.Context, in *RemoveSourc
 
 func (c *storageServiceClient) AddGame(ctx context.Context, in *AddGameRequest, opts ...grpc.CallOption) (*AddGameResponse, error) {
 	out := new(AddGameResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/AddGame", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/AddGame", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func (c *storageServiceClient) AddGame(ctx context.Context, in *AddGameRequest, 
 
 func (c *storageServiceClient) RemoveGame(ctx context.Context, in *RemoveGameRequest, opts ...grpc.CallOption) (*RemoveGameResponse, error) {
 	out := new(RemoveGameResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/RemoveGame", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/RemoveGame", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +331,7 @@ func (c *storageServiceClient) RemoveGame(ctx context.Context, in *RemoveGameReq
 }
 
 func (c *storageServiceClient) UploadFile(ctx context.Context, opts ...grpc.CallOption) (StorageService_UploadFileClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[5], "/custom_storage.StorageService/UploadFile", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[5], "/grpc_storage.StorageService/UploadFile", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -366,7 +366,7 @@ func (x *storageServiceUploadFileClient) CloseAndRecv() (*UploadFileResponse, er
 
 func (c *storageServiceClient) RemoveFile(ctx context.Context, in *RemoveFileRequest, opts ...grpc.CallOption) (*RemoveFileResponse, error) {
 	out := new(RemoveFileResponse)
-	err := c.cc.Invoke(ctx, "/custom_storage.StorageService/RemoveFile", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/RemoveFile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +374,7 @@ func (c *storageServiceClient) RemoveFile(ctx context.Context, in *RemoveFileReq
 }
 
 func (c *storageServiceClient) DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (StorageService_DownloadFileClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[6], "/custom_storage.StorageService/DownloadFile", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[6], "/grpc_storage.StorageService/DownloadFile", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -544,7 +544,7 @@ func _StorageService_IsSelfValidating_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/IsSelfValidating",
+		FullMethod: "/grpc_storage.StorageService/IsSelfValidating",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).IsSelfValidating(ctx, req.(*IsSelfValidatingRequest))
@@ -562,7 +562,7 @@ func _StorageService_GetPrintableSummary_Handler(srv interface{}, ctx context.Co
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/GetPrintableSummary",
+		FullMethod: "/grpc_storage.StorageService/GetPrintableSummary",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).GetPrintableSummary(ctx, req.(*GetPrintableSummaryRequest))
@@ -580,7 +580,7 @@ func _StorageService_Exists_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/Exists",
+		FullMethod: "/grpc_storage.StorageService/Exists",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).Exists(ctx, req.(*ExistsRequest))
@@ -598,7 +598,7 @@ func _StorageService_Initialize_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/Initialize",
+		FullMethod: "/grpc_storage.StorageService/Initialize",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).Initialize(ctx, req.(*InitializeRequest))
@@ -616,7 +616,7 @@ func _StorageService_HasManifest_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/HasManifest",
+		FullMethod: "/grpc_storage.StorageService/HasManifest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).HasManifest(ctx, req.(*HasManifestRequest))
@@ -634,7 +634,7 @@ func _StorageService_HasActions_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/HasActions",
+		FullMethod: "/grpc_storage.StorageService/HasActions",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).HasActions(ctx, req.(*HasActionsRequest))
@@ -652,7 +652,7 @@ func _StorageService_HasSource_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/HasSource",
+		FullMethod: "/grpc_storage.StorageService/HasSource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).HasSource(ctx, req.(*HasSourceRequest))
@@ -722,7 +722,7 @@ func _StorageService_StoreSource_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/StoreSource",
+		FullMethod: "/grpc_storage.StorageService/StoreSource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).StoreSource(ctx, req.(*StoreSourceRequest))
@@ -782,7 +782,7 @@ func _StorageService_LoadSource_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/LoadSource",
+		FullMethod: "/grpc_storage.StorageService/LoadSource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).LoadSource(ctx, req.(*LoadSourceRequest))
@@ -800,7 +800,7 @@ func _StorageService_RemoveActions_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/RemoveActions",
+		FullMethod: "/grpc_storage.StorageService/RemoveActions",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).RemoveActions(ctx, req.(*RemoveActionsRequest))
@@ -818,7 +818,7 @@ func _StorageService_RemoveSource_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/RemoveSource",
+		FullMethod: "/grpc_storage.StorageService/RemoveSource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).RemoveSource(ctx, req.(*RemoveSourceRequest))
@@ -836,7 +836,7 @@ func _StorageService_AddGame_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/AddGame",
+		FullMethod: "/grpc_storage.StorageService/AddGame",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).AddGame(ctx, req.(*AddGameRequest))
@@ -854,7 +854,7 @@ func _StorageService_RemoveGame_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/RemoveGame",
+		FullMethod: "/grpc_storage.StorageService/RemoveGame",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).RemoveGame(ctx, req.(*RemoveGameRequest))
@@ -898,7 +898,7 @@ func _StorageService_RemoveFile_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/custom_storage.StorageService/RemoveFile",
+		FullMethod: "/grpc_storage.StorageService/RemoveFile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).RemoveFile(ctx, req.(*RemoveFileRequest))
@@ -931,7 +931,7 @@ func (x *storageServiceDownloadFileServer) Send(m *DownloadFileResponse) error {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var StorageService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "custom_storage.StorageService",
+	ServiceName: "grpc_storage.StorageService",
 	HandlerType: (*StorageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

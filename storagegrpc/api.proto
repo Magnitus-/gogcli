@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package custom_storage;
+package grpc_storage;
 option go_package="./;storagegrpc";
 
 message GameInfo {
@@ -112,10 +112,15 @@ message S3Configs {
     string SecretKey = 6;
 }
 
+message GrpcConfigs {
+    string Endpoint = 1;
+}
+
 message Source {
     string Type = 1;
     S3Configs S3Params = 2;
     string FsPath = 3;
+    GrpcConfigs GrpcParams = 4;
 }
 
 message GetListingRequest {}
@@ -133,7 +138,7 @@ message IsSelfValidatingResponse {
 message GetPrintableSummaryRequest {}
 
 message GetPrintableSummaryResponse {
-    string Response = 1;
+    string Summary = 1;
 }
 
 message ExistsRequest {}

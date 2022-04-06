@@ -96,8 +96,8 @@ func (f FileSystem) GenerateSource() *Source {
 	return &src
 }
 
-func (f FileSystem) GetPrintableSummary() string {
-	return fmt.Sprintf("FileSystem{Path: %s}", f.Path)
+func (f FileSystem) GetPrintableSummary() (string, error) {
+	return fmt.Sprintf("FileSystem{Path: %s}", f.Path), nil
 }
 
 func (f FileSystem) Exists() (bool, error) {

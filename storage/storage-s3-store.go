@@ -141,9 +141,9 @@ func (s S3Store) GenerateSource() *Source {
 	return &src
 }
 
-func (s S3Store) GetPrintableSummary() string {
+func (s S3Store) GetPrintableSummary() (string, error) {
 	configs := *s.configs
-	return fmt.Sprintf("S3Store{endpoint: %s, region: %s, bucket: %s}", configs.Endpoint, configs.Region, configs.Bucket)
+	return fmt.Sprintf("S3Store{endpoint: %s, region: %s, bucket: %s}", configs.Endpoint, configs.Region, configs.Bucket), nil
 }
 
 func (s S3Store) Exists() (bool, error) {

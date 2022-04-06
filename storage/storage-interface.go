@@ -10,7 +10,7 @@ type Storage interface {
 	SupportsReaderAt() bool
 	IsSelfValidating() (bool, error)
 	GenerateSource() *Source
-	GetPrintableSummary() string
+	GetPrintableSummary() (string, error)
 	Exists() (bool, error)
 	Initialize() error
 	HasManifest() (bool, error)

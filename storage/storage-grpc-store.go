@@ -10,10 +10,14 @@ import (
 	_ "google.golang.org/grpc/codes"
 )
 
+type GrpcConfigs struct {
+	Endpoint string
+}
+
 type GrpcStore struct {
-	Endpoint  string
-	Connection *grpc.ClientConn
-	Client storagegrpc.StorageServiceClient
+	configs *GrpcConfigs
+	connection *grpc.ClientConn
+	client storagegrpc.StorageServiceClient
 }
 
 func getGrpcStore(endpoint string) (GrpcStore, error) {
@@ -21,8 +25,9 @@ func getGrpcStore(endpoint string) (GrpcStore, error) {
 	if err != nil {
 		return GrpcStore{}, err
 	}
+	configs := GrpcConfigs{endpoint}
 
-	return GrpcStore{endpoint, conn, storagegrpc.NewStorageServiceClient(conn)}, nil
+	return GrpcStore{&configs, conn, storagegrpc.NewStorageServiceClient(conn)}, nil
 }
 
 func (g GrpcStore) GetListing() (*StorageListing, error) {
@@ -32,7 +37,7 @@ func (g GrpcStore) GetListing() (*StorageListing, error) {
 	listing := NewEmptyStorageListing(GrpcStoreDownloader{g})
 
 	req := &storagegrpc.GetListingRequest{}
-	resStream, err := g.Client.GetListing(ctx, req)
+	resStream, err := g.client.GetListing(ctx, req)
 	if err != nil {
 		err = convertGrpcError(err)
 		return &listing, err
@@ -82,7 +87,7 @@ func (g GrpcStore) IsSelfValidating() (bool, error) {
 	defer cancel()
 
 	req := &storagegrpc.IsSelfValidatingRequest{}
-	res, err := g.Client.IsSelfValidating(ctx, req)
+	res, err := g.client.IsSelfValidating(ctx, req)
 	if err != nil {
 		err = convertGrpcError(err)
 		return false, err
@@ -92,31 +97,95 @@ func (g GrpcStore) IsSelfValidating() (bool, error) {
 }
 
 func (g GrpcStore) GenerateSource() *Source {
-	return nil
+	src := Source{
+		Type:     "grpc",
+		GrpcParams: (*g.configs),
+	}
+	return &src
 }
 
-func (g GrpcStore) GetPrintableSummary() string {
-	return ""
+func (g GrpcStore) GetPrintableSummary() (string, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.GetPrintableSummaryRequest{}
+	res, err := g.client.GetPrintableSummary(ctx, req)
+	if err != nil {
+		err = convertGrpcError(err)
+		return "", err
+	}
+
+	return res.GetSummary(), nil
 }
 
 func (g GrpcStore) Exists() (bool, error) {
-	return false, nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.ExistsRequest{}
+	res, err := g.client.Exists(ctx, req)
+	if err != nil {
+		err = convertGrpcError(err)
+		return false, err
+	}
+
+	return res.GetExists(), nil
 }
 
 func (g GrpcStore) Initialize() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.InitializeRequest{}
+	_, err := g.client.Initialize(ctx, req)
+	if err != nil {
+		err = convertGrpcError(err)
+		return err
+	}
+
 	return nil
 }
 
 func (g GrpcStore) HasManifest() (bool, error) {
-	return false, nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.HasManifestRequest{}
+	res, err := g.client.HasManifest(ctx, req)
+	if err != nil {
+		err = convertGrpcError(err)
+		return false, err
+	}
+
+	return res.GetHasManifest(), nil
 }
 
 func (g GrpcStore) HasActions() (bool, error) {
-	return false, nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.HasActionsRequest{}
+	res, err := g.client.HasActions(ctx, req)
+	if err != nil {
+		err = convertGrpcError(err)
+		return false, err
+	}
+
+	return res.GetHasActions(), nil
 }
 
 func (g GrpcStore) HasSource() (bool, error) {
-	return false, nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.HasSourceRequest{}
+	res, err := g.client.HasSource(ctx, req)
+	if err != nil {
+		err = convertGrpcError(err)
+		return false, err
+	}
+
+	return res.GetHasSource(), nil
 }
 
 func (g GrpcStore) StoreManifest(m *manifest.Manifest) error {

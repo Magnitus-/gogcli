@@ -12,7 +12,11 @@ func Copy(source Storage, destination Storage, sourceDownloader Downloader, a Ac
 	}
 
 	if !exists {
-		msg := fmt.Sprintf("Source storage %s does not exist", source.GetPrintableSummary())
+		summary, summaryErr := source.GetPrintableSummary()
+		if summaryErr != nil {
+			return []error{errors.New("Source storage does not exist")}
+		}
+		msg := fmt.Sprintf("Source storage %s does not exist", summary)
 		return []error{errors.New(msg)}
 	}
 

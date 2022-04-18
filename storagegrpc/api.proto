@@ -1,7 +1,14 @@
 syntax = "proto3";
 
 package grpc_storage;
-option go_package="./;storagegrpc";
+option go_package="gogcli/storagegrpc";
+
+enum Os {
+    UNSPECIFIED = 0;
+    WINDOWS = 1;
+    MACOS = 2;
+    LINUX = 3;
+}
 
 message GameInfo {
 	int64 Id = 1;
@@ -35,11 +42,6 @@ message ManifestGameInstaller {
     string Name = 1;
     string Title = 2;
     string Url = 3;
-    enum Os {
-        WINDOWS = 0;
-        MACOS = 1;
-        LINUX = 2;
-    }
     Os TargetOs = 4;
     repeated string Languages = 5;
     string Version = 6;
@@ -73,15 +75,10 @@ message ManifestGame {
 
 message ManifestFilter {
     repeated string Titles = 1;
-    enum Os {
-        WINDOWS = 0;
-        MACOS = 1;
-        LINUX = 2;
-    }
     repeated Os Oses = 2;
     repeated string Languages = 3;
     repeated string Tags = 4;
-    bool Instrallers = 5;
+    bool Installers = 5;
     bool Extras = 6;
     repeated string ExtraTypes = 7;
     repeated ManifestFilter Intersections = 8;
@@ -97,10 +94,11 @@ message FileAction {
 
 message GameAction {
     string Title = 1;
-    int64 Id = 2;
-    string Action = 3;
-    repeated FileAction InstallerActions = 4;
-    repeated FileAction ExtraActions = 5;
+    string Slug = 2;
+    int64 Id = 3;
+    string Action = 4;
+    repeated FileAction InstallerActions = 5;
+    repeated FileAction ExtraActions = 6;
 }
 
 message S3Configs {
@@ -121,6 +119,19 @@ message Source {
     S3Configs S3Params = 2;
     string FsPath = 3;
     GrpcConfigs GrpcParams = 4;
+}
+
+message ManifestOverview {
+    string EstimatedSize = 2;
+    int64 VerifiedSize = 3;
+    ManifestFilter Filter = 4;
+}
+
+message Manifest {
+    oneof content {
+        ManifestGame Game = 1;
+        ManifestOverview Overview = 2;
+    }
 }
 
 message GetListingRequest {}
@@ -170,14 +181,10 @@ message HasSourceResponse {
 }
 
 /*
-The first message will define fields 2, 3 and 4 for the entire manifest
-Further messages will only defined field 1 for a game in the manifest
+The first message is expected to be an overview and after that games
 */
 message StoreManifestRequest {
-    ManifestGame Game = 1;
-    string EstimatedSize = 2;
-    int64 VerifiedSize = 3;
-    ManifestFilter Filter = 4;
+    Manifest Manifest = 1;
 }
 
 message StoreManifestResponse {}
@@ -197,14 +204,10 @@ message StoreSourceResponse {}
 message LoadManifestRequest {}
 
 /*
-The first message is expected to define fields 2, 3 and 4 for the entire manifest
-Further messages are expected to define field 1 for a game in the manifest
+The first message is expected to be an overview and after that games
 */
 message LoadManifestResponse {
-    ManifestGame Game = 1;
-    string EstimatedSize = 2;
-    int64 VerifiedSize = 3;
-    ManifestFilter Filter = 4;
+    Manifest Manifest = 1;
 }
 
 message LoadActionsRequest {}

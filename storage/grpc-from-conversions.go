@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func convertGrpcError(err error) error {
+func ConvertGrpcError(err error) error {
 	statusErr, ok := status.FromError(err)
 	if ok {
 		return errors.New(fmt.Sprintf("Grpc error (code %d): %s", statusErr.Code(), statusErr.Message()))
@@ -17,7 +17,7 @@ func convertGrpcError(err error) error {
 	return err
 }
 
-func convertGrpcGameInfo(info *storagegrpc.GameInfo) manifest.GameInfo {
+func ConvertGrpcGameInfo(info *storagegrpc.GameInfo) manifest.GameInfo {
 	return manifest.GameInfo{
 		Id: info.GetId(),
 		Slug: info.GetSlug(),
@@ -25,9 +25,9 @@ func convertGrpcGameInfo(info *storagegrpc.GameInfo) manifest.GameInfo {
 	}
 }
 
-func convertGrpcFileInfo(info *storagegrpc.FileInfo) manifest.FileInfo {
+func ConvertGrpcFileInfo(info *storagegrpc.FileInfo) manifest.FileInfo {
 	return manifest.FileInfo{
-		Game: convertGrpcGameInfo(info.GetGame()),
+		Game: ConvertGrpcGameInfo(info.GetGame()),
 		Kind: info.GetKind(),
 		Name: info.GetName(),
 		Checksum: info.GetChecksum(),
@@ -35,3 +35,4 @@ func convertGrpcFileInfo(info *storagegrpc.FileInfo) manifest.FileInfo {
 		Url: info.GetUrl(),
 	}
 }
+

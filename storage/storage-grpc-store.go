@@ -39,7 +39,7 @@ func (g GrpcStore) GetListing() (*StorageListing, error) {
 	req := &storagegrpc.GetListingRequest{}
 	resStream, err := g.client.GetListing(ctx, req)
 	if err != nil {
-		err = convertGrpcError(err)
+		err = ConvertGrpcError(err)
 		return &listing, err
 	}
 	
@@ -50,22 +50,22 @@ func (g GrpcStore) GetListing() (*StorageListing, error) {
 		}
 
 		if err != nil {
-			err = convertGrpcError(err)
+			err = ConvertGrpcError(err)
 			return &listing, err
 		}
 
 		listingGame := msg.GetListingGame()
 		
-		game := convertGrpcGameInfo(listingGame.GetGame())
+		game := ConvertGrpcGameInfo(listingGame.GetGame())
 
 		installers := []manifest.FileInfo{}
 		for _, installer := range listingGame.GetInstallers() {
-			installers = append(installers, convertGrpcFileInfo(installer))
+			installers = append(installers, ConvertGrpcFileInfo(installer))
 		}
 
 		extras := []manifest.FileInfo{}
 		for _, extra := range listingGame.GetExtras() {
-			extras = append(extras, convertGrpcFileInfo(extra))
+			extras = append(extras, ConvertGrpcFileInfo(extra))
 		}
 		
 		listing.Games[game.Id] = StorageListingGame{
@@ -89,7 +89,7 @@ func (g GrpcStore) IsSelfValidating() (bool, error) {
 	req := &storagegrpc.IsSelfValidatingRequest{}
 	res, err := g.client.IsSelfValidating(ctx, req)
 	if err != nil {
-		err = convertGrpcError(err)
+		err = ConvertGrpcError(err)
 		return false, err
 	}
 
@@ -111,7 +111,7 @@ func (g GrpcStore) GetPrintableSummary() (string, error) {
 	req := &storagegrpc.GetPrintableSummaryRequest{}
 	res, err := g.client.GetPrintableSummary(ctx, req)
 	if err != nil {
-		err = convertGrpcError(err)
+		err = ConvertGrpcError(err)
 		return "", err
 	}
 
@@ -125,7 +125,7 @@ func (g GrpcStore) Exists() (bool, error) {
 	req := &storagegrpc.ExistsRequest{}
 	res, err := g.client.Exists(ctx, req)
 	if err != nil {
-		err = convertGrpcError(err)
+		err = ConvertGrpcError(err)
 		return false, err
 	}
 
@@ -139,7 +139,7 @@ func (g GrpcStore) Initialize() error {
 	req := &storagegrpc.InitializeRequest{}
 	_, err := g.client.Initialize(ctx, req)
 	if err != nil {
-		err = convertGrpcError(err)
+		err = ConvertGrpcError(err)
 		return err
 	}
 
@@ -153,7 +153,7 @@ func (g GrpcStore) HasManifest() (bool, error) {
 	req := &storagegrpc.HasManifestRequest{}
 	res, err := g.client.HasManifest(ctx, req)
 	if err != nil {
-		err = convertGrpcError(err)
+		err = ConvertGrpcError(err)
 		return false, err
 	}
 
@@ -167,7 +167,7 @@ func (g GrpcStore) HasActions() (bool, error) {
 	req := &storagegrpc.HasActionsRequest{}
 	res, err := g.client.HasActions(ctx, req)
 	if err != nil {
-		err = convertGrpcError(err)
+		err = ConvertGrpcError(err)
 		return false, err
 	}
 
@@ -181,7 +181,7 @@ func (g GrpcStore) HasSource() (bool, error) {
 	req := &storagegrpc.HasSourceRequest{}
 	res, err := g.client.HasSource(ctx, req)
 	if err != nil {
-		err = convertGrpcError(err)
+		err = ConvertGrpcError(err)
 		return false, err
 	}
 
@@ -189,10 +189,79 @@ func (g GrpcStore) HasSource() (bool, error) {
 }
 
 func (g GrpcStore) StoreManifest(m *manifest.Manifest) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	stream, err := g.client.StoreManifest(ctx)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
+	req := &storagegrpc.StoreManifestRequest{
+		Manifest: &storagegrpc.Manifest{
+			Content: &storagegrpc.Manifest_Overview{
+				Overview: ConvertManifestOverview(*m),
+			},
+		},
+	}
+	err = stream.Send(req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
+	for _, game := range (*m).Games {
+		req := &storagegrpc.StoreManifestRequest{
+			Manifest: &storagegrpc.Manifest{
+				Content: &storagegrpc.Manifest_Game{
+					Game: ConvertManifestGame(game),
+				},
+			},
+		}
+		err = stream.Send(req)
+		if err != nil {
+			err = ConvertGrpcError(err)
+			return err
+		}
+	}
+
+	_, err = stream.CloseAndRecv()
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
 	return nil
 }
 
 func (g GrpcStore) StoreActions(a *manifest.GameActions) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	stream, err := g.client.StoreActions(ctx)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
+	for _, gameAction := range (*a) {
+		req := &storagegrpc.StoreActionsRequest{
+			GameAction: ConvertGameAction(gameAction),
+		}
+		err = stream.Send(req)
+		if err != nil {
+			err = ConvertGrpcError(err)
+			return err
+		}
+	}
+
+	_, err = stream.CloseAndRecv()
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
 	return nil
 }
 

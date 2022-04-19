@@ -64,13 +64,14 @@ message ManifestGameExtra {
 
 message ManifestGame {
     int64 Id = 1;
-    string Title = 2;
-    string CdKey = 3;
-    repeated string Tags = 4;
-    repeated ManifestGameInstaller Installers = 5;
-    repeated ManifestGameExtra Extras = 6;
-    string EstimatedSize = 7;
-    int64 VerifiedSize = 8;
+    string Slug = 2;
+    string Title = 3;
+    string CdKey = 4;
+    repeated string Tags = 5;
+    repeated ManifestGameInstaller Installers = 6;
+    repeated ManifestGameExtra Extras = 7;
+    string EstimatedSize = 8;
+    int64 VerifiedSize = 9;
 }
 
 message ManifestFilter {
@@ -105,7 +106,7 @@ message S3Configs {
     string Endpoint = 1;
     string Region = 2;
     string Bucket = 3;
-    string Tls = 4;
+    bool Tls = 4;
     string AccessKey = 5;
     string SecretKey = 6;
 }

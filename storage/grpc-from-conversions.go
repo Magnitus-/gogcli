@@ -9,6 +9,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func ConvertGrpcOs(os storagegrpc.Os) string {
+	switch os {
+	case storagegrpc.Os_LINUX:
+		return "linux"
+	case storagegrpc.Os_WINDOWS:
+		return "windows"
+	case storagegrpc.Os_MACOS:
+		return "mac"
+	default:
+		return "unknown"
+	}
+}
+
 func ConvertGrpcError(err error) error {
 	statusErr, ok := status.FromError(err)
 	if ok {
@@ -36,3 +49,86 @@ func ConvertGrpcFileInfo(info *storagegrpc.FileInfo) manifest.FileInfo {
 	}
 }
 
+func ConvertGrpcManifestFilter(filter *storagegrpc.ManifestFilter) manifest.ManifestFilter {
+	conversion := manifest.ManifestFilter{
+		Titles: filter.GetTitles(),
+		Oses: []string{},
+		Languages: filter.GetLanguages(),
+		Tags: filter.GetTags(),
+		Installers: filter.GetInstallers(),
+		Extras: filter.GetExtras(),
+		ExtraTypes: filter.GetExtraTypes(),
+		Intersections: []manifest.ManifestFilter{},
+	}
+
+	for _, os := range filter.GetOses() {
+		conversion.Oses = append(conversion.Oses, ConvertGrpcOs(os))
+	}
+
+	for _, subfilter := range filter.GetIntersections() {
+		conversion.Intersections = append(conversion.Intersections, ConvertGrpcManifestFilter(subfilter))
+	}
+
+	return conversion
+}
+
+func ConvertGrpcManifestOverview(man *storagegrpc.ManifestOverview) manifest.Manifest {
+	return manifest.Manifest{
+		Games: []manifest.ManifestGame{},
+		EstimatedSize: man.GetEstimatedSize(),
+		VerifiedSize: man.GetVerifiedSize(),
+		Filter: ConvertGrpcManifestFilter(man.GetFilter()),
+	}
+}
+
+func ConvertGrpcManifestGameInstaller(installer *storagegrpc.ManifestGameInstaller) manifest.ManifestGameInstaller {
+	return manifest.ManifestGameInstaller{
+		Languages: installer.GetLanguages(),
+		Os: ConvertGrpcOs(installer.GetTargetOs()),
+		Url: installer.GetUrl(),
+		Title: installer.GetTitle(),
+		Name: installer.GetName(),
+		Version: installer.GetVersion(),
+		Date: installer.GetDate(),
+		EstimatedSize: installer.GetEstimatedSize(),
+		VerifiedSize: installer.GetVerifiedSize(),
+		Checksum: installer.GetChecksum(),
+	}
+}
+
+func ConvertGrpcManifestGameExtra(extra *storagegrpc.ManifestGameExtra) manifest.ManifestGameExtra {
+	return manifest.ManifestGameExtra{
+		Url: extra.GetUrl(),
+		Title: extra.GetTitle(),
+		Name: extra.GetName(),
+		Type: extra.GetType(),
+		Info: int(extra.GetInfo()),
+		EstimatedSize: extra.GetEstimatedSize(),
+		VerifiedSize: extra.GetVerifiedSize(),
+		Checksum: extra.GetChecksum(),
+	}
+}
+
+func ConvertGrpcManifestGame(game *storagegrpc.ManifestGame) manifest.ManifestGame {
+	conversion := manifest.ManifestGame{
+		Id: game.GetId(),
+		Slug: game.GetSlug(),
+		Title: game.GetTitle(),
+		CdKey: game.GetCdKey(),
+		Tags: game.GetTags(),
+		Installers: []manifest.ManifestGameInstaller{},
+		Extras: []manifest.ManifestGameExtra{},
+		EstimatedSize: game.GetEstimatedSize(),
+		VerifiedSize: game.GetVerifiedSize(),
+	}
+
+	for _, installer := range game.GetInstallers() {
+		conversion.Installers = append(conversion.Installers, ConvertGrpcManifestGameInstaller(installer))
+	}
+	
+	for _, extra := range game.GetExtras() {
+		conversion.Extras = append(conversion.Extras, ConvertGrpcManifestGameExtra(extra))
+	}
+
+	return conversion
+}

@@ -136,3 +136,35 @@ func ConvertGameAction(action manifest.GameAction) *storagegrpc.GameAction {
 
 	return &conversion
 }
+
+func ConvertGrpcConfigs(conf GrpcConfigs) *storagegrpc.GrpcConfigs {
+	conversion := storagegrpc.GrpcConfigs{
+		Endpoint: conf.Endpoint,
+	}
+
+	return &conversion
+}
+
+func ConvertS3Configs(conf S3Configs) *storagegrpc.S3Configs {
+	conversion := storagegrpc.S3Configs{
+		Endpoint: conf.Endpoint,
+		Region: conf.Region,
+		Bucket: conf.Bucket,
+		Tls: conf.Tls,
+		AccessKey: conf.AccessKey,
+		SecretKey: conf.SecretKey,
+	}
+
+	return &conversion
+}
+
+func ConvertSource(src Source) *storagegrpc.Source {
+	conversion := storagegrpc.Source{
+		Type: src.Type,
+		S3Params: ConvertS3Configs(src.S3Params),
+		FsPath: src.FsPath,
+		GrpcParams: ConvertGrpcConfigs(src.GrpcParams),
+	}
+
+	return &conversion
+}

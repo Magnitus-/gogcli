@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"gogcli/manifest"
     "gogcli/storagegrpc"
 	"io"
@@ -266,11 +267,65 @@ func (g GrpcStore) StoreActions(a *manifest.GameActions) error {
 }
 
 func (g GrpcStore) StoreSource(s *Source) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.StoreSourceRequest{
+		Source: ConvertSource(*s),
+	}
+	_, err := g.client.StoreSource(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
 	return nil
 }
 
 func (g GrpcStore) LoadManifest() (*manifest.Manifest, error) {
-	return nil, nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.LoadManifestRequest{}
+	stream, err := g.client.LoadManifest(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return nil, err
+	}
+
+	res, resErr := stream.Recv()
+	if resErr != nil {
+		resErr = ConvertGrpcError(resErr)
+		return nil, resErr
+	}
+
+	overview := res.GetManifest().GetOverview()
+	if overview == nil {
+		return nil, errors.New("Failure to get manifest with grpc store. Storage did not respect the established protocol of sending manifest overview first.")
+	}
+	man := ConvertGrpcManifestOverview(overview)
+
+
+	for {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			break;
+		}
+
+		if err != nil {
+			err = ConvertGrpcError(err)
+			return nil, err
+		}
+
+		game := res.GetManifest().GetGame()
+		if game == nil {
+			return nil, errors.New("Failure to get manifest with grpc store. Storage did not respect the established protocol of sending only manifest games after first message.")
+		}
+
+		man.Games = append(man.Games, ConvertGrpcManifestGame(game))
+	}
+
+	return &man, nil
 }
 
 func (g GrpcStore) LoadActions() (*manifest.GameActions, error) {

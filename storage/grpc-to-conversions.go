@@ -168,3 +168,37 @@ func ConvertSource(src Source) *storagegrpc.Source {
 
 	return &conversion
 }
+
+func ConvertGameInfo(info manifest.GameInfo) *storagegrpc.GameInfo {
+	conversion := storagegrpc.GameInfo{
+		Id: info.Id,
+		Slug: info.Slug,
+		Title: info.Title,
+	}
+
+	return &conversion
+}
+
+func ConvertFileInfo(info manifest.FileInfo) *storagegrpc.FileInfo {
+	conversion := storagegrpc.FileInfo{
+		Game: ConvertGameInfo(info.Game),
+		Kind: info.Kind,
+		Name: info.Name,
+		Checksum: info.Checksum,
+		Size: info.Size,
+		Url: info.Url,
+	}
+
+	return &conversion
+}
+
+func ConvertFileInfoNoCheck(info manifest.FileInfo) *storagegrpc.FileInfoNoCheck {
+	conversion := storagegrpc.FileInfoNoCheck{
+		Game: ConvertGameInfo(info.Game),
+		Kind: info.Kind,
+		Name: info.Name,
+		Url: info.Url,
+	}
+
+	return &conversion
+}

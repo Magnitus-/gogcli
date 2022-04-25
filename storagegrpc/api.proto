@@ -135,6 +135,20 @@ message Manifest {
     }
 }
 
+message FileUpload {
+    oneof content {
+        FileInfo File = 1;
+        bytes Data = 2;
+    }
+}
+
+message FileDownload {
+    oneof content {
+        int64 ExpectedSize = 1;
+        bytes Data = 2;
+    }
+}
+
 message GetListingRequest {}
 
 message GetListingResponse {
@@ -243,12 +257,10 @@ message RemoveGameRequest {
 message RemoveGameResponse {}
 
 /*
-The first message is expected to define field 1 for the file metadata
-Further messages are expected to define field 2 for the data
+The first message is expected to be File and after that Data
 */
 message UploadFileRequest {
-    FileInfo File = 1;
-    bytes Data = 2;
+    FileUpload Upload = 1;
 }
 
 message UploadFileResponse {
@@ -266,12 +278,10 @@ message DownloadFileRequest {
 }
 
 /*
-The first message is expected to define fields 1 for the expected file size
-Further messages are expected define field 2 for the data
+The first message is expected to be ExpectedSize and after that Data
 */
 message DownloadFileResponse {
-    int64 ExpectedSize = 1;
-    bytes Data = 2;
+    FileDownload Download = 1;
 }
 
 service StorageService {

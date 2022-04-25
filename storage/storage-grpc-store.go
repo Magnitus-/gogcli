@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"gogcli/manifest"
@@ -329,37 +330,274 @@ func (g GrpcStore) LoadManifest() (*manifest.Manifest, error) {
 }
 
 func (g GrpcStore) LoadActions() (*manifest.GameActions, error) {
-	return nil, nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	
+	actions := manifest.GameActions{}
+	
+	req := &storagegrpc.LoadActionsRequest{}
+	stream, err := g.client.LoadActions(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return nil, err
+	}
+	
+	for {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			break;
+		}
+
+		if err != nil {
+			err = ConvertGrpcError(err)
+			return nil, err
+		}
+
+		action := res.GetGameAction()
+		convertedAction := ConvertGrpcGameAction(action)
+		actions[convertedAction.Id] = convertedAction
+	}
+
+	return &actions, nil
 }
 
 func (g GrpcStore) LoadSource() (*Source, error) {
-	return nil, nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.LoadSourceRequest{}
+	res, err := g.client.LoadSource(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return nil, err
+	}
+
+	src := ConvertGrpcSource(res.GetSource())
+	return &src, nil
 }
 
 func (g GrpcStore) RemoveActions() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.RemoveActionsRequest{}
+	_, err := g.client.RemoveActions(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
 	return nil
 }
 
 func (g GrpcStore) RemoveSource() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.RemoveSourceRequest{}
+	_, err := g.client.RemoveSource(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
 	return nil
 }
 
 func (g GrpcStore) AddGame(game manifest.GameInfo) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.AddGameRequest{
+		Game: ConvertGameInfo(game),
+	}
+	_, err := g.client.AddGame(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
 	return nil
 }
 
 func (g GrpcStore) RemoveGame(game manifest.GameInfo) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.RemoveGameRequest{
+		Game: ConvertGameInfo(game),
+	}
+	_, err := g.client.RemoveGame(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
+	return nil
+}
+
+func (g GrpcStore) RemoveFile(file manifest.FileInfo) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.RemoveFileRequest{
+		File: ConvertFileInfoNoCheck(file),
+	}
+	_, err := g.client.RemoveFile(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return err
+	}
+
 	return nil
 }
 
 func (g GrpcStore) UploadFile(source io.ReadCloser, file manifest.FileInfo) (string, error) {
-	return "", nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	stream, err := g.client.UploadFile(ctx)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return "", err
+	}
+
+	req := &storagegrpc.UploadFileRequest{
+		Upload: &storagegrpc.FileUpload{
+			Content: &storagegrpc.FileUpload_File{
+				File: ConvertFileInfo(file),
+			},
+		},
+	}
+	err = stream.Send(req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return "", err
+	}
+
+	bufferSize := 1024
+	readBuffer := make([]byte, bufferSize)
+	var sendBuffer []byte
+	var rLen int
+	for err == nil {
+		rLen, err = source.Read(readBuffer)
+		if rLen > 0 {
+			if rLen != bufferSize {
+				sendBuffer = readBuffer[0:rLen-1]
+			} else {
+				sendBuffer = readBuffer
+			}
+
+			req := &storagegrpc.UploadFileRequest{
+				Upload: &storagegrpc.FileUpload{
+					Content: &storagegrpc.FileUpload_Data{
+						Data: sendBuffer,
+					},
+				},
+			}
+
+			err = stream.Send(req)
+			if err != nil {
+				err = ConvertGrpcError(err)
+				return "", err
+			}
+		}
+	}
+
+	if err != io.EOF {
+		return "", err
+	}
+
+	res, closeErr := stream.CloseAndRecv()
+	if closeErr != nil {
+		closeErr = ConvertGrpcError(closeErr)
+		return "", closeErr
+	}
+
+	return res.GetChecksum(), nil
 }
 
-func (g GrpcStore) RemoveFile(file manifest.FileInfo) error {
+type GrpcFileDownloader struct {
+	ended bool
+	accumulate *bytes.Buffer
+	stream storagegrpc.StorageService_DownloadFileClient
+	cancel context.CancelFunc
+}
+
+func (d *GrpcFileDownloader) Read(p []byte) (int, error) {
+	if !(*d).ended {
+		res, resErr := (*d).stream.Recv()
+		if resErr != nil && resErr != io.EOF {
+			resErr = ConvertGrpcError(resErr)
+			return 0, resErr
+		}
+
+		if resErr == io.EOF {
+			(*d).ended = true
+		}
+
+		data := res.GetDownload().GetData()
+		if data == nil {
+			return 0, errors.New("Failure to get data from grpc store. Storage did not respect the established protocol of sending data after first message.")
+		}
+	
+		if len(data) > 0 {
+			(*d).accumulate.Write(data)
+		}
+ 	}
+
+	var eofErr error
+	if (*d).ended && (*d).accumulate.Len() <= len(p) {
+		eofErr = io.EOF
+	} else {
+		eofErr = nil
+	}
+
+	readCount, readErr := (*d).accumulate.Read(p)
+	if readErr != nil && readErr != io.EOF {
+		return readCount, readErr
+	}
+
+	return readCount, eofErr
+}
+
+func (d *GrpcFileDownloader) Close() error {
+	(*d).cancel()
 	return nil
 }
 
 func (g GrpcStore) DownloadFile(file manifest.FileInfo) (io.ReadCloser, int64, error) {
-	return nil, 0, nil
+	ctx, cancel := context.WithCancel(context.Background())
+
+	req := &storagegrpc.DownloadFileRequest{
+		File: ConvertFileInfo(file),
+	}
+	stream, err := g.client.DownloadFile(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		cancel()
+		return nil, 0, err
+	}
+
+	res, resErr := stream.Recv()
+	if resErr != nil {
+		resErr = ConvertGrpcError(resErr)
+		cancel()
+		return nil, 0, resErr
+	}
+
+	expectedSize := res.GetDownload().GetExpectedSize()
+	if expectedSize == 0 {
+		cancel()
+		return nil, 0, errors.New("Failure to get expected file size with grpc store. Storage did not respect the established protocol of sending expected size first.")
+	}
+
+	fileDownloader := GrpcFileDownloader{
+		ended: false,
+		accumulate: new(bytes.Buffer),
+		stream: stream,
+		cancel: cancel,
+	}
+
+	return &fileDownloader, expectedSize, nil
 }

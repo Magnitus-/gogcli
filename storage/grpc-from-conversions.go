@@ -132,3 +132,60 @@ func ConvertGrpcManifestGame(game *storagegrpc.ManifestGame) manifest.ManifestGa
 
 	return conversion
 }
+
+func ConvertGrpcFileAction(action *storagegrpc.FileAction) manifest.FileAction {
+	return manifest.FileAction{
+		Title: action.GetTitle(),
+		Name: action.GetName(),
+		Url: action.GetUrl(),
+		Kind: action.GetKind(),
+		Action: action.GetAction(),
+	}
+}
+
+func ConvertGrpcGameAction(action *storagegrpc.GameAction) manifest.GameAction {
+	conversion := manifest.GameAction{
+		Title: action.GetTitle(),
+		Slug: action.GetSlug(),
+		Id: action.GetId(),
+		Action: action.GetAction(),
+		InstallerActions: map[string]manifest.FileAction{},
+		ExtraActions: map[string]manifest.FileAction{},
+	}
+
+	for _, fAction := range action.GetInstallerActions() {
+		conversion.InstallerActions[fAction.GetName()] = ConvertGrpcFileAction(fAction)
+	}
+
+	for _, fAction := range action.GetExtraActions() {
+		conversion.ExtraActions[fAction.GetName()] = ConvertGrpcFileAction(fAction)
+	}
+
+	return conversion
+}
+
+func ConvertGrpcGrpcConfigs(conf *storagegrpc.GrpcConfigs) GrpcConfigs {
+	return GrpcConfigs{
+		Endpoint: conf.GetEndpoint(),
+	}
+}
+
+func ConvertGrpcS3Configs(conf *storagegrpc.S3Configs) S3Configs {
+	return S3Configs{
+		Endpoint: conf.GetEndpoint(),
+		Region: conf.GetRegion(),
+		Bucket: conf.GetBucket(),
+		Tls: conf.GetTls(),
+		AccessKey: conf.GetAccessKey(),
+		SecretKey: conf.GetSecretKey(),
+	}
+}
+
+func ConvertGrpcSource(src *storagegrpc.Source) Source {
+	return Source{
+		Type: src.GetType(),
+		S3Params: ConvertGrpcS3Configs(src.GetS3Params()),
+		FsPath: src.GetFsPath(),
+		GrpcParams: ConvertGrpcGrpcConfigs(src.GetGrpcParams()),
+	}
+}

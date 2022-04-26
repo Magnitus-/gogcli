@@ -71,7 +71,7 @@ func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (boo
 	r, err := c.Get(metadataUrl)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
-		return true, "", "", int64(-1), errors.New(msg), false, false
+		return true, "", "", int64(-1), errors.New(msg), false, true
 	}
 	defer r.Body.Close()
 
@@ -96,7 +96,7 @@ func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (boo
 		first_line := strings.Split(string(b), "\n")[0]
 		if !DOWNLOAD_METADATA_REGEX.MatchString(first_line) {
 			msg := fmt.Sprintf("%s -> Could not parse file xml metadata and the first line was not the expected format: %s", fn, err.Error())
-			return true, "", "", int64(-1), errors.New(msg), false, false
+			return true, "", "", int64(-1), errors.New(msg), false, true
 		}
 
 		match := DOWNLOAD_METADATA_REGEX.FindStringSubmatch(first_line)

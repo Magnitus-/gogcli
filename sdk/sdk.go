@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 type Sdk struct {
@@ -17,12 +18,21 @@ type Sdk struct {
 	al             string
 	maxRetries     int64
 	currentRetries int64
+	retryPause     time.Duration
 	logger         *logging.Logger
 }
 
 func NewSdk(cookie GogCookie, logSource *logging.Source) *Sdk {
 	logger := logSource.CreateLogger(os.Stdout, "[sdk] ", log.Lmsgprefix)
-	sdk := Sdk{session: cookie.Session, al: cookie.Al, maxRetries: 3, currentRetries: 0, logger: logger}
+	pause, _ := time.ParseDuration("100ms")
+	sdk := Sdk{
+		session: cookie.Session, 
+		al: cookie.Al, 
+		maxRetries: 5, 
+		currentRetries: 0,
+		retryPause: pause, 
+		logger: logger,
+	}
 	return &sdk
 }
 
@@ -32,6 +42,10 @@ func (s *Sdk) incRetries() {
 
 func (s *Sdk) resetRetries() {
 	(*s).currentRetries = 0
+}
+
+func (s *Sdk) pauseAfterError() {
+	time.Sleep((*s).retryPause)
 }
 
 func (s *Sdk) maxRetriesReached() bool {
@@ -57,7 +71,7 @@ func (s *Sdk) getClient(followRedirects bool) http.Client {
 }
 
 func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, int, error) {
-	c := (*s).getClient(true)
+	c := s.getClient(true)
 
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fnCall, url))
 
@@ -71,15 +85,16 @@ func (s *Sdk) getUrl(url string, fnCall string, jsonBody bool) ([]byte, int, err
 	if r.StatusCode < 200 || r.StatusCode > 299 {
 		if r.StatusCode >= 500 && (!(*s).maxRetriesReached()) {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed with code %d. Will retry.", fnCall, url, r.StatusCode))
-			(*s).incRetries()
-			return (*s).getUrl(url, fnCall, jsonBody)
+			s.incRetries()
+			s.pauseAfterError()
+			return s.getUrl(url, fnCall, jsonBody)
 		}
-		(*s).resetRetries()
+		s.resetRetries()
 		msg := fmt.Sprintf("%s -> retrieval request error: did not expect status code of %d", fnCall, r.StatusCode)
 		return nil, r.StatusCode, errors.New(msg)
 	}
 
-	(*s).resetRetries()
+	s.resetRetries()
 
 	b, bErr := ioutil.ReadAll(r.Body)
 	if bErr != nil {

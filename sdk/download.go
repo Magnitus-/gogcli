@@ -169,69 +169,73 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 	fn := fmt.Sprintf("GetDownloadFileInfo(downloadPath=%s)", downloadPath)
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
-	c := (*s).getClient(false)
+	c := s.getClient(false)
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
 
 	filenameLoc, err, dangling, serverUnavailable = retrieveUrlRedirectLocation(c, u, fn)
 	if err != nil {
-		if serverUnavailable && (!(*s).maxRetriesReached()) {
+		if serverUnavailable && (!s.maxRetriesReached()) {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed due to server error. Will retry.", fn, u))
-			(*s).incRetries()
-			return (*s).GetDownloadFileInfo(downloadPath)
+			s.incRetries()
+			s.pauseAfterError()
+			return s.GetDownloadFileInfo(downloadPath)
 		}
-		(*s).resetRetries()
+		s.resetRetries()
 		return "", "", int64(0), err, dangling, false
 	}
 	downloadLoc, err, dangling, serverUnavailable = retrieveUrlRedirectLocation(c, filenameLoc, fn)
 	if err != nil {
-		if serverUnavailable && (!(*s).maxRetriesReached()) {
+		if serverUnavailable && (!s.maxRetriesReached()) {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed due to server error. Will retry.", fn, u))
-			(*s).incRetries()
-			return (*s).GetDownloadFileInfo(downloadPath)
+			s.incRetries()
+			s.pauseAfterError()
+			return s.GetDownloadFileInfo(downloadPath)
 		}
-		(*s).resetRetries()
+		s.resetRetries()
 		return "", "", int64(0), err, dangling, false
 	}
 
 	//Finally, retrieve the metadata
 	metadataUrl, metadataUrlErr := convertDownloadUrlToMetadataUrl(downloadLoc)
 	if metadataUrlErr != nil {
-		(*s).resetRetries()
+		s.resetRetries()
 		return "", "", int64(0), metadataUrlErr, false, false
 	}
 
 	found, filename, checksum, size, retrieveMetaErr, serverUnavailable, badMetadata := retrieveDownloadMetadata(c, metadataUrl, fn)
 	if retrieveMetaErr != nil {
-		if serverUnavailable && (!(*s).maxRetriesReached()) {
+		if serverUnavailable && (!s.maxRetriesReached()) {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed due to server error. Will retry.", fn, u))
-			(*s).incRetries()
-			return (*s).GetDownloadFileInfo(downloadPath)
+			s.incRetries()
+			s.pauseAfterError()
+			return s.GetDownloadFileInfo(downloadPath)
 		}
-		(*s).resetRetries()
+		s.resetRetries()
 		return "", "", int64(0), retrieveMetaErr, false, badMetadata
 	}
 	if !found {
 		filename, err = getFilenameFromUrl(filenameLoc, fn)
 		if err != nil {
-			(*s).resetRetries()
+			s.resetRetries()
 			return "", "", int64(0), err, false, false
 		}
 
 		size, err, dangling, serverUnavailable = retrieveUrlContentLength(c, downloadLoc, fn)
 		if err != nil {
-			if serverUnavailable && (!(*s).maxRetriesReached()) {
+			if serverUnavailable && (!s.maxRetriesReached()) {
 				(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed due to server error. Will retry.", fn, u))
-				(*s).incRetries()
-				return (*s).GetDownloadFileInfo(downloadPath)
+				s.incRetries()
+				s.pauseAfterError()
+				return s.GetDownloadFileInfo(downloadPath)
 			}
-			(*s).resetRetries()
+			s.resetRetries()
 			return "", "", int64(0), err, dangling, false
 		}
 
-		(*s).resetRetries()
+		s.resetRetries()
 		return filename, "", size, nil, false, false
 	} else {
-		(*s).resetRetries()
+		s.resetRetries()
 		return filename, checksum, size, nil, false, false
 	}
 }
@@ -241,21 +245,22 @@ func (s *Sdk) GetDownloadFilename(downloadPath string) (string, error) {
 	fn := fmt.Sprintf("GetDownloadFilename(downloadPath=%s)", downloadPath)
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
-	c := (*s).getClient(false)
+	c := s.getClient(false)
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
 
 	redirectLocation, err, _, serverUnavailable := retrieveUrlRedirectLocation(c, u, fn)
 	if err != nil {
-		if serverUnavailable && (!(*s).maxRetriesReached()) {
+		if serverUnavailable && (!s.maxRetriesReached()) {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed due to server error. Will retry.", fn, u))
-			(*s).incRetries()
-			return (*s).GetDownloadFilename(downloadPath)
+			s.incRetries()
+			s.pauseAfterError()
+			return s.GetDownloadFilename(downloadPath)
 		}
-		(*s).resetRetries()
+		s.resetRetries()
 		return "", err
 	}
 
-	(*s).resetRetries()
+	s.resetRetries()
 
 	name, err := getFilenameFromUrl(redirectLocation, fn)
 	return name, err
@@ -269,28 +274,30 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, stri
 	bodyLength := int64(0)
 	filename := ""
 
-	c := (*s).getClient(true)
+	c := s.getClient(true)
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
 
 	r, err := c.Get(u)
 	if err != nil {
-		if !(*s).maxRetriesReached() {
+		if !s.maxRetriesReached() {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed with retrieval request error %s. Will retry.", fn, u, err.Error()))
-			(*s).incRetries()
-			return (*s).GetDownloadHandle(downloadPath)
+			s.incRetries()
+			s.pauseAfterError()
+			return s.GetDownloadHandle(downloadPath)
 		}
-		(*s).resetRetries()
+		s.resetRetries()
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
 		return nil, int64(0), "", errors.New(msg)
 	}
 
 	if r.StatusCode < 200 || r.StatusCode > 299 {
-		if r.StatusCode >= 500 && (!(*s).maxRetriesReached()) {
+		if r.StatusCode >= 500 && (!s.maxRetriesReached()) {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed with code %d. Will retry.", fn, u, r.StatusCode))
-			(*s).incRetries()
-			return (*s).GetDownloadHandle(downloadPath)
+			s.incRetries()
+			s.pauseAfterError()
+			return s.GetDownloadHandle(downloadPath)
 		}
-		(*s).resetRetries()
+		s.resetRetries()
 		msg := fmt.Sprintf("%s -> file download handle retrieval error: did not expect status code of %d", fn, r.StatusCode)
 		return  nil, int64(0), "", errors.New(msg)
 	}
@@ -315,7 +322,7 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, stri
 	p := (*r.Request.URL).Path
 	filename = path.Base(p)
 
-	(*s).resetRetries()
+	s.resetRetries()
 	return body, bodyLength, filename, nil
 }
 
@@ -325,7 +332,7 @@ func (s *Sdk) GetDownloadFileInfoWorkaroundWay(downloadPath string) (string, str
 
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
 
-	downloadHandle, size, filename, err := (*s).GetDownloadHandle(downloadPath)
+	downloadHandle, size, filename, err := s.GetDownloadHandle(downloadPath)
 	if err != nil {
 		return  "", "", int64(0), err
 	}
@@ -336,16 +343,17 @@ func (s *Sdk) GetDownloadFileInfoWorkaroundWay(downloadPath string) (string, str
 		if copyErr == nil {
 			copyErr = errors.New(fmt.Sprintf("Checksum computation processed %d bytes and expected %d", copiedAmount, size))
 		}
-		if !(*s).maxRetriesReached() {
+		if !s.maxRetriesReached() {
 			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s checksum computation failed with error: %s. Will retry.", fn, u, copyErr.Error()))
-			(*s).incRetries()
-			return (*s).GetDownloadFileInfoWorkaroundWay(downloadPath)
+			s.incRetries()
+			s.pauseAfterError()
+			return s.GetDownloadFileInfoWorkaroundWay(downloadPath)
 		}
-		(*s).resetRetries()
+		s.resetRetries()
 		msg := fmt.Sprintf("%s -> checksum computation failed with error: %s", fn, copyErr.Error())
 		return "", "", int64(0), errors.New(msg)
 	}
-	(*s).resetRetries()
+	s.resetRetries()
 
 	checksum := hex.EncodeToString(h.Sum(nil))
 	return filename, checksum, size, nil

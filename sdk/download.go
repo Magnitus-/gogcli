@@ -71,7 +71,7 @@ func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (boo
 	r, err := c.Get(metadataUrl)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> retrieval request error: %s", fn, err.Error())
-		return true, "", "", int64(-1), errors.New(msg), false, true
+		return true, "", "", int64(-1), errors.New(msg), true, true
 	}
 	defer r.Body.Close()
 
@@ -80,14 +80,14 @@ func retrieveDownloadMetadata(c http.Client, metadataUrl string, fn string) (boo
 			return false, "", "", int64(-1), nil, false, false
 		} else {
 			msg := fmt.Sprintf("%s -> Expected response status code of 200, but got %d", fn, r.StatusCode)
-			return true, "", "", int64(-1), errors.New(msg), r.StatusCode >= 500, false
+			return true, "", "", int64(-1), errors.New(msg), r.StatusCode >= 500, true
 		}
 	}
 
 	b, bErr := ioutil.ReadAll(r.Body)
 	if bErr != nil {
 		msg := fmt.Sprintf("%s -> retrieval body error: %s", fn, bErr.Error())
-		return true, "", "", int64(-1), errors.New(msg), false, true
+		return true, "", "", int64(-1), errors.New(msg), true, true
 	}
 
 	err = xml.Unmarshal(b, &fileInfo)

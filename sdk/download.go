@@ -133,14 +133,14 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 	//First redirection
 	reply, err := s.getUrlRedirect(u, fn, (*s).maxRetries)
 	if err != nil {
-		return "", "", int64(-1), err, reply.StatusCode == 403 || reply.StatusCode == 404, reply.StatusCode != 403 || reply.StatusCode != 404
+		return "", "", int64(-1), err, reply.StatusCode == 403 || reply.StatusCode == 404, reply.StatusCode != 403 && reply.StatusCode != 404
 	}
 	filenameLoc := reply.RedirectUrl
 	
 	//Second redirection
 	reply, err = s.getUrlRedirect(u, fn, (*s).maxRetries)
 	if err != nil {
-		return "", "", int64(-1), err, reply.StatusCode == 403 || reply.StatusCode == 404, reply.StatusCode != 403 || reply.StatusCode != 404
+		return "", "", int64(-1), err, reply.StatusCode == 403 || reply.StatusCode == 404, reply.StatusCode != 403 && reply.StatusCode != 404
 	}
 	downloadLoc := reply.RedirectUrl
 
@@ -165,7 +165,7 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 
 		lengthReply, lengthErr := s.getUrlBodyLength(downloadLoc, fn, (*s).maxRetries)
 		if lengthErr != nil {
-			return "", "", int64(-1), lengthErr, lengthReply.StatusCode == 403 || lengthReply.StatusCode == 404, lengthReply.StatusCode != 403 || lengthReply.StatusCode != 404
+			return "", "", int64(-1), lengthErr, lengthReply.StatusCode == 403 || lengthReply.StatusCode == 404, lengthReply.StatusCode != 403 && lengthReply.StatusCode != 404
 		}
 
 		return filename, "", lengthReply.BodyLength, nil, false, false

@@ -132,16 +132,17 @@ func (s *Sdk) GetGameDetails(gameId int64) (GameDetails, error) {
 	fn := fmt.Sprintf("GetGameDetails(gameId=%d)", gameId)
 	u := fmt.Sprintf("https://embed.gog.com/account/gameDetails/%d.json", gameId)
 
-	b, _, err := s.getUrl(
+	b, err := s.getUrlBody(
 		u,
 		fn,
 		true,
+		(*s).maxRetries,
 	)
 	if err != nil {
 		return g, err
 	}
 
-	sErr := json.Unmarshal(b, &g)
+	sErr := json.Unmarshal(b.Body, &g)
 	if sErr != nil {
 		msg := fmt.Sprintf("Responde deserialization error: %s", sErr.Error())
 		return g, errors.New(msg)

@@ -124,16 +124,17 @@ func (s *Sdk) GetOwnedGames(page int, search string) (OwnedGamesPage, error) {
 		u += fmt.Sprintf("&search=%s", url.QueryEscape(search))
 	}
 
-	b, _, err := s.getUrl(
+	reply, err := s.getUrlBody(
 		u,
 		fn,
 		true,
+		(*s).maxRetries,
 	)
 	if err != nil {
 		return o, err
 	}
 
-	sErr := json.Unmarshal(b, &o)
+	sErr := json.Unmarshal(reply.Body, &o)
 	if sErr != nil {
 		msg := fmt.Sprintf("Responde deserialization error: %s", sErr.Error())
 		return o, errors.New(msg)

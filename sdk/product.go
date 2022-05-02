@@ -120,16 +120,17 @@ func (s *Sdk) GetProduct(gameId int64) (Product, bool, error) {
 	fn := fmt.Sprintf("GetProduct(gameId=%d)", gameId)
 	u := fmt.Sprintf("https://api.gog.com/products/%d?expand=downloads,expanded_dlcs,description,screenshots,videos,related_products,changelog", gameId)
 
-	b, statusCode, err := s.getUrl(
+	reply, err := s.getUrlBody(
 		u,
 		fn,
 		true,
+		(*s).maxRetries,
 	)
 	if err != nil {
-		return p, statusCode == 404, err
+		return p, reply.StatusCode == 404, err
 	}
 
-	sErr := json.Unmarshal(b, &p)
+	sErr := json.Unmarshal(reply.Body, &p)
 	if sErr != nil {
 		msg := fmt.Sprintf("Responde deserialization error: %s", sErr.Error())
 		return p, false, errors.New(msg)

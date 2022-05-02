@@ -86,16 +86,17 @@ func (u User) Print() {
 func (s *Sdk) GetUser() (User, error) {
 	var u User
 
-	b, _, err := s.getUrl(
+	reply, err := s.getUrlBody(
 		"https://embed.gog.com/userData.json",
 		"GetUser()",
 		true,
+		(*s).maxRetries,
 	)
 	if err != nil {
 		return u, err
 	}
 
-	sErr := json.Unmarshal(b, &u)
+	sErr := json.Unmarshal(reply.Body, &u)
 	if sErr != nil {
 		msg := fmt.Sprintf("Responde deserialization error: %s", sErr.Error())
 		return u, errors.New(msg)

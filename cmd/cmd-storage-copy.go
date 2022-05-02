@@ -33,7 +33,7 @@ func generateStorageCopyCmd() *cobra.Command {
 		},
 	}
 
-	storageCopyCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
+	storageCopyCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 4, "Number of downloads that should be attempted at the same time")
 	storageCopyCmd.Flags().StringVarP(&sourcePath, "source-path", "s", "games", "Path to the source of your games (directory if it is of type fs, json configuration file if it is of type s3)")
 	storageCopyCmd.Flags().StringVarP(&sourceStorage, "source-storage", "t", "fs", "Kind of storage your source is. Can be 'fs' (for file system) or 's3' (for s3 store)")
 	storageCopyCmd.Flags().StringVarP(&destinationPath, "destination-path", "n", "games-copy", "Path to the destination of your games (directory if it is of type fs, json configuration file if it is of type s3)")

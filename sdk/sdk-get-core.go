@@ -28,7 +28,7 @@ func (s *Sdk) getUrlBodyReader(url string, fnCall string, retriesLeft int64) (Bo
 	r, err := c.Get(url)
 	if err != nil {
 		if retriesLeft > 0 {
-			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed with retrieval request error %s. Will retry.", fnCall, url, err.Error()))
+			(*s).logger.Warning(fmt.Sprintf("%s -> failed with retrieval request error %s. Will retry.", fnCall, err.Error()))
 			s.pauseAfterError()
 			return s.getUrlBodyReader(url, fnCall, retriesLeft - 1)
 		}
@@ -45,21 +45,20 @@ func (s *Sdk) getUrlBodyReader(url string, fnCall string, retriesLeft int64) (Bo
 
 	if r.StatusCode < 200 || r.StatusCode >= 300 {
 		if r.StatusCode >= 500 && retriesLeft > 0 {
-			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed with code %d. Will retry.", fnCall, url, r.StatusCode))
+			r.Body.Close()
+			(*s).logger.Warning(fmt.Sprintf("%s -> failed with code %d. Will retry.", fnCall, r.StatusCode))
 			s.pauseAfterError()
 			return s.getUrlBodyReader(url, fnCall, retriesLeft - 1)
 		}
 		msg := fmt.Sprintf("%s -> body download handle retrieval error: did not expect status code of %d", fnCall, r.StatusCode)
 		return BodyReaderReply{
-			BodyHandle: nil,
+			BodyHandle: r.Body,
 			BodyLength: int64(-1),
 			FinalUrl: r.Request.URL.String(),
 			StatusCode: r.StatusCode,
 			RetriesLeft: retriesLeft,
 		}, errors.New(msg)
 	}
-
-	body := r.Body
 
 	bodyLength := int64(-1)
 	var lErr error
@@ -70,7 +69,7 @@ func (s *Sdk) getUrlBodyReader(url string, fnCall string, retriesLeft int64) (Bo
 		if lErr != nil {
 			msg := fmt.Sprintf("%s -> Cannot return exact download size as Content-Length header is not parsable.", fnCall)
 			return BodyReaderReply{
-				BodyHandle: body,
+				BodyHandle: r.Body,
 				BodyLength: int64(-1),
 				FinalUrl: r.Request.URL.String(),
 				StatusCode: r.StatusCode,
@@ -80,7 +79,7 @@ func (s *Sdk) getUrlBodyReader(url string, fnCall string, retriesLeft int64) (Bo
 	}
 
 	return BodyReaderReply{
-		BodyHandle: body,
+		BodyHandle: r.Body,
 		BodyLength: bodyLength,
 		FinalUrl: r.Request.URL.String(),
 		StatusCode: r.StatusCode,
@@ -98,6 +97,9 @@ type BodyChecksumReply struct {
 
 func (s *Sdk) getUrlBodyChecksum(url string, fnCall string, retriesLeft int64) (BodyChecksumReply, error) {
 	reply, err := s.getUrlBodyReader(url, fnCall, retriesLeft)
+	if reply.BodyHandle != nil {
+		defer reply.BodyHandle.Close()
+	}
 	if err != nil {
 		return BodyChecksumReply{
 			BodyChecksum: "",
@@ -108,18 +110,14 @@ func (s *Sdk) getUrlBodyChecksum(url string, fnCall string, retriesLeft int64) (
 		}, err
 	}
 
-	if reply.BodyHandle != nil {
-		defer reply.BodyHandle.Close()
-	}
-
 	h := md5.New()
 	copiedAmount, copyErr := io.Copy(h, reply.BodyHandle)
 	if copiedAmount != reply.BodyLength || copyErr != nil {
 		if copyErr == nil {
-			copyErr = errors.New(fmt.Sprintf("Checksum computation processed %d bytes and expected %d", copiedAmount, reply.BodyLength))
+			copyErr = errors.New(fmt.Sprintf("%s -> checksum computation processed %d bytes and expected %d", fnCall, copiedAmount, reply.BodyLength))
 		}
 		if reply.RetriesLeft > 0 {
-			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s checksum computation failed with error: %s. Will retry.", fnCall, url, copyErr.Error()))
+			(*s).logger.Warning(fmt.Sprintf("%s -> checksum computation failed with error: %s. Will retry.", fnCall, copyErr.Error()))
 			s.pauseAfterError()
 			return s.getUrlBodyChecksum(url, fnCall, retriesLeft - 1)
 		}
@@ -154,11 +152,11 @@ func (s *Sdk) getUrlBodyLength(url string, fnCall string, retriesLeft int64) (Bo
 	r, err := c.Head(url)
 	if err != nil {
 		if retriesLeft > 0 {
-			(*s).logger.Warning(fmt.Sprintf("%s -> head retrieval error: %s. Will retry.", fnCall, err.Error()))
+			(*s).logger.Warning(fmt.Sprintf("%s -> content length retrieval error: %s. Will retry.", fnCall, err.Error()))
 			s.pauseAfterError()
 			return s.getUrlBodyLength(url, fnCall, retriesLeft - 1)
 		}
-		msg := fmt.Sprintf("%s -> head retrieval request error: %s", fnCall, err.Error())
+		msg := fmt.Sprintf("%s -> content length retrieval request error: %s", fnCall, err.Error())
 		return BodyLengthReply{
 			BodyLength: int64(-1),
 			FinalUrl: "",
@@ -170,11 +168,11 @@ func (s *Sdk) getUrlBodyLength(url string, fnCall string, retriesLeft int64) (Bo
 
 	if r.StatusCode < 200 || r.StatusCode >= 300 {
 		if r.StatusCode >= 500 && retriesLeft > 0 {
-			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s failed with code %d. Will retry.", fnCall, url, r.StatusCode))
+			(*s).logger.Warning(fmt.Sprintf("%s -> content length retrieval failed with code %d. Will retry.", fnCall, r.StatusCode))
 			s.pauseAfterError()
 			return s.getUrlBodyLength(url, fnCall, retriesLeft - 1)
 		}
-		msg := fmt.Sprintf("%s -> head retrieval error: did not expect status code of %d", fnCall, r.StatusCode)
+		msg := fmt.Sprintf("%s -> content length retrieval error: did not expect status code of %d", fnCall, r.StatusCode)
 		return BodyLengthReply{
 			BodyLength: int64(-1),
 			FinalUrl: r.Request.URL.String(),
@@ -185,7 +183,7 @@ func (s *Sdk) getUrlBodyLength(url string, fnCall string, retriesLeft int64) (Bo
 
 	clHeader, ok := r.Header["Content-Length"]
 	if !ok {
-		msg := fmt.Sprintf("%s -> Cannot return body length as Content-Length header is not found.", fnCall)
+		msg := fmt.Sprintf("%s -> content length retrieval error: cannot return body length as Content-Length header is not found.", fnCall)
 		return BodyLengthReply{
 			BodyLength: int64(-1),
 			FinalUrl: r.Request.URL.String(),
@@ -196,7 +194,7 @@ func (s *Sdk) getUrlBodyLength(url string, fnCall string, retriesLeft int64) (Bo
 
 	length, lErr := strconv.ParseInt(clHeader[0], 10, 64)
 	if lErr != nil {
-		msg := fmt.Sprintf("%s -> Cannot return body length as Content-Length header is not parsable.", fnCall)
+		msg := fmt.Sprintf("%s -> content length retrieval error: cannot return body length as Content-Length header is not parsable.", fnCall)
 		return BodyLengthReply{
 			BodyLength: int64(-1),
 			FinalUrl: r.Request.URL.String(),
@@ -227,7 +225,6 @@ func (s *Sdk) getUrlBody(url string, fnCall string, jsonBody bool, retriesLeft i
 	if reply.BodyHandle != nil {
 		defer reply.BodyHandle.Close()
 	}
-
 	if err != nil {
 		return BodyReply{
 			Body: nil,
@@ -240,7 +237,7 @@ func (s *Sdk) getUrlBody(url string, fnCall string, jsonBody bool, retriesLeft i
 	b, bErr := ioutil.ReadAll(reply.BodyHandle)
 	if bErr != nil {
 		if reply.RetriesLeft > 0 {
-			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s, body retrieval error: %s. Will retry.", fnCall, err.Error()))
+			(*s).logger.Warning(fmt.Sprintf("%s -> body retrieval error: %s. Will retry.", fnCall, err.Error()))
 			s.pauseAfterError()
 			return s.getUrlBody(url, fnCall, jsonBody, reply.RetriesLeft - 1)
 		}
@@ -290,11 +287,11 @@ func (s *Sdk) getUrlRedirect(url string, fnCall string, retriesLeft int64) (Redi
 	r, err := c.Get(url)
 	if err != nil {
 		if retriesLeft > 0 {
-			(*s).logger.Warning(fmt.Sprintf("%s -> GET %s, redirect retrieval error: %s. Will retry.", fnCall, err.Error()))
+			(*s).logger.Warning(fmt.Sprintf("%s -> redirect retrieval error: %s. Will retry.", fnCall, err.Error()))
 			s.pauseAfterError()
 			return s.getUrlRedirect(url, fnCall, retriesLeft - 1)
 		}
-		msg := fmt.Sprintf("%s -> redirect retrieval request error: %s", fnCall, err.Error())
+		msg := fmt.Sprintf("%s -> redirect retrieval error: %s", fnCall, err.Error())
 		return RedirectReply{
 			RedirectUrl: "",
 			StatusCode: -1,
@@ -305,12 +302,12 @@ func (s *Sdk) getUrlRedirect(url string, fnCall string, retriesLeft int64) (Redi
 
 	if r.StatusCode < 300 || r.StatusCode >= 400 {
 		if r.StatusCode >= 500 && retriesLeft > 0 {
-			(*s).logger.Warning(fmt.Sprintf("%s -> Expected response status code of 3xx, but got %d. Will retry.", fnCall, r.StatusCode))
+			(*s).logger.Warning(fmt.Sprintf("%s -> redirect retrieval error: expected response status code of 3xx, but got %d. Will retry.", fnCall, r.StatusCode))
 			s.pauseAfterError()
 			return s.getUrlRedirect(url, fnCall, retriesLeft - 1)
 		}
 
-		msg := fmt.Sprintf("%s -> Expected response status code of 3xx, but got %d", fnCall, r.StatusCode)
+		msg := fmt.Sprintf("%s -> redirect retrieval error: expected response status code of 3xx, but got %d", fnCall, r.StatusCode)
 		return RedirectReply{
 			RedirectUrl: "",
 			StatusCode: r.StatusCode,
@@ -320,7 +317,7 @@ func (s *Sdk) getUrlRedirect(url string, fnCall string, retriesLeft int64) (Redi
 
 	locHeader, ok := r.Header["Location"]
 	if !ok {
-		msg := fmt.Sprintf("%s -> Expected location header in response, but it was missing", fnCall)
+		msg := fmt.Sprintf("%s -> redirect retrieval error: expected location header in response, but it was missing", fnCall)
 		return RedirectReply{
 			RedirectUrl: "",
 			StatusCode: r.StatusCode,

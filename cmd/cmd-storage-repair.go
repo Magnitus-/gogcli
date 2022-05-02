@@ -44,7 +44,7 @@ func generateStorageRepairCmd() *cobra.Command {
 	storageRepairCmd.MarkFlagFilename("manifest")
 	storageRepairCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to your games' storage (directory if it is of type fs, json configuration file if it is of type s3)")
 	storageRepairCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
-	storageRepairCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of manifest games that should be processed at the same time")
+	storageRepairCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 4, "Number of manifest games that should be processed at the same time")
     storageRepairCmd.Flags().BoolVarP(&verifyChecksum, "verify-checksum", "v", false, "If set to true, checksum comparison of files against the manifest checksum value will be performed")
 
 	return storageRepairCmd

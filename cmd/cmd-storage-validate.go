@@ -29,7 +29,7 @@ func generateStorageValidateCmd() *cobra.Command {
 		},
 	}
 
-	storageValidateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Number of downloads that should be attempted at the same time")
+	storageValidateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 4, "Number of downloads that should be attempted at the same time")
 	storageValidateCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to your games' storage (directory if it is of type fs, json configuration file if it is of type s3)")
 	storageValidateCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
 	storageValidateCmd.Flags().BoolVarP(&verifyChecksum, "verify-checksum", "v", false, "If set to true, checksum comparison of files against the manifest checksum value will not be performed")

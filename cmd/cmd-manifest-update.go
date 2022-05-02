@@ -78,7 +78,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 	}
 
 	manifestUpdateCmd.Flags().Int64SliceVarP(&gameIds, "id", "i", []int64{}, "Optional ids of games to update")
-	manifestUpdateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Maximum number of concurrent requests that will be made on the GOG api")
+	manifestUpdateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 4, "Maximum number of concurrent requests that will be made on the GOG api")
 	manifestUpdateCmd.Flags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")
 	manifestUpdateCmd.Flags().StringVarP(&manifestFile, "manifest", "f", "manifest.json", "Manifest file to update")
 	manifestUpdateCmd.MarkFlagFilename("manifest")

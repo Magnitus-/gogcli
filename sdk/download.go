@@ -138,7 +138,7 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 	filenameLoc := reply.RedirectUrl
 	
 	//Second redirection
-	reply, err = s.getUrlRedirect(u, fn, (*s).maxRetries)
+	reply, err = s.getUrlRedirect(filenameLoc, fn, (*s).maxRetries)
 	if err != nil {
 		return "", "", int64(-1), err, reply.StatusCode == 403 || reply.StatusCode == 404, reply.StatusCode != 403 && reply.StatusCode != 404
 	}
@@ -169,9 +169,9 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 		}
 
 		return filename, "", lengthReply.BodyLength, nil, false, false
-	} else {
-		return metadata.Filename, metadata.Checksum, metadata.Size, nil, false, false
 	}
+
+	return metadata.Filename, metadata.Checksum, metadata.Size, nil, false, false
 }
 
 //Gets just the filename of the url path, requires 2 requests

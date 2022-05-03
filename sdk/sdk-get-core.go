@@ -237,7 +237,7 @@ func (s *Sdk) getUrlBody(url string, fnCall string, jsonBody bool, retriesLeft i
 	b, bErr := ioutil.ReadAll(reply.BodyHandle)
 	if bErr != nil {
 		if reply.RetriesLeft > 0 {
-			(*s).logger.Warning(fmt.Sprintf("%s -> body retrieval error: %s. Will retry.", fnCall, err.Error()))
+			(*s).logger.Warning(fmt.Sprintf("%s -> body retrieval error: %s. Will retry.", fnCall, bErr.Error()))
 			s.pauseAfterError()
 			return s.getUrlBody(url, fnCall, jsonBody, reply.RetriesLeft - 1)
 		}

@@ -113,6 +113,7 @@ func getFilenameFromQueryParams(location string, fn string) (string, error) {
 	return path.Base(pathParam[0]), nil
 }
 
+//https://gog-cdn-lumen.secure2.footprint.net/../bin.exe -> https://gog-cdn-lumen.secure2.footprint.net/../bin.exe.xml
 func convertDownloadUrlToMetadataUrl(downloadUrl string) (string, error) {
 	parsedUrl, err := url.Parse(downloadUrl)
 	if err != nil {
@@ -120,6 +121,21 @@ func convertDownloadUrlToMetadataUrl(downloadUrl string) (string, error) {
 		return "", errors.New(msg)
 	}
 	(*parsedUrl).Path = (*parsedUrl).Path + ".xml"
+	return parsedUrl.String(), nil
+}
+
+//https://gog-cdn-lumen.secure2.footprint.net/../bin.exe.xml -> https://gog-cdn-lumen.secure2.footprint.net/..//bin.exe.xml
+func adjustBadMetadataUrl(downloadUrl string) (string, error) {
+	parsedUrl, err := url.Parse(downloadUrl)
+	if err != nil {
+		msg := fmt.Sprintf("addSlashToFinalPath(downloadUrl=%s) -> Could not parse url", downloadUrl)
+		return "", errors.New(msg)
+	}
+
+	path := strings.Split((*parsedUrl).Path, "/")
+	lastPos := len(path)-1
+	path = append(path[0:lastPos-1], []string{"", path[lastPos]}...)
+	(*parsedUrl).Path = strings.Join(path, "/")
 	return parsedUrl.String(), nil
 }
 
@@ -153,6 +169,17 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 	//Finally, retrieve the metadata
 	metadata, metadataErr := s.retrieveDownloadMetadata(metadataUrl, fn, (*s).maxRetries)
 	if metadataErr != nil && metadata.Found {
+		//See: https://www.gog.com/forum/general/gogrepopy_python_script_for_regularly_backing_up_your_purchased_gog_collection_for_full_offline_e/post3125
+		(*s).logger.Info(fmt.Sprintf("Bad metadata for %s: Will try to adjust url before resorting to workaround.", downloadPath))
+		adjustedMetadataUrl, adjustedMetadataUrlErr := adjustBadMetadataUrl(metadataUrl)
+		if adjustedMetadataUrlErr != nil {
+			return "", "", int64(-1), metadataErr, !metadata.Found, metadata.BadMetadata
+		}
+		s.retrieveDownloadMetadata(adjustedMetadataUrl, fn, (*s).maxRetries)
+		retryMetadata, retryMetadataErr := s.retrieveDownloadMetadata(metadataUrl, fn, (*s).maxRetries)
+		if retryMetadataErr == nil {
+			return retryMetadata.Filename, retryMetadata.Checksum, retryMetadata.Size, nil, false, false
+		}
 		return "", "", int64(-1), metadataErr, !metadata.Found, metadata.BadMetadata
 	}
 	

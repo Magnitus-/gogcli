@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type XmlFile struct {
@@ -132,10 +133,10 @@ func adjustBadMetadataUrl(downloadUrl string) (string, error) {
 		return "", errors.New(msg)
 	}
 
-	path := strings.Split((*parsedUrl).Path, "/")
-	lastPos := len(path)-1
-	path = append(path[0:lastPos-1], []string{"", path[lastPos]}...)
-	(*parsedUrl).Path = strings.Join(path, "/")
+	queryParams := parsedUrl.Query()
+	queryParams.Add("timestamp", fmt.Sprintf("%d", time.Now().UnixMicro()))
+	parsedUrl.RawQuery = queryParams.Encode()
+
 	return parsedUrl.String(), nil
 }
 
@@ -171,15 +172,18 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 	if metadataErr != nil && metadata.Found {
 		//See: https://www.gog.com/forum/general/gogrepopy_python_script_for_regularly_backing_up_your_purchased_gog_collection_for_full_offline_e/post3125
 		(*s).logger.Info(fmt.Sprintf("Bad metadata for %s: Will try to adjust url before resorting to workaround.", downloadPath))
-		adjustedMetadataUrl, adjustedMetadataUrlErr := adjustBadMetadataUrl(metadataUrl)
-		if adjustedMetadataUrlErr != nil {
-			return "", "", int64(-1), metadataErr, !metadata.Found, metadata.BadMetadata
+		for i := 0; i < 2; i++ {
+			adjustedMetadataUrl, adjustedMetadataUrlErr := adjustBadMetadataUrl(metadataUrl)
+			if adjustedMetadataUrlErr != nil {
+				return "", "", int64(-1), metadataErr, !metadata.Found, metadata.BadMetadata
+			}
+	
+			retryMetadata, retryMetadataErr := s.retrieveDownloadMetadata(adjustedMetadataUrl, fn, (*s).maxRetries)
+			if retryMetadataErr == nil {
+				return retryMetadata.Filename, retryMetadata.Checksum, retryMetadata.Size, nil, false, false
+			}
 		}
-		s.retrieveDownloadMetadata(adjustedMetadataUrl, fn, (*s).maxRetries)
-		retryMetadata, retryMetadataErr := s.retrieveDownloadMetadata(metadataUrl, fn, (*s).maxRetries)
-		if retryMetadataErr == nil {
-			return retryMetadata.Filename, retryMetadata.Checksum, retryMetadata.Size, nil, false, false
-		}
+
 		return "", "", int64(-1), metadataErr, !metadata.Found, metadata.BadMetadata
 	}
 	

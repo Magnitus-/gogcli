@@ -8,8 +8,6 @@ import (
 	"gogcli/logging"
 )
 
-//Pipeline: GetManifest -> GetManifestGames -> GetManifestGameFiles -> GetManifestGameFileInfo
-
 type ManifestGamesWriterState struct {
 	Manifest Manifest
 	GameIds  []int64

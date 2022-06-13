@@ -1,6 +1,8 @@
 package sdk
 
 import (
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -61,4 +63,57 @@ func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int) (
 		time.Sleep(time.Duration(pause) * time.Millisecond)
 	}
 	return pages, errs
+}
+
+func (s *Sdk) GetOwnedGamesPages(done chan struct{}, search string, concurrency int, pause int) <-chan OwnedGamesPageReturn {
+	var wg sync.WaitGroup
+	ownedGamesPageChan := make(chan OwnedGamesPageReturn)
+
+	page1, err := s.GetOwnedGames(1, search)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		select {
+		case ownedGamesPageChan <- OwnedGamesPageReturn{page: page1, err: err}:
+		case <-done:
+			return
+		}
+	}()
+
+	if err != nil || page1.TotalPages < 2 {
+		go func() {
+			wg.Wait()
+			close(ownedGamesPageChan)
+		}()
+		return ownedGamesPageChan
+	}
+
+	totalPages := int64(page1.TotalPages)
+	currentPage := int64(page1.Page)
+
+	for idx := 0; idx < concurrency; idx++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for true {
+				nextPage := atomic.AddInt64(&currentPage, 1)
+				if nextPage > totalPages {
+					break
+				}
+				page, err := s.GetOwnedGames(int(nextPage), search)
+				select {
+				case ownedGamesPageChan <- OwnedGamesPageReturn{page: page, err: err}:
+				case <-done:
+					return
+				}
+			}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(ownedGamesPageChan)
+	}()
+
+	return ownedGamesPageChan
 }

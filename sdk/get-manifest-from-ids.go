@@ -98,7 +98,7 @@ func (s *Sdk) GetManifestFromIds(f manifest.ManifestFilter, gameIds []int64, con
 
 	addGameDetailsToManifest(m, details)
 
-	pages, errs := s.GetAllOwnedGamesPages("", concurrency, pause)
+	pages, errs := s.GetAllOwnedGamesPagesSync("", concurrency, pause)
 	if len(errs) > 0 {
 		return m, errs, []error{}
 	}

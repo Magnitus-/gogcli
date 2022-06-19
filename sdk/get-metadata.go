@@ -128,7 +128,7 @@ func updateMetadataWithProducts(m *metadata.Metadata, products []Product) {
 func (s *Sdk) GetMetadata(concurrency int, pause int, tolerateDangles bool) (metadata.Metadata, []error, []error) {
 	m := metadata.NewEmptyMetadata()
 
-	pages, errs := s.GetAllOwnedGamesPages("", concurrency, pause)
+	pages, errs := s.GetAllOwnedGamesPagesSync("", concurrency, pause)
 	if len(errs) > 0 {
 		return *m, errs, []error{}
 	}

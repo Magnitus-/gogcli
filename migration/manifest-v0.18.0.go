@@ -59,7 +59,7 @@ func (m *ManifestV0_18) Migrate(s *sdk.Sdk) (*manifest.Manifest, []error) {
 		migrated.Games[idx] = gameCopy
 	}
 
-	pages, errs := s.GetAllOwnedGamesPages("", 10, 200)
+	pages, errs := s.GetAllOwnedGamesPagesSync("", 10, 200)
 	if len(errs) > 0 {
 		return &migrated, errs
 	}

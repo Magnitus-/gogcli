@@ -1,6 +1,8 @@
 package sdk
 
-import "time"
+import (
+	"time"
+)
 
 type GamesDetailsReturn struct {
 	game GameDetails

@@ -323,3 +323,11 @@ func (g *ManifestGame) FillMissingFileInfo(fileKind string, fileName string, fil
 
 	return errors.New(fmt.Sprintf("%s is not a valid kind of file", fileKind))
 }
+
+func (g *ManifestGame) PassesFilter(filter ManifestFilter) bool {
+	titles := filter.Titles
+	tags := filter.Tags
+	hasTitleTerm := len(titles) == 0 || (*g).HasTitleTerms(titles)
+	hasOneOfTags := len(tags) == 0 || (*g).HasOneOfTags(tags)
+	return hasTitleTerm && hasOneOfTags
+}

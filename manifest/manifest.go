@@ -87,19 +87,15 @@ func (m *Manifest) Finalize() ManifestFilenameDuplicates {
 }
 
 func (m *Manifest) TrimGames() {
-	titles := (*m).Filter.Titles
-	tags := (*m).Filter.Tags
 	filteredGames := make([]ManifestGame, 0)
 
-	if len(titles) == 0 && len(tags) == 0 {
+	if len((*m).Filter.Titles) == 0 && len((*m).Filter.Tags) == 0 {
 		//Save some needless computation
 		return
 	}
 
 	for _, g := range (*m).Games {
-		hasTitleTerm := len(titles) == 0 || g.HasTitleTerms(titles)
-		hasOneOfTags := len(tags) == 0 || g.HasOneOfTags(tags)
-		if hasTitleTerm && hasOneOfTags {
+		if g.PassesFilter((*m).Filter) {
 			filteredGames = append(filteredGames, g)
 		}
 	}

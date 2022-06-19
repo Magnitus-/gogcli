@@ -5,7 +5,7 @@ import "gogcli/manifest"
 func (s *Sdk) GetUpdates(concurrency int, pause int) (manifest.Updates, []error) {
 	updates := manifest.NewEmptyUpdates()
 
-	pages, err := s.GetAllOwnedGamesPages("", concurrency, pause)
+	pages, err := s.GetAllOwnedGamesPagesSync("", concurrency, pause)
 	if err != nil {
 		return *updates, err
 	}

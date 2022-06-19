@@ -23,7 +23,7 @@ type ManifestGamesWriterResult struct {
 	Errors   []error
 }
 
-type ManifestGameGetterResult struct {
+type ManifestGameGetterGame struct {
 	Game ManifestGame
 	Warnings []error
 	Errors   []error
@@ -36,10 +36,10 @@ func NewManifestGamesWriter(state ManifestGamesWriterState, logSource *logging.S
 	}
 }
 
-type ManifestGameGetter func(chan struct{}, []int64) chan ManifestGameGetterResult
+type ManifestGameGetter func(<-chan struct{}, []int64, ManifestFilter) <-chan ManifestGameGetterGame
 type ManifestWriterStatePersister func(state ManifestGamesWriterState) error
 
-func (w *ManifestGamesWriter) Update(getter ManifestGameGetter, persister ManifestWriterStatePersister) ManifestGamesWriterResult {
+func (w *ManifestGamesWriter) Write(getter ManifestGameGetter, persister ManifestWriterStatePersister) ManifestGamesWriterResult {
 	result := ManifestGamesWriterResult{
 		Warnings: []error{},
 		Errors: []error{},
@@ -48,9 +48,9 @@ func (w *ManifestGamesWriter) Update(getter ManifestGameGetter, persister Manife
 	done := make(chan struct{})
 	defer close(done)
 
-	gameResults := getter(done, (*w).State.GameIds)
+	gameCh := getter(done, (*w).State.GameIds, (*w).State.Manifest.Filter)
 
-	for gameResult := range gameResults {
+	for gameResult := range gameCh {
 		if len(gameResult.Errors) > 0 {
 			result.Errors = append(result.Errors, gameResult.Errors...)
 			return result

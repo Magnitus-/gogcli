@@ -16,7 +16,7 @@ func (s *Sdk) GetOwnedGamesPageAsync(page int, search string, returnVal chan Own
 	returnVal <- OwnedGamesPageReturn{page: o, err: err}
 }
 
-func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int) ([]OwnedGamesPage, []error) {
+func (s *Sdk) GetAllOwnedGamesPagesSync(search string, concurrency int, pause int) ([]OwnedGamesPage, []error) {
 	var pageCount int
 	var currentPage int
 	var pages []OwnedGamesPage
@@ -65,7 +65,7 @@ func (s *Sdk) GetAllOwnedGamesPages(search string, concurrency int, pause int) (
 	return pages, errs
 }
 
-func (s *Sdk) GetOwnedGamesPages(done chan struct{}, search string, concurrency int, pause int) <-chan OwnedGamesPageReturn {
+func (s *Sdk) GetAllOwnedGamesPages(done <-chan struct{}, search string, concurrency int, pause int) <-chan OwnedGamesPageReturn {
 	var wg sync.WaitGroup
 	ownedGamesPageChan := make(chan OwnedGamesPageReturn)
 

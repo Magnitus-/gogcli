@@ -2,45 +2,7 @@ package sdk
 
 import (
 	"gogcli/manifest"
-	"strings"
 )
-
-var LANGUAGE_MAP map[string]string
-
-func getLanguageMap() map[string]string {
-	langMap := make(map[string]string)
-	langMap["english"] = "English"
-	langMap["french"] = "fran\\u00e7ais"
-	langMap["dutch"] = "nederlands"
-	langMap["spanish"] = "espa\\u00f1ol"
-	langMap["portuguese_brazilian"] = "Portugu\\u00eas do Brasil"
-	langMap["russian"] = "\\u0440\\u0443\\u0441\\u0441\\u043a\\u0438\\u0439"
-	langMap["korean"] = "\\ud55c\\uad6d\\uc5b4"
-	langMap["chinese_simplified"] = "\\u4e2d\\u6587(\\u7b80\\u4f53)"
-	langMap["japanese"] = "\\u65e5\u672c\\u8a9e"
-	langMap["polish"] = "polski"
-	langMap["italian"] = "italiano"
-	langMap["german"] = "Deutsch"
-	langMap["czech"] = "\\u010desk\\u00fd"
-	langMap["hungarian"] = "magyar"
-	langMap["portuguese"] = "portugu\\u00eas"
-	langMap["danish"] = "Dansk"
-	langMap["finnish"] = "suomi"
-	langMap["swedish"] = "svenska"
-	langMap["turkish"] = "T\\u00fcrk\\u00e7e"
-	langMap["arabic"] = "\\u0627\\u0644\\u0639\\u0631\\u0628\\u064a\\u0629"
-	langMap["romanian"] = "rom\\u00e2n\\u0103"
-	return langMap
-}
-
-func languageToAscii(unicodeRepresentation string) string {
-	for k, v := range LANGUAGE_MAP {
-		if strings.EqualFold(v, unicodeRepresentation) {
-			return k
-		}
-	}
-	return "unknown"
-}
 
 func addOwnedGamesPagesToManifest(m *manifest.Manifest, pages []OwnedGamesPage) {
 	for _, page := range pages {
@@ -134,7 +96,7 @@ func updateManifestWithGameDetails(m *manifest.Manifest, gameDetails []GameDetai
 func (s *Sdk) GetManifest(f manifest.ManifestFilter, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) (manifest.Manifest, []error, []error) {
 	m := manifest.NewEmptyManifest(f)
 
-	pages, errs := s.GetAllOwnedGamesPages("", concurrency, pause)
+	pages, errs := s.GetAllOwnedGamesPagesSync("", concurrency, pause)
 	if len(errs) > 0 {
 		return *m, errs, []error{}
 	}

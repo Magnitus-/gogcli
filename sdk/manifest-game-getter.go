@@ -294,25 +294,25 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 					}
 
 					info := s.GetFileInfo(installer.Url, tolerateBadMetadata)
-					if info.err != nil {
-						if info.badMetadata && tolerateBadMetadata {
-							(*s).logger.Warning(fmt.Sprintf("Bad metadata for %s: File metadata was still fetched using much longer workaround method.", info.url))
-							warnings = append(warnings, info.err)
-							installer.Name = info.name
-							installer.Checksum = info.checksum
-							installer.VerifiedSize = info.size
+					if info.Error != nil {
+						if info.BadMetadata && tolerateBadMetadata {
+							(*s).logger.Warning(fmt.Sprintf("Bad metadata for %s: File metadata was still fetched using much longer workaround method.", info.Url))
+							warnings = append(warnings, info.Error)
+							installer.Name = info.Name
+							installer.Checksum = info.Checksum
+							installer.VerifiedSize = info.Size
 							game.Installers[idx] = installer
-						} else if info.dangling && tolerateDangles {
-							(*s).logger.Warning(fmt.Sprintf("Bad download link for %s: File was not added to manifest.", info.url))
-							warnings = append(warnings, info.err)
+						} else if info.Dangling && tolerateDangles {
+							(*s).logger.Warning(fmt.Sprintf("Bad download link for %s: File was not added to manifest.", info.Url))
+							warnings = append(warnings, info.Error)
 						} else {
-							errors = append(errors, info.err)
+							errors = append(errors, info.Error)
 						}
 						continue
 					}
-					installer.Name = info.name
-					installer.Checksum = info.checksum
-					installer.VerifiedSize = info.size
+					installer.Name = info.Name
+					installer.Checksum = info.Checksum
+					installer.VerifiedSize = info.Size
 					game.Installers[idx] = installer
 				}
 
@@ -322,25 +322,25 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 					}
 
 					info := s.GetFileInfo(extra.Url, tolerateBadMetadata)
-					if info.err != nil {
-						if info.badMetadata && tolerateBadMetadata {
-							(*s).logger.Warning(fmt.Sprintf("Bad metadata for %s: File metadata was still fetched using much longer workaround method.", info.url))
-							warnings = append(warnings, info.err)
-							extra.Name = info.name
-							extra.Checksum = info.checksum
-							extra.VerifiedSize = info.size
+					if info.Error != nil {
+						if info.BadMetadata && tolerateBadMetadata {
+							(*s).logger.Warning(fmt.Sprintf("Bad metadata for %s: File metadata was still fetched using much longer workaround method.", info.Url))
+							warnings = append(warnings, info.Error)
+							extra.Name = info.Name
+							extra.Checksum = info.Checksum
+							extra.VerifiedSize = info.Size
 							game.Extras[idx] = extra
-						} else if info.dangling && tolerateDangles {
-							(*s).logger.Warning(fmt.Sprintf("Bad download link for %s: File was not added to manifest.", info.url))
-							warnings = append(warnings, info.err)
+						} else if info.Dangling && tolerateDangles {
+							(*s).logger.Warning(fmt.Sprintf("Bad download link for %s: File was not added to manifest.", info.Url))
+							warnings = append(warnings, info.Error)
 						} else {
-							errors = append(errors, info.err)
+							errors = append(errors, info.Error)
 						}
 						continue
 					}
-					extra.Name = info.name
-					extra.Checksum = info.checksum
-					extra.VerifiedSize = info.size
+					extra.Name = info.Name
+					extra.Checksum = info.Checksum
+					extra.VerifiedSize = info.Size
 					game.Extras[idx] = extra
 				}
 

@@ -192,13 +192,13 @@ func (s *Sdk) GetDownloadFileInfoWorkaroundWay(downloadPath string) (string, str
 }
 
 type GetFileInfoReturn struct {
-	url         string
-	name        string
-	checksum    string
-	size        int64
-	err         error
-	dangling    bool
-	badMetadata bool
+	Url         string
+	Name        string
+	Checksum    string
+	Size        int64
+	Error       error
+	Dangling    bool
+	BadMetadata bool
 }
 
 //Calls GetDownloadFileInfo and fallbacks to GetDownloadFileInfoWorkaroundWay if tolerateBadMetadata is true
@@ -209,35 +209,35 @@ func (s *Sdk) GetFileInfo(downloadPath string, tolerateBadMetadata bool) GetFile
 		name, checksum, size, workaroundErr = s.GetDownloadFileInfoWorkaroundWay(downloadPath)
 		if workaroundErr != nil {
 			return GetFileInfoReturn{
-				url: downloadPath,
-				name: name,
-				checksum: checksum,
-				size: size,
-				err: workaroundErr,
-				dangling: false,
-				badMetadata: false,
+				Url: downloadPath,
+				Name: name,
+				Checksum: checksum,
+				Size: size,
+				Error: workaroundErr,
+				Dangling: false,
+				BadMetadata: false,
 			}
 		}
 
 		return GetFileInfoReturn{
-			url: downloadPath,
-			name: name,
-			checksum: checksum,
-			size: size,
-			err: err,
-			dangling: false,
-			badMetadata: true,
+			Url: downloadPath,
+			Name: name,
+			Checksum: checksum,
+			Size: size,
+			Error: err,
+			Dangling: false,
+			BadMetadata: true,
 		}
 	}
 
 	return GetFileInfoReturn{
-		url: downloadPath, 
-		name: name,
-		checksum: checksum,
-		size: size,
-		err: err,
-		dangling: dangling,
-		badMetadata: badMetadata,
+		Url: downloadPath, 
+		Name: name,
+		Checksum: checksum,
+		Size: size,
+		Error: err,
+		Dangling: dangling,
+		BadMetadata: badMetadata,
 	}
 }
 

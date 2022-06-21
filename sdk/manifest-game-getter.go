@@ -49,6 +49,11 @@ type GameResult struct {
 	Error error
 }
 
+type GameIdsResult struct {
+	Ids   []int64
+	Error error
+}
+
 func OwnedGamePagesToGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGamesPageReturn, gameIds []int64, filter manifest.ManifestFilter) <-chan GameResult {
 	gameCh := make(chan GameResult)
 	
@@ -214,25 +219,76 @@ func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan GameRe
 	return outGameCh
 }
 
+func TapGameIds(done <-chan struct{}, inGameCh <-chan GameResult) (<-chan GameResult, <-chan GameIdsResult) {
+	outGameCh := make(chan GameResult)
+	outGameIdsCh := make(chan GameIdsResult)
+
+	go func() {
+		defer close(outGameIdsCh)
+		defer close(outGameCh)
+
+		games := []manifest.ManifestGame{}
+		gameIds := []int64{}
+		for true {
+			select {
+			case gameRes, ok := <-inGameCh:
+				if !ok {
+					outGameIdsCh <- GameIdsResult{Ids: gameIds, Error: nil}
+					for _, game := range games {
+						outGameCh <- GameResult{Game: game, Error: nil}
+					}
+					return
+				}
+				
+				if gameRes.Error != nil {
+					outGameIdsCh <- GameIdsResult{Ids: []int64{}, Error: gameRes.Error}
+				}
+
+				games = append(games, gameRes.Game)
+				gameIds = append(gameIds, gameRes.Game.Id)
+			case <-done:
+				return
+			}
+		}
+	}()
+
+	return outGameCh, outGameIdsCh
+}
+
 func (s *Sdk) GenerateManifestGameGetter(f manifest.ManifestFilter, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) manifest.ManifestGameGetter {
-	return func(done <-chan struct{}, gameIds []int64, filter manifest.ManifestFilter) <-chan manifest.ManifestGameGetterGame {
-		gameGetterResultCh := make(chan manifest.ManifestGameGetterGame)
-		
-		gamesCh := s.AddGameDetailsToGames(
-			done, 
-			OwnedGamePagesToGames(
+	return func(done <-chan struct{}, gameIds []int64, filter manifest.ManifestFilter) (<-chan manifest.ManifestGameGetterGame, <-chan manifest.ManifestGameGetterGameIds) {
+		gameResultCh := make(chan manifest.ManifestGameGetterGame)
+		gameIdsResultCh := make(chan manifest.ManifestGameGetterGameIds)
+
+		gamesCh, gameIdsCh := TapGameIds(
+			done,
+			s.AddGameDetailsToGames(
 				done, 
-				s.GetAllOwnedGamesPages(done, "", concurrency, pause), 
-				gameIds, 
+				OwnedGamePagesToGames(
+					done, 
+					s.GetAllOwnedGamesPages(done, "", concurrency, pause), 
+					gameIds, 
+					filter,
+				),
+				concurrency, 
+				pause,
 				filter,
 			),
-			concurrency, 
-			pause,
-			filter,
 		)
 
 		go func() {
-			defer close(gameGetterResultCh)
+			defer close(gameIdsResultCh)
+			defer close(gameResultCh)
+
+			select {
+			case gameIdsRes := <-gameIdsCh:
+				gameIdsResultCh <- manifest.ManifestGameGetterGameIds{
+					Ids: gameIdsRes.Ids,
+					Error: gameIdsRes.Error,
+				}
+			case <-done:
+				return
+			}
 
 			games := []manifest.ManifestGame{}
 			for true {
@@ -243,7 +299,7 @@ func (s *Sdk) GenerateManifestGameGetter(f manifest.ManifestFilter, concurrency 
 					}
 
 					if gameRes.Error != nil {
-						gameGetterResultCh <- manifest.ManifestGameGetterGame{
+						gameResultCh <- manifest.ManifestGameGetterGame{
 							Game: gameRes.Game,
 							Warnings: []error{},
 							Errors: []error{gameRes.Error},
@@ -258,6 +314,6 @@ func (s *Sdk) GenerateManifestGameGetter(f manifest.ManifestFilter, concurrency 
 			}
 		}()
 		
-		return gameGetterResultCh
+		return gameResultCh, gameIdsResultCh
 	}
 }

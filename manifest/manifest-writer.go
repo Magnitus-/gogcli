@@ -29,6 +29,11 @@ type ManifestGameGetterGame struct {
 	Errors   []error
 }
 
+type ManifestGameGetterGameIds struct {
+	Ids   []int64
+	Error error
+}
+
 func NewManifestGamesWriter(state ManifestGamesWriterState, logSource *logging.Source) *ManifestGamesWriter {
 	return &ManifestGamesWriter{
 		State: state,
@@ -36,7 +41,7 @@ func NewManifestGamesWriter(state ManifestGamesWriterState, logSource *logging.S
 	}
 }
 
-type ManifestGameGetter func(<-chan struct{}, []int64, ManifestFilter) <-chan ManifestGameGetterGame
+type ManifestGameGetter func(<-chan struct{}, []int64, ManifestFilter) (<-chan ManifestGameGetterGame, <-chan ManifestGameGetterGameIds)
 type ManifestWriterStatePersister func(state ManifestGamesWriterState) error
 
 func (w *ManifestGamesWriter) Write(getter ManifestGameGetter, persister ManifestWriterStatePersister) ManifestGamesWriterResult {
@@ -48,7 +53,15 @@ func (w *ManifestGamesWriter) Write(getter ManifestGameGetter, persister Manifes
 	done := make(chan struct{})
 	defer close(done)
 
-	gameCh := getter(done, (*w).State.GameIds, (*w).State.Manifest.Filter)
+	gameCh, gameIdsCh := getter(done, (*w).State.GameIds, (*w).State.Manifest.Filter)
+
+	IdsResult := <- gameIdsCh
+	if IdsResult.Error != nil {
+		result.Errors = append(result.Errors, IdsResult.Error)
+		return result
+	}
+
+	(*w).State.GameIds = IdsResult.Ids
 
 	for gameResult := range gameCh {
 		if len(gameResult.Errors) > 0 {

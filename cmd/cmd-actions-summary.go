@@ -9,7 +9,7 @@ import (
 func generateActionsSummaryCmd() *cobra.Command {
 	var a manifest.GameActions
 	var actionsPath string
-	var file string
+	var summaryFile string
 	var terminalOutput bool
 
 	actionsSummaryCmd := &cobra.Command{
@@ -22,12 +22,12 @@ func generateActionsSummaryCmd() *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			summary := a.GetSummary()
-			processSerializableOutput(summary, []error{}, terminalOutput, file)
+			processSerializableOutput(summary, []error{}, terminalOutput, summaryFile)
 		},
 	}
 
 	actionsSummaryCmd.Flags().StringVarP(&actionsPath, "actions", "a", "actions.json", "Actions file to get the summary about")
-	actionsSummaryCmd.Flags().StringVarP(&file, "file", "f", "actions-info.json", "File to output the actions summary in if in json format")
+	actionsSummaryCmd.Flags().StringVarP(&summaryFile, "summary-file", "f", "actions-info.json", "File to output the actions summary in if in json format")
 	actionsSummaryCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", true, "If set to true and json format is used, the actions summary will be output on the terminal instead of in a file")
 
 	return actionsSummaryCmd

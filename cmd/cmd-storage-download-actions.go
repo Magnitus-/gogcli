@@ -8,7 +8,7 @@ import (
 func generateStorageDownloadActionsCmd() *cobra.Command {
 	var path string
 	var storageType string
-	var file string
+	var actionsFile string
 	var terminalOutput bool
 
 	storageDownloadActionsCmd := &cobra.Command{
@@ -34,11 +34,11 @@ func generateStorageDownloadActionsCmd() *cobra.Command {
 
 			a, mErr := gamesStorage.LoadActions()
 			processError(mErr)
-			processSerializableOutput(a, []error{}, terminalOutput, file)
+			processSerializableOutput(a, []error{}, terminalOutput, actionsFile)
 		},
 	}
 
-	storageDownloadActionsCmd.Flags().StringVarP(&file, "file", "f", "actions.json", "File to output the actions in")
+	storageDownloadActionsCmd.Flags().StringVarP(&actionsFile, "actions-file", "f", "actions.json", "File to output the actions in")
 	storageDownloadActionsCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the actions will be output on the terminal instead of in a file")
 	storageDownloadActionsCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to your games' storage (directory if it is of type fs, json configuration file if it is of type s3)")
 	storageDownloadActionsCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")

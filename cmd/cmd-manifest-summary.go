@@ -9,7 +9,7 @@ import (
 func generateManifestSummaryCmd() *cobra.Command {
 	var m manifest.Manifest
 	var manifestPath string
-	var file string
+	var summaryFile string
 	var terminalOutput bool
 
 	manifestSummaryCmd := &cobra.Command{
@@ -22,12 +22,12 @@ func generateManifestSummaryCmd() *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			summary := m.GetSummary()
-			processSerializableOutput(summary, []error{}, terminalOutput, file)
+			processSerializableOutput(summary, []error{}, terminalOutput, summaryFile)
 		},
 	}
 
 	manifestSummaryCmd.Flags().StringVarP(&manifestPath, "manifest", "m", "manifest.json", "Manifest file to get the summary about")
-	manifestSummaryCmd.Flags().StringVarP(&file, "file", "f", "manifest-info.json", "File to output the manifest summary in if in json format")
+	manifestSummaryCmd.Flags().StringVarP(&summaryFile, "summary-file", "f", "manifest-info.json", "File to output the manifest summary in if in json format")
 	manifestSummaryCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", true, "If set to true and json format is used, the manifest summary will be output on the terminal instead of in a file")
 
 	return manifestSummaryCmd

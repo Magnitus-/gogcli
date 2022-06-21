@@ -8,7 +8,7 @@ import (
 func generateStorageDownloadManifestCmd() *cobra.Command {
 	var path string
 	var storageType string
-	var file string
+	var manifestFile string
 	var terminalOutput bool
 
 	storageDownloadManifestCmd := &cobra.Command{
@@ -34,11 +34,11 @@ func generateStorageDownloadManifestCmd() *cobra.Command {
 
 			m, mErr := gamesStorage.LoadManifest()
 			processError(mErr)
-			processSerializableOutput(m, []error{}, terminalOutput, file)
+			processSerializableOutput(m, []error{}, terminalOutput, manifestFile)
 		},
 	}
 
-	storageDownloadManifestCmd.Flags().StringVarP(&file, "file", "f", "manifest.json", "File to output the manifest in")
+	storageDownloadManifestCmd.Flags().StringVarP(&manifestFile, "manifest-file", "f", "manifest.json", "File to output the manifest in")
 	storageDownloadManifestCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the manifest will be output on the terminal instead of in a file")
 	storageDownloadManifestCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to your games' storage (directory if it is of type fs, json configuration file if it is of type s3)")
 	storageDownloadManifestCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")

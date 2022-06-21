@@ -11,7 +11,7 @@ func generateManifestDiffCmd() *cobra.Command {
 	var next manifest.Manifest
 	var currManifestFile string
 	var nextManifestFile string
-	var file string
+	var diffFile string
 	var terminalOutput bool
 	var allowEmptyCheckum bool
 
@@ -32,7 +32,7 @@ func generateManifestDiffCmd() *cobra.Command {
 			}
 
 			a := curr.Plan(&next, checksumValidation, false)
-			processSerializableOutput(a, []error{}, terminalOutput, file)
+			processSerializableOutput(a, []error{}, terminalOutput, diffFile)
 		},
 	}
 
@@ -40,7 +40,7 @@ func generateManifestDiffCmd() *cobra.Command {
 	manifestDiffCmd.MarkFlagFilename("current")
 	manifestDiffCmd.Flags().StringVarP(&nextManifestFile, "next", "n", "next-manifest.json", "Next manifest that represents the desired state of your storage")
 	manifestDiffCmd.MarkFlagFilename("next")
-	manifestDiffCmd.Flags().StringVarP(&file, "file", "f", "actions.json", "File to output the actions representing the difference")
+	manifestDiffCmd.Flags().StringVarP(&diffFile, "diff-file", "f", "diff-actions.json", "File to output the actions representing the difference")
 	manifestDiffCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", true, "If set to true, the actions will be output on the terminal instead of in a file")
 	manifestDiffCmd.Flags().BoolVarP(&allowEmptyCheckum, "empty-checksum", "s", false, "If set to true, files in the desired manifest with empty checksums will count as already uploaded if everything else matches")
 

@@ -16,7 +16,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 	var extraTypeFilters []string
 	var concurrency int
 	var pause int
-	var file string
+	var manifestFile string
 	var terminalOutput bool
 	var tolerateDangles bool
 	var warningFile string
@@ -38,7 +38,9 @@ func generateManifestGenerateCmd() *cobra.Command {
 			)
 			m, errs, warnings := sdkPtr.GetManifest(f, concurrency, pause, tolerateDangles, tolerateBadFileMetadata)
 			duplicates := m.Finalize()
-			processSerializableOutput(m, errs, terminalOutput, file)
+			
+			processErrors(errs)
+			processSerializableOutput(m, []error{}, terminalOutput, manifestFile)
 
 			if len(duplicates) > 0 {
 				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
@@ -62,11 +64,11 @@ func generateManifestGenerateCmd() *cobra.Command {
 	manifestGenerateCmd.Flags().StringArrayVarP(&extraTypeFilters, "extratype", "x", []string{}, "If you want to include only extras whole type contain one of the given strings. Look at full generated manifest without this flag to figure out valid types")
 	manifestGenerateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 4, "Maximum number of concurrent requests that will be made on the GOG api")
 	manifestGenerateCmd.Flags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")
-	manifestGenerateCmd.Flags().StringVarP(&file, "file", "f", "manifest.json", "File to output the manifest in")
+	manifestGenerateCmd.Flags().StringVarP(&manifestFile, "manifest-file", "f", "manifest.json", "File to output the manifest in")
 	manifestGenerateCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the manifest will be output on the terminal instead of in a file")
 	manifestGenerateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "d", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent manifest generation")
-	manifestGenerateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
-	manifestGenerateCmd.Flags().StringVarP(&duplicatesFile, "duplicates-file", "u", "duplicates.json", "Files that had duplicate filenames within the same game and had to be renamed will be listed in this file")
+	manifestGenerateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-generation-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
+	manifestGenerateCmd.Flags().StringVarP(&duplicatesFile, "duplicates-file", "u", "manifest-generation-duplicates.json", "Files that had duplicate filenames within the same game and had to be renamed will be listed in this file")
 	manifestGenerateCmd.Flags().BoolVarP(&tolerateBadFileMetadata, "tolerate-bad-metadata", "b", true, "Tolerate files for which metadata cannot be retrieved. The checksum will be infered by performing a throwaway file download instead.")
 	return manifestGenerateCmd
 }

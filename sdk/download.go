@@ -174,6 +174,73 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 	return metadata.Filename, metadata.Checksum, metadata.Size, nil, false, false
 }
 
+func (s *Sdk) GetDownloadFileInfoWorkaroundWay(downloadPath string) (string, string, int64, error) {
+	fn := fmt.Sprintf(" GetDownloadFileInfoWorkaroundWay(downloadPath=%s)", downloadPath)
+	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
+
+	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
+
+	reply, err := s.getUrlBodyChecksum(u, fn, (*s).maxRetries)
+	if err != nil {
+		return  "", "", int64(0), err
+	}
+
+	finalUrl, _ := url.Parse(reply.FinalUrl)
+	filename := path.Base(finalUrl.Path)
+
+	return filename, reply.BodyChecksum, reply.BodyLength, nil
+}
+
+type GetFileInfoReturn struct {
+	url         string
+	name        string
+	checksum    string
+	size        int64
+	err         error
+	dangling    bool
+	badMetadata bool
+}
+
+//Calls GetDownloadFileInfo and fallbacks to GetDownloadFileInfoWorkaroundWay if tolerateBadMetadata is true
+func (s *Sdk) GetFileInfo(downloadPath string, tolerateBadMetadata bool) GetFileInfoReturn {
+	name, checksum, size, err, dangling, badMetadata := s.GetDownloadFileInfo(downloadPath)
+	if badMetadata && tolerateBadMetadata {
+		var workaroundErr error
+		name, checksum, size, workaroundErr = s.GetDownloadFileInfoWorkaroundWay(downloadPath)
+		if workaroundErr != nil {
+			return GetFileInfoReturn{
+				url: downloadPath,
+				name: name,
+				checksum: checksum,
+				size: size,
+				err: workaroundErr,
+				dangling: false,
+				badMetadata: false,
+			}
+		}
+
+		return GetFileInfoReturn{
+			url: downloadPath,
+			name: name,
+			checksum: checksum,
+			size: size,
+			err: err,
+			dangling: false,
+			badMetadata: true,
+		}
+	}
+
+	return GetFileInfoReturn{
+		url: downloadPath, 
+		name: name,
+		checksum: checksum,
+		size: size,
+		err: err,
+		dangling: dangling,
+		badMetadata: badMetadata,
+	}
+}
+
 //Gets just the filename of the url path, requires 2 requests
 func (s *Sdk) GetDownloadFilename(downloadPath string) (string, error) {
 	fn := fmt.Sprintf("GetDownloadFilename(downloadPath=%s)", downloadPath)
@@ -205,21 +272,4 @@ func (s *Sdk) GetDownloadHandle(downloadPath string) (io.ReadCloser, int64, stri
 	filename := path.Base(downloadUrl.Path)
 
 	return reply.BodyHandle, reply.BodyLength, filename, nil
-}
-
-func (s *Sdk) GetDownloadFileInfoWorkaroundWay(downloadPath string) (string, string, int64, error) {
-	fn := fmt.Sprintf(" GetDownloadFileInfoWorkaroundWay(downloadPath=%s)", downloadPath)
-	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
-
-	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
-
-	reply, err := s.getUrlBodyChecksum(u, fn, (*s).maxRetries)
-	if err != nil {
-		return  "", "", int64(0), err
-	}
-
-	finalUrl, _ := url.Parse(reply.FinalUrl)
-	filename := path.Base(finalUrl.Path)
-
-	return filename, reply.BodyChecksum, reply.BodyLength, nil
 }

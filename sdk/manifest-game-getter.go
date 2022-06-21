@@ -3,6 +3,7 @@ package sdk
 import (
 	"gogcli/manifest"
 	
+	"fmt"
 	"strings"
 	"sync"
 )
@@ -52,6 +53,12 @@ type GameResult struct {
 type GameIdsResult struct {
 	Ids   []int64
 	Error error
+}
+
+type GameManyErrorsResult struct {
+	Game  manifest.ManifestGame
+	Warnings []error
+	Errors   []error
 }
 
 func OwnedGamePagesToGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGamesPageReturn, gameIds []int64, filter manifest.ManifestFilter) <-chan GameResult {
@@ -255,6 +262,107 @@ func TapGameIds(done <-chan struct{}, inGameCh <-chan GameResult) (<-chan GameRe
 	return outGameCh, outGameIdsCh
 }
 
+func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResult, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) <-chan GameManyErrorsResult {
+	var wg sync.WaitGroup
+	outGameCh := make(chan GameManyErrorsResult)
+
+	for idx := 0; idx < concurrency; idx++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			select {
+			case gameRes, ok := <-inGameCh:
+				if !ok {
+					return
+				}
+
+				if gameRes.Error != nil {
+					outGameCh <- GameManyErrorsResult{
+						Game: gameRes.Game,
+						Warnings: []error{},
+						Errors: []error{gameRes.Error},
+					}
+				}
+
+				warnings := []error{}
+				errors := []error{}
+				game := gameRes.Game
+
+				for idx, installer := range game.Installers {
+					if len(errors) > 0 {
+						break
+					}
+
+					info := s.GetFileInfo(installer.Url, tolerateBadMetadata)
+					if info.err != nil {
+						if info.badMetadata && tolerateBadMetadata {
+							(*s).logger.Warning(fmt.Sprintf("Bad metadata for %s: File metadata was still fetched using much longer workaround method.", info.url))
+							warnings = append(warnings, info.err)
+							installer.Name = info.name
+							installer.Checksum = info.checksum
+							installer.VerifiedSize = info.size
+							game.Installers[idx] = installer
+						} else if info.dangling && tolerateDangles {
+							(*s).logger.Warning(fmt.Sprintf("Bad download link for %s: File was not added to manifest.", info.url))
+							warnings = append(warnings, info.err)
+						} else {
+							errors = append(errors, info.err)
+						}
+						continue
+					}
+					installer.Name = info.name
+					installer.Checksum = info.checksum
+					installer.VerifiedSize = info.size
+					game.Installers[idx] = installer
+				}
+
+				for idx, extra := range game.Extras {
+					if len(errors) > 0 {
+						break
+					}
+
+					info := s.GetFileInfo(extra.Url, tolerateBadMetadata)
+					if info.err != nil {
+						if info.badMetadata && tolerateBadMetadata {
+							(*s).logger.Warning(fmt.Sprintf("Bad metadata for %s: File metadata was still fetched using much longer workaround method.", info.url))
+							warnings = append(warnings, info.err)
+							extra.Name = info.name
+							extra.Checksum = info.checksum
+							extra.VerifiedSize = info.size
+							game.Extras[idx] = extra
+						} else if info.dangling && tolerateDangles {
+							(*s).logger.Warning(fmt.Sprintf("Bad download link for %s: File was not added to manifest.", info.url))
+							warnings = append(warnings, info.err)
+						} else {
+							errors = append(errors, info.err)
+						}
+						continue
+					}
+					extra.Name = info.name
+					extra.Checksum = info.checksum
+					extra.VerifiedSize = info.size
+					game.Extras[idx] = extra
+				}
+
+				outGameCh <- GameManyErrorsResult{
+					Game: game,
+					Warnings: warnings,
+					Errors: errors,
+				}
+			case <-done:
+				return
+			}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(outGameCh)
+	}()
+
+	return outGameCh
+}
+
 func (s *Sdk) GenerateManifestGameGetter(f manifest.ManifestFilter, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) manifest.ManifestGameGetter {
 	return func(done <-chan struct{}, gameIds []int64, filter manifest.ManifestFilter) (<-chan manifest.ManifestGameGetterGame, <-chan manifest.ManifestGameGetterGameIds) {
 		gameResultCh := make(chan manifest.ManifestGameGetterGame)
@@ -276,6 +384,8 @@ func (s *Sdk) GenerateManifestGameGetter(f manifest.ManifestFilter, concurrency 
 			),
 		)
 
+		gamesFinalCh := s.AddFileInfoToGames(done, gamesCh, concurrency, pause, tolerateDangles, tolerateBadMetadata)
+
 		go func() {
 			defer close(gameIdsResultCh)
 			defer close(gameResultCh)
@@ -290,24 +400,18 @@ func (s *Sdk) GenerateManifestGameGetter(f manifest.ManifestFilter, concurrency 
 				return
 			}
 
-			games := []manifest.ManifestGame{}
 			for true {
 				select {
-				case gameRes, ok := <-gamesCh:
+				case gameRes, ok := <-gamesFinalCh:
 					if !ok {
 						break
 					}
 
-					if gameRes.Error != nil {
-						gameResultCh <- manifest.ManifestGameGetterGame{
-							Game: gameRes.Game,
-							Warnings: []error{},
-							Errors: []error{gameRes.Error},
-						}
-						continue
+					gameResultCh <- manifest.ManifestGameGetterGame{
+						Game: gameRes.Game,
+						Warnings: gameRes.Warnings,
+						Errors: gameRes.Errors,
 					}
-
-					games = append(games, gameRes.Game)
 				case <-done:
 					return
 				}

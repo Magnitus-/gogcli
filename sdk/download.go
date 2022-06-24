@@ -165,7 +165,7 @@ func (s *Sdk) getDownloadFileInfo(downloadPath string) (string, string, int64, e
 
 		lengthReply, lengthErr := s.getUrlBodyLength(downloadLoc, fn, (*s).maxRetries)
 		if lengthErr != nil {
-			return "", "", int64(-1), lengthErr, lengthReply.StatusCode == 403 || lengthReply.StatusCode == 404, lengthReply.StatusCode != 403 && lengthReply.StatusCode != 404
+			return "", "", int64(-1), lengthErr, false, true
 		}
 
 		return filename, "", lengthReply.BodyLength, nil, false, false

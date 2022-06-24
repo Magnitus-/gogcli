@@ -331,3 +331,8 @@ func (g *ManifestGame) PassesFilter(filter ManifestFilter) bool {
 	hasOneOfTags := len(tags) == 0 || (*g).HasOneOfTags(tags)
 	return hasTitleTerm && hasOneOfTags
 }
+
+func (g *ManifestGame) TrimFilesFromFilter(filter ManifestFilter) {
+	g.TrimInstallers(filter.Oses, filter.Languages, filter.Installers)
+	g.TrimExtras(filter.ExtraTypes, filter.Extras)
+}

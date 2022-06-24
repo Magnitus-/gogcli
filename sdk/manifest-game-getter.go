@@ -262,7 +262,7 @@ func TapGameIds(done <-chan struct{}, inGameCh <-chan GameResult) (<-chan GameRe
 	return outGameCh, outGameIdsCh
 }
 
-func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResult, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) <-chan GameManyErrorsResult {
+func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResult, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool, filter manifest.ManifestFilter) <-chan GameManyErrorsResult {
 	var wg sync.WaitGroup
 	outGameCh := make(chan GameManyErrorsResult)
 
@@ -287,7 +287,12 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 
 					warnings := []error{}
 					errors := []error{}
+
 					game := gameRes.Game
+					game.TrimFilesFromFilter(filter)
+					if game.IsEmpty() {
+						break
+					}
 
 					for idx, installer := range game.Installers {
 						if len(errors) > 0 {
@@ -386,7 +391,7 @@ func (s *Sdk) GenerateManifestGameGetter(f manifest.ManifestFilter, concurrency 
 			),
 		)
 
-		gamesFinalCh := s.AddFileInfoToGames(done, gamesCh, concurrency, pause, tolerateDangles, tolerateBadMetadata)
+		gamesFinalCh := s.AddFileInfoToGames(done, gamesCh, concurrency, pause, tolerateDangles, tolerateBadMetadata, filter)
 
 		go func() {
 			defer close(gameIdsResultCh)

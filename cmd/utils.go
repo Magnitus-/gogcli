@@ -118,6 +118,20 @@ func processSerializableOutput(serializable interface{}, errs []error, terminal 
 	}
 }
 
+func PersistProgress(file string) manifest.ManifestWriterStatePersister {
+	return func(state manifest.ManifestGamesWriterState) error {
+		var output []byte
+		buf := new(bytes.Buffer)
+		enc := json.NewEncoder(buf)
+		enc.SetEscapeHTML(false)
+		enc.SetIndent("", "  ")
+		_ = enc.Encode(state)
+		output = buf.Bytes()
+		err := ioutil.WriteFile(file, output, 0644)
+		return err
+	}		
+}
+
 //https://github.com/spf13/cobra/issues/216#issuecomment-703846787
 func callPersistentPreRun(cmd *cobra.Command, args []string) {
 	parent := cmd.Parent()

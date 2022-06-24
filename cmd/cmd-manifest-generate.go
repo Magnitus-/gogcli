@@ -17,6 +17,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 	var concurrency int
 	var pause int
 	var manifestFile string
+	var progressFile string
 	var terminalOutput bool
 	var tolerateDangles bool
 	var warningFile string
@@ -36,7 +37,16 @@ func generateManifestGenerateCmd() *cobra.Command {
 				extras,
 				extraTypeFilters,
 			)
-			m, errs, warnings := sdkPtr.GetManifest(f, concurrency, pause, tolerateDangles, tolerateBadFileMetadata)
+			progressFn := PersistProgress(progressFile)
+			writer := manifest.NewManifestGamesWriter(
+				manifest.NewManifestGamesWriterState(f, []int64{}),
+				logSource,
+			)
+			result := writer.Write( 
+				sdkPtr.GenerateManifestGameGetter(f, concurrency, pause, tolerateDangles, tolerateBadFileMetadata),
+				progressFn,
+			)
+			m, errs, warnings := writer.State.Manifest, result.Errors, result.Warnings
 			duplicates := m.Finalize()
 			
 			processErrors(errs)
@@ -65,6 +75,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 	manifestGenerateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 4, "Maximum number of concurrent requests that will be made on the GOG api")
 	manifestGenerateCmd.Flags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")
 	manifestGenerateCmd.Flags().StringVarP(&manifestFile, "manifest-file", "f", "manifest.json", "File to output the manifest in")
+	manifestGenerateCmd.Flags().StringVarP(&progressFile, "progress-file", "z", "manifest-generation-progress.json", "File to save transient progress for the manifest generation in")
 	manifestGenerateCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the manifest will be output on the terminal instead of in a file")
 	manifestGenerateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "d", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent manifest generation")
 	manifestGenerateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-generation-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")

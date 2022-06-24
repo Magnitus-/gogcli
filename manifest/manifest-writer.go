@@ -34,6 +34,14 @@ type ManifestGameGetterGameIds struct {
 	Error error
 }
 
+func NewManifestGamesWriterState(filter ManifestFilter, GameIds []int64) ManifestGamesWriterState {
+	m := NewEmptyManifest(filter)
+	return ManifestGamesWriterState{
+		Manifest: *m,
+		GameIds: GameIds,
+	}
+}
+
 func NewManifestGamesWriter(state ManifestGamesWriterState, logSource *logging.Source) *ManifestGamesWriter {
 	return &ManifestGamesWriter{
 		State: state,
@@ -62,6 +70,7 @@ func (w *ManifestGamesWriter) Write(getter ManifestGameGetter, persister Manifes
 	}
 
 	(*w).State.GameIds = IdsResult.Ids
+	(*w).logger.Info(fmt.Sprintf("Generating/Updating manifest for %d games", len((*w).State.GameIds)))	
 
 	for gameResult := range gameCh {
 		if len(gameResult.Errors) > 0 {

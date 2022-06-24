@@ -16,6 +16,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 	var gameIds []int64
 	var updateFile string
 	var manifestFile string
+	var progressFile string
 	var warningFile string
 	var duplicatesFile string
 	var concurrency int
@@ -59,7 +60,17 @@ func generateManifestUpdateCmd() *cobra.Command {
 				ids = append(ids, (*u).UpdatedGames...)
 			}
 
-			uManifest, errs, warnings := sdkPtr.GetManifestFromIds(m.Filter, ids, concurrency, pause, tolerateDangles, tolerateBadFileMetadata)
+			progressFn := PersistProgress(progressFile)
+			writer := manifest.NewManifestGamesWriter(
+				manifest.NewManifestGamesWriterState(m.Filter, ids),
+				logSource,
+			)
+			result := writer.Write( 
+				sdkPtr.GenerateManifestGameGetter(m.Filter, concurrency, pause, tolerateDangles, tolerateBadFileMetadata),
+				progressFn,
+			)
+			uManifest, errs, warnings := writer.State.Manifest, result.Errors, result.Warnings
+
 			m.OverwriteGames(uManifest.Games)
 			duplicates := m.Finalize()
 
@@ -83,7 +94,8 @@ func generateManifestUpdateCmd() *cobra.Command {
 	manifestUpdateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 4, "Maximum number of concurrent requests that will be made on the GOG api")
 	manifestUpdateCmd.Flags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")
 	manifestUpdateCmd.Flags().StringVarP(&manifestFile, "manifest-file", "f", "manifest.json", "Manifest file to update")
-	manifestUpdateCmd.MarkFlagFilename("manifest")
+	manifestUpdateCmd.MarkFlagFilename("manifest-file")
+	manifestUpdateCmd.Flags().StringVarP(&progressFile, "progress-file", "z", "manifest-update-progress.json", "File to save transient progress for the manifest update in")
 	manifestUpdateCmd.Flags().StringVarP(&updateFile, "update", "u", "", "Optional update file containing new and updated game ids")
 	manifestUpdateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "d", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent manifest generation")
 	manifestUpdateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-update-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")

@@ -11,6 +11,7 @@ import (
 )
 
 func generateManifestUpdateResumeCmd() *cobra.Command {
+	var previousWarnings []error
 	var s *manifest.ManifestGamesWriterState
 	var m manifest.Manifest
 	var manifestFile string
@@ -43,6 +44,8 @@ func generateManifestUpdateResumeCmd() *cobra.Command {
 				fmt.Println("Progress file doesn't appear to contain valid json: ", err)
 				os.Exit(1)
 			}
+
+			previousWarnings = deserializeErrors(warningFile)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			progressFn := PersistProgress(progressFile)
@@ -56,15 +59,7 @@ func generateManifestUpdateResumeCmd() *cobra.Command {
 			)
 			uManifest, errs, warnings := writer.State.Manifest, result.Errors, result.Warnings
 
-			m.OverwriteGames(uManifest.Games)
-			duplicates := m.Finalize()
-
-			processErrors(errs)
-			processSerializableOutput(m, []error{}, false, manifestFile)
-
-			if len(duplicates) > 0 {
-				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
-			}
+			warnings = append(warnings, previousWarnings...)
 			if len(warnings) > 0 {
 				warningsOutput := Errors{make([]string, len(warnings))}
 				for idx, _ := range warnings {
@@ -72,6 +67,16 @@ func generateManifestUpdateResumeCmd() *cobra.Command {
 				}
 				processSerializableOutput(warningsOutput, []error{}, false, warningFile)
 			}
+			processErrors(errs)
+
+			m.OverwriteGames(uManifest.Games)
+
+			duplicates := m.Finalize()
+			if len(duplicates) > 0 {
+				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
+			}
+
+			processSerializableOutput(m, []error{}, false, manifestFile)
 			
 			CleanupFile(progressFile)
 		},

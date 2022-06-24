@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"gogcli/logging"
 	"gogcli/manifest"
@@ -80,6 +81,32 @@ func processError(err error) {
 
 type Errors struct {
 	Errors []string
+}
+
+func deserializeErrors(file string) []error {
+	var strErrs Errors
+	errs := []error{}
+
+	bs, err := ioutil.ReadFile(file)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			fmt.Println("Could not load the error/warning file: ", err)
+			os.Exit(1)
+		}
+		return errs
+	}
+
+	err = json.Unmarshal(bs, &strErrs)
+	if err != nil {
+		fmt.Println("Error/warning file doesn't appear to contain valid json: ", err)
+		os.Exit(1)
+	}
+
+	for _, strErr := range strErrs.Errors {
+		errs = append(errs, errors.New(strErr))
+	}
+
+	return errs
 }
 
 func processSerializableOutput(serializable interface{}, errs []error, terminal bool, file string) {

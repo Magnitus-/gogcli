@@ -27,6 +27,10 @@ func generateManifestGenerateCmd() *cobra.Command {
 	manifestGenerateCmd := &cobra.Command{
 		Use:   "generate",
 		Short: "Generate a games manifest from the GOG Api, which can then be applied to a storage",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			CleanupFile(warningFile)
+			CleanupFile(duplicatesFile)
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			f := manifest.NewManifestFilter(
 				gameTitleFilters,
@@ -47,14 +51,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 				progressFn,
 			)
 			m, errs, warnings := writer.State.Manifest, result.Errors, result.Warnings
-			duplicates := m.Finalize()
 			
-			processErrors(errs)
-			processSerializableOutput(m, []error{}, terminalOutput, manifestFile)
-
-			if len(duplicates) > 0 {
-				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
-			}
 			if len(warnings) > 0 {
 				warningsOutput := Errors{make([]string, len(warnings))}
 				for idx, _ := range warnings {
@@ -62,7 +59,15 @@ func generateManifestGenerateCmd() *cobra.Command {
 				}
 				processSerializableOutput(warningsOutput, []error{}, false, warningFile)
 			}
+			processErrors(errs)
 			
+			duplicates := m.Finalize()
+			if len(duplicates) > 0 {
+				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
+			}
+
+			processSerializableOutput(m, []error{}, terminalOutput, manifestFile)
+
 			CleanupFile(progressFile)
 		},
 	}

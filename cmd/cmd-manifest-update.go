@@ -52,6 +52,9 @@ func generateManifestUpdateCmd() *cobra.Command {
 					os.Exit(1)
 				}
 			}
+
+			CleanupFile(warningFile)
+			CleanupFile(duplicatesFile)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			ids := gameIds
@@ -70,16 +73,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 				progressFn,
 			)
 			uManifest, errs, warnings := writer.State.Manifest, result.Errors, result.Warnings
-
-			m.OverwriteGames(uManifest.Games)
-			duplicates := m.Finalize()
-
-			processErrors(errs)
-			processSerializableOutput(m, []error{}, false, manifestFile)
-
-			if len(duplicates) > 0 {
-				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
-			}
+			
 			if len(warnings) > 0 {
 				warningsOutput := Errors{make([]string, len(warnings))}
 				for idx, _ := range warnings {
@@ -87,7 +81,17 @@ func generateManifestUpdateCmd() *cobra.Command {
 				}
 				processSerializableOutput(warningsOutput, []error{}, false, warningFile)
 			}
-			
+			processErrors(errs)
+
+			m.OverwriteGames(uManifest.Games)
+
+			duplicates := m.Finalize()
+			if len(duplicates) > 0 {
+				processSerializableOutput(duplicates, []error{}, false, duplicatesFile)
+			}
+
+			processSerializableOutput(m, []error{}, false, manifestFile)
+
 			CleanupFile(progressFile)
 		},
 	}

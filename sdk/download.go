@@ -124,8 +124,8 @@ func convertDownloadUrlToMetadataUrl(downloadUrl string) (string, error) {
 }
 
 //Gets the filename and checksum of the url path, requires 3 requests
-func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, error, bool, bool) {
-	fn := fmt.Sprintf("GetDownloadFileInfo(downloadPath=%s)", downloadPath)
+func (s *Sdk) getDownloadFileInfo(downloadPath string) (string, string, int64, error, bool, bool) {
+	fn := fmt.Sprintf("getDownloadFileInfo(downloadPath=%s)", downloadPath)
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
@@ -174,8 +174,8 @@ func (s *Sdk) GetDownloadFileInfo(downloadPath string) (string, string, int64, e
 	return metadata.Filename, metadata.Checksum, metadata.Size, nil, false, false
 }
 
-func (s *Sdk) GetDownloadFileInfoWorkaroundWay(downloadPath string) (string, string, int64, error) {
-	fn := fmt.Sprintf(" GetDownloadFileInfoWorkaroundWay(downloadPath=%s)", downloadPath)
+func (s *Sdk) getDownloadFileInfoWorkaroundWay(downloadPath string) (string, string, int64, error) {
+	fn := fmt.Sprintf(" getDownloadFileInfoWorkaroundWay(downloadPath=%s)", downloadPath)
 	u := fmt.Sprintf("https://www.gog.com%s", downloadPath)
 
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
@@ -201,12 +201,12 @@ type GetFileInfoReturn struct {
 	BadMetadata bool
 }
 
-//Calls GetDownloadFileInfo and fallbacks to GetDownloadFileInfoWorkaroundWay if tolerateBadMetadata is true
+//Calls getDownloadFileInfo and fallbacks to getDownloadFileInfoWorkaroundWay if tolerateBadMetadata is true
 func (s *Sdk) GetFileInfo(downloadPath string, tolerateBadMetadata bool) GetFileInfoReturn {
-	name, checksum, size, err, dangling, badMetadata := s.GetDownloadFileInfo(downloadPath)
+	name, checksum, size, err, dangling, badMetadata := s.getDownloadFileInfo(downloadPath)
 	if badMetadata && tolerateBadMetadata {
 		var workaroundErr error
-		name, checksum, size, workaroundErr = s.GetDownloadFileInfoWorkaroundWay(downloadPath)
+		name, checksum, size, workaroundErr = s.getDownloadFileInfoWorkaroundWay(downloadPath)
 		if workaroundErr != nil {
 			return GetFileInfoReturn{
 				Url: downloadPath,

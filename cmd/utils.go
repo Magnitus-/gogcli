@@ -132,6 +132,15 @@ func PersistProgress(file string) manifest.ManifestWriterStatePersister {
 	}		
 }
 
+func CleanupFile(file string) error {
+	err := os.Remove(file)
+	if err != nil && (!os.IsNotExist(err)){
+		return err
+	}
+
+	return nil
+}
+
 //https://github.com/spf13/cobra/issues/216#issuecomment-703846787
 func callPersistentPreRun(cmd *cobra.Command, args []string) {
 	parent := cmd.Parent()

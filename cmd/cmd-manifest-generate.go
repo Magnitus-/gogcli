@@ -62,6 +62,8 @@ func generateManifestGenerateCmd() *cobra.Command {
 				}
 				processSerializableOutput(warningsOutput, []error{}, false, warningFile)
 			}
+			
+			CleanupFile(progressFile)
 		},
 	}
 

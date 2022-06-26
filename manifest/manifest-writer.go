@@ -11,6 +11,7 @@ import (
 type ManifestGamesWriterState struct {
 	Manifest Manifest
 	GameIds  []int64
+	Warnings []string
 }
 
 type ManifestGamesWriter struct {
@@ -39,6 +40,7 @@ func NewManifestGamesWriterState(filter ManifestFilter, GameIds []int64) Manifes
 	return ManifestGamesWriterState{
 		Manifest: *m,
 		GameIds: GameIds,
+		Warnings: []string{},
 	}
 }
 
@@ -52,11 +54,8 @@ func NewManifestGamesWriter(state ManifestGamesWriterState, logSource *logging.S
 type ManifestGameGetter func(<-chan struct{}, []int64, ManifestFilter) (<-chan ManifestGameGetterGame, <-chan ManifestGameGetterGameIds)
 type ManifestWriterStatePersister func(state ManifestGamesWriterState) error
 
-func (w *ManifestGamesWriter) Write(getter ManifestGameGetter, persister ManifestWriterStatePersister) ManifestGamesWriterResult {
-	result := ManifestGamesWriterResult{
-		Warnings: []error{},
-		Errors: []error{},
-	}
+func (w *ManifestGamesWriter) Write(getter ManifestGameGetter, persister ManifestWriterStatePersister) []error {
+	errs := []error{}
 
 	done := make(chan struct{})
 	defer close(done)
@@ -65,8 +64,8 @@ func (w *ManifestGamesWriter) Write(getter ManifestGameGetter, persister Manifes
 
 	IdsResult := <- gameIdsCh
 	if IdsResult.Error != nil {
-		result.Errors = append(result.Errors, IdsResult.Error)
-		return result
+		errs = append(errs, IdsResult.Error)
+		return errs
 	}
 
 	(*w).State.GameIds = IdsResult.Ids
@@ -74,12 +73,14 @@ func (w *ManifestGamesWriter) Write(getter ManifestGameGetter, persister Manifes
 
 	for gameResult := range gameCh {
 		if len(gameResult.Errors) > 0 {
-			result.Errors = append(result.Errors, gameResult.Errors...)
-			return result
+			errs = append(errs, gameResult.Errors...)
+			return errs
 		}
 
 		if len(gameResult.Warnings) > 0 {
-			result.Warnings = append(result.Warnings, gameResult.Warnings...)
+			for _, warning := range gameResult.Warnings {
+				(*w).State.Warnings = append((*w).State.Warnings, warning.Error())
+			}
 		}
 
 		gameIds := RemoveIdFromList((*w).State.GameIds, gameResult.Game.Id)
@@ -87,11 +88,11 @@ func (w *ManifestGamesWriter) Write(getter ManifestGameGetter, persister Manifes
 		(*w).State.Manifest.Games = append((*w).State.Manifest.Games, gameResult.Game)
 		persistErr := persister((*w).State)
 		if persistErr != nil {
-			result.Errors = append(result.Errors, errors.New(fmt.Sprintf("Failed to persist state due to error: %s", persistErr.Error())))
-			return result
+			errs = append(errs, errors.New(fmt.Sprintf("Failed to persist state due to error: %s", persistErr.Error())))
+			return errs
 		}
 		(*w).logger.Info(fmt.Sprintf("Got all info on game with id %d. %d games left to process", gameResult.Game.Id, len((*w).State.GameIds)))	
 	}
 
-	return result
+	return errs
 }

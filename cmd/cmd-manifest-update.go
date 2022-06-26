@@ -68,16 +68,16 @@ func generateManifestUpdateCmd() *cobra.Command {
 				manifest.NewManifestGamesWriterState(m.Filter, ids),
 				logSource,
 			)
-			result := writer.Write( 
+			errs := writer.Write( 
 				sdkPtr.GenerateManifestGameGetter(m.Filter, concurrency, pause, tolerateDangles, tolerateBadFileMetadata),
 				progressFn,
 			)
-			uManifest, errs, warnings := writer.State.Manifest, result.Errors, result.Warnings
+			uManifest, warnings := writer.State.Manifest, writer.State.Warnings
 			
 			if len(warnings) > 0 {
 				warningsOutput := Errors{make([]string, len(warnings))}
 				for idx, _ := range warnings {
-					warningsOutput.Errors[idx] = warnings[idx].Error()
+					warningsOutput.Errors[idx] = warnings[idx]
 				}
 				processSerializableOutput(warningsOutput, []error{}, false, warningFile)
 			}

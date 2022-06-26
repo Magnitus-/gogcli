@@ -11,7 +11,6 @@ import (
 )
 
 func generateManifestGenerateResumeCmd() *cobra.Command {
-	var previousWarnings []error
 	var s *manifest.ManifestGamesWriterState
 	var concurrency int
 	var pause int
@@ -39,8 +38,6 @@ func generateManifestGenerateResumeCmd() *cobra.Command {
 				fmt.Println("Progress file doesn't appear to contain valid json: ", err)
 				os.Exit(1)
 			}
-
-			previousWarnings = deserializeErrors(warningFile)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			progressFn := PersistProgress(progressFile)
@@ -48,17 +45,16 @@ func generateManifestGenerateResumeCmd() *cobra.Command {
 				*s,
 				logSource,
 			)
-			result := writer.Write( 
+			errs := writer.Write( 
 				sdkPtr.GenerateManifestGameGetter((*s).Manifest.Filter, concurrency, pause, tolerateDangles, tolerateBadFileMetadata),
 				progressFn,
 			)
-			m, errs, warnings := writer.State.Manifest, result.Errors, result.Warnings
+			m, warnings := writer.State.Manifest, writer.State.Warnings
 			
-			warnings = append(warnings, previousWarnings...)
 			if len(warnings) > 0 {
 				warningsOutput := Errors{make([]string, len(warnings))}
 				for idx, _ := range warnings {
-					warningsOutput.Errors[idx] = warnings[idx].Error()
+					warningsOutput.Errors[idx] = warnings[idx]
 				}
 				processSerializableOutput(warningsOutput, []error{}, false, warningFile)
 			}

@@ -3,6 +3,7 @@ package sdk
 import (
 	"gogcli/manifest"
 	
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -286,7 +287,7 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 					}
 
 					warnings := []error{}
-					errors := []error{}
+					errs := []error{}
 
 					game := gameRes.Game
 					game.TrimFilesFromFilter(filter)
@@ -295,7 +296,7 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 					}
 
 					for idx, installer := range game.Installers {
-						if len(errors) > 0 {
+						if len(errs) > 0 {
 							break
 						}
 
@@ -303,16 +304,18 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 						if info.Error != nil {
 							if info.BadMetadata && tolerateBadMetadata {
 								(*s).logger.Warning(fmt.Sprintf("Bad metadata for %s: File metadata was still fetched using much longer workaround method.", info.Url))
-								warnings = append(warnings, info.Error)
+								err := errors.New(fmt.Sprintf("Bad metadata workaround: %s", info.Error.Error()))
+								warnings = append(warnings, err)
 								installer.Name = info.Name
 								installer.Checksum = info.Checksum
 								installer.VerifiedSize = info.Size
 								game.Installers[idx] = installer
 							} else if info.Dangling && tolerateDangles {
 								(*s).logger.Warning(fmt.Sprintf("Bad download link for %s: File was not added to manifest.", info.Url))
-								warnings = append(warnings, info.Error)
+								err := errors.New(fmt.Sprintf("Skipped File: %s", info.Error.Error()))
+								warnings = append(warnings, err)
 							} else {
-								errors = append(errors, info.Error)
+								errs = append(errs, info.Error)
 							}
 							continue
 						}
@@ -323,7 +326,7 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 					}
 
 					for idx, extra := range game.Extras {
-						if len(errors) > 0 {
+						if len(errs) > 0 {
 							break
 						}
 
@@ -331,16 +334,18 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 						if info.Error != nil {
 							if info.BadMetadata && tolerateBadMetadata {
 								(*s).logger.Warning(fmt.Sprintf("Bad metadata for %s: File metadata was still fetched using much longer workaround method.", info.Url))
-								warnings = append(warnings, info.Error)
+								err := errors.New(fmt.Sprintf("Bad metadata workaround: %s", info.Error.Error()))
+								warnings = append(warnings, err)
 								extra.Name = info.Name
 								extra.Checksum = info.Checksum
 								extra.VerifiedSize = info.Size
 								game.Extras[idx] = extra
 							} else if info.Dangling && tolerateDangles {
 								(*s).logger.Warning(fmt.Sprintf("Bad download link for %s: File was not added to manifest.", info.Url))
-								warnings = append(warnings, info.Error)
+								err := errors.New(fmt.Sprintf("Skipped File: %s", info.Error.Error()))
+								warnings = append(warnings, err)
 							} else {
-								errors = append(errors, info.Error)
+								errs = append(errs, info.Error)
 							}
 							continue
 						}
@@ -353,7 +358,7 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 					outGameCh <- GameManyErrorsResult{
 						Game: game,
 						Warnings: warnings,
-						Errors: errors,
+						Errors: errs,
 					}
 				case <-done:
 					return

@@ -24,14 +24,17 @@ func generateUrlPathInfoCmd() *cobra.Command {
 		Short: "Given a download path, retrieve the filename, size and checksum of the file that would be downloaded. Valid paths can be obtained from the manifest.",
 		Run: func(cmd *cobra.Command, args []string) {
 			info := sdkPtr.GetFileInfo(path, tolerateBadFileMetadata)
+			workAround := tolerateBadFileMetadata && info.BadMetadata
 			if !jsonOutput {
-				processError(info.Error)
+				if info.Error != nil && !workAround {
+					processError(info.Error)
+				}
 				fmt.Println("File Name:", info.Name)
 				fmt.Println("Checksum:", info.Checksum)
 				fmt.Println("Size:", info.Size)
 			} else {
 				errs := make([]error, 0)
-				if info.Error != nil {
+				if info.Error != nil && !workAround {
 					errs = append(errs, info.Error)
 				}
 				processSerializableOutput(

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 )
 
 var LANGUAGE_MAP map[string]string
@@ -121,6 +122,7 @@ func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan GameRe
 		go func() {
 			defer wg.Done()
 			tags := filter.Tags
+
 			for true {
 				select {
 				case gameRes, ok := <-inGameCh:
@@ -215,6 +217,8 @@ func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan GameRe
 				case <-done:
 					return
 				}
+
+				time.Sleep(time.Duration(pause) * time.Millisecond)
 			}
 		}()
 	}
@@ -271,6 +275,7 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+
 			for true {
 				select {
 				case gameRes, ok := <-inGameCh:
@@ -363,6 +368,8 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResul
 				case <-done:
 					return
 				}
+
+				time.Sleep(time.Duration(pause) * time.Millisecond)
 			}
 		}()
 	}

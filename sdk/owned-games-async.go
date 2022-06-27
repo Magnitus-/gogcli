@@ -95,6 +95,7 @@ func (s *Sdk) GetAllOwnedGamesPages(done <-chan struct{}, search string, concurr
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			
 			for true {
 				nextPage := atomic.AddInt64(&currentPage, 1)
 				if nextPage > totalPages {
@@ -107,6 +108,8 @@ func (s *Sdk) GetAllOwnedGamesPages(done <-chan struct{}, search string, concurr
 					return
 				}
 			}
+
+			time.Sleep(time.Duration(pause) * time.Millisecond)
 		}()
 	}
 

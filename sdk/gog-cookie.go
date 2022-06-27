@@ -58,7 +58,7 @@ func ReadCookie(path string, kind string) (GogCookie, error) {
 		return GogCookie{"", ""}, errors.New(msg)
 	}
 
-	lines := strings.Split(string(bs), "\n")
+	lines := strings.Split(strings.Replace(string(bs), "\r\n", "\n", -1), "\n")
 	if kind == "netscape" {
 		session, al := readNetscapeCookie(lines)
 		return GogCookie{session, al}, nil

@@ -69,7 +69,7 @@ func (w *MetadataGamesWriter) Write(getter MetadataGameGetter, persister Metadat
 	}
 
 	(*w).State.GameIds = IdsResult.Ids
-	(*w).logger.Info(fmt.Sprintf("Generating/Updating metadata for %d games", len((*w).State.GameIds)))	
+	(*w).logger.Info(fmt.Sprintf("Generating metadata for %d games", len((*w).State.GameIds)))	
 
 	for gameResult := range gameCh {
 		if len(gameResult.Errors) > 0 {
@@ -85,7 +85,7 @@ func (w *MetadataGamesWriter) Write(getter MetadataGameGetter, persister Metadat
 
 		gameIds := RemoveIdFromList((*w).State.GameIds, gameResult.Game.Id)
 		(*w).State.GameIds = gameIds
-		(*w).State.Metadata.Games[gameResult.Game.Id] = gameResult.Game
+		(*w).State.Metadata.Games = append((*w).State.Metadata.Games, gameResult.Game)
 		persistErr := persister((*w).State)
 		if persistErr != nil {
 			errs = append(errs, errors.New(fmt.Sprintf("Failed to persist state due to error: %s", persistErr.Error())))

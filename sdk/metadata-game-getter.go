@@ -141,10 +141,19 @@ func (s *Sdk) GenerateMetadataGameGetter(concurrency int, pause int, tolerateDan
 						return
 					}
 
+					if gameRes.Error != nil {
+						gameResultCh <- metadata.MetadataGameGetterGame{
+							Game: gameRes.Game,
+							Warnings: []error{},
+							Errors: []error{gameRes.Error},
+						}
+						continue
+					}
+
 					gameResultCh <- metadata.MetadataGameGetterGame{
 						Game: gameRes.Game,
 						Warnings: []error{},
-						Errors: []error{gameRes.Error},
+						Errors: []error{},
 					}
 				case <-done:
 					return

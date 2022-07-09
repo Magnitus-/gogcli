@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"gogcli/metadata"
+
 	"github.com/spf13/cobra"
 )
 
@@ -16,14 +18,27 @@ func generateMetadataGenerateCmd() *cobra.Command {
 	metadataGenerateCmd := &cobra.Command{
 		Use:   "generate",
 		Short: "Generate a games metadata file from the GOG Api, which can then be applied to a storage",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			CleanupFile(warningFile)
+		},
 		Run: func(cmd *cobra.Command, args []string) {
-			m, errs, warnings := sdkPtr.GetMetadata(concurrency, pause, tolerateDangles)
+			//m, errs, warnings := sdkPtr.GetMetadata(concurrency, pause, tolerateDangles)
+			progressFn := PersistMetadataProgress(progressFile)
+			writer := metadata.NewMetadataGamesWriter(
+				metadata.NewMetadataGamesWriterState([]int64{}),
+				logSource,
+			)
+			errs := writer.Write( 
+				sdkPtr.GenerateMetadataGameGetter(concurrency, pause, tolerateDangles),
+				progressFn,
+			)
+			m, warnings := writer.State.Metadata, writer.State.Warnings
 			processErrors(errs)
 
 			if len(warnings) > 0 {
 				warningsOutput := Errors{make([]string, len(warnings))}
 				for idx, _ := range warnings {
-					warningsOutput.Errors[idx] = warnings[idx].Error()
+					warningsOutput.Errors[idx] = warnings[idx]
 				}
 				processSerializableOutput(warningsOutput, []error{}, false, warningFile)
 			}

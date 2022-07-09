@@ -63,7 +63,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 				ids = append(ids, (*u).UpdatedGames...)
 			}
 
-			progressFn := PersistProgress(progressFile)
+			progressFn := PersistManifestProgress(progressFile)
 			writer := manifest.NewManifestGamesWriter(
 				manifest.NewManifestGamesWriterState(m.Filter, ids),
 				logSource,

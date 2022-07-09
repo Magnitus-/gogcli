@@ -47,12 +47,12 @@ func languageToAscii(unicodeRepresentation string) string {
 	return "unknown"
 }
 
-type GameResult struct {
+type ManifestGameResult struct {
 	Game  manifest.ManifestGame
 	Error error
 }
 
-type GameIdsResult struct {
+type ManifestGameIdsResult struct {
 	Ids   []int64
 	Error error
 }
@@ -63,8 +63,8 @@ type GameManyErrorsResult struct {
 	Errors   []error
 }
 
-func OwnedGamePagesToGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGamesPageReturn, gameIds []int64, filter manifest.ManifestFilter) <-chan GameResult {
-	gameCh := make(chan GameResult)
+func OwnedGamePagesToManifestGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGamesPageReturn, gameIds []int64, filter manifest.ManifestFilter) <-chan ManifestGameResult {
+	gameCh := make(chan ManifestGameResult)
 	
 	go func() {
 		defer close(gameCh)
@@ -77,7 +77,7 @@ func OwnedGamePagesToGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGa
 				}
 
 				if pageRes.err != nil {
-					gameCh <- GameResult{
+					gameCh <- ManifestGameResult{
 						Game: manifest.ManifestGame{},
 						Error: pageRes.err,
 					}
@@ -99,7 +99,7 @@ func OwnedGamePagesToGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGa
 						continue
 					}
 
-					gameCh <- GameResult{
+					gameCh <- ManifestGameResult{
 						Game: game,
 						Error: nil,
 					}
@@ -113,9 +113,9 @@ func OwnedGamePagesToGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGa
 	return gameCh
 }
 
-func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan GameResult, concurrency int, pause int, filter manifest.ManifestFilter) <-chan GameResult {
+func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan ManifestGameResult, concurrency int, pause int, filter manifest.ManifestFilter) <-chan ManifestGameResult {
 	var wg sync.WaitGroup
-	outGameCh := make(chan GameResult)
+	outGameCh := make(chan ManifestGameResult)
 
 	for idx := 0; idx < concurrency; idx++ {
 		wg.Add(1)
@@ -210,7 +210,7 @@ func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan GameRe
 						}
 					}
 
-					outGameCh <- GameResult{
+					outGameCh <- ManifestGameResult{
 						Game: game,
 						Error: nil,
 					}
@@ -231,9 +231,9 @@ func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan GameRe
 	return outGameCh
 }
 
-func TapGameIds(done <-chan struct{}, inGameCh <-chan GameResult) (<-chan GameResult, <-chan GameIdsResult) {
-	outGameCh := make(chan GameResult)
-	outGameIdsCh := make(chan GameIdsResult)
+func TapManifestGameIds(done <-chan struct{}, inGameCh <-chan ManifestGameResult) (<-chan ManifestGameResult, <-chan ManifestGameIdsResult) {
+	outGameCh := make(chan ManifestGameResult)
+	outGameIdsCh := make(chan ManifestGameIdsResult)
 
 	go func() {
 		defer close(outGameIdsCh)
@@ -245,15 +245,15 @@ func TapGameIds(done <-chan struct{}, inGameCh <-chan GameResult) (<-chan GameRe
 			select {
 			case gameRes, ok := <-inGameCh:
 				if !ok {
-					outGameIdsCh <- GameIdsResult{Ids: gameIds, Error: nil}
+					outGameIdsCh <- ManifestGameIdsResult{Ids: gameIds, Error: nil}
 					for _, game := range games {
-						outGameCh <- GameResult{Game: game, Error: nil}
+						outGameCh <- ManifestGameResult{Game: game, Error: nil}
 					}
 					return
 				}
 				
 				if gameRes.Error != nil {
-					outGameIdsCh <- GameIdsResult{Ids: []int64{}, Error: gameRes.Error}
+					outGameIdsCh <- ManifestGameIdsResult{Ids: []int64{}, Error: gameRes.Error}
 				}
 
 				games = append(games, gameRes.Game)
@@ -267,7 +267,7 @@ func TapGameIds(done <-chan struct{}, inGameCh <-chan GameResult) (<-chan GameRe
 	return outGameCh, outGameIdsCh
 }
 
-func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan GameResult, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool, filter manifest.ManifestFilter) <-chan GameManyErrorsResult {
+func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan ManifestGameResult, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool, filter manifest.ManifestFilter) <-chan GameManyErrorsResult {
 	var wg sync.WaitGroup
 	outGameCh := make(chan GameManyErrorsResult)
 
@@ -387,11 +387,11 @@ func (s *Sdk) GenerateManifestGameGetter(f manifest.ManifestFilter, concurrency 
 		gameResultCh := make(chan manifest.ManifestGameGetterGame)
 		gameIdsResultCh := make(chan manifest.ManifestGameGetterGameIds)
 
-		gamesCh, gameIdsCh := TapGameIds(
+		gamesCh, gameIdsCh := TapManifestGameIds(
 			done,
 			s.AddGameDetailsToGames(
 				done, 
-				OwnedGamePagesToGames(
+				OwnedGamePagesToManifestGames(
 					done, 
 					s.GetAllOwnedGamesPages(done, "", concurrency, pause), 
 					gameIds, 

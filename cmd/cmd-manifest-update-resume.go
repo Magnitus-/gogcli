@@ -45,7 +45,7 @@ func generateManifestUpdateResumeCmd() *cobra.Command {
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			progressFn := PersistProgress(progressFile)
+			progressFn := PersistManifestProgress(progressFile)
 			writer := manifest.NewManifestGamesWriter(
 				*s,
 				logSource,

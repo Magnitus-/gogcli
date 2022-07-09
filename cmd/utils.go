@@ -145,7 +145,7 @@ func processSerializableOutput(serializable interface{}, errs []error, terminal 
 	}
 }
 
-func PersistProgress(file string) manifest.ManifestWriterStatePersister {
+func PersistManifestProgress(file string) manifest.ManifestWriterStatePersister {
 	return func(state manifest.ManifestGamesWriterState) error {
 		var output []byte
 		buf := new(bytes.Buffer)

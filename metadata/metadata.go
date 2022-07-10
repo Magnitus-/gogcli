@@ -37,6 +37,7 @@ type MetadataGame struct {
 	Id            int64
 	Title         string
 	Tags          []string
+	ListingImage  GameMetadataImage
 	Description   GameMetadataDescription
 	ProductCards  []GameMetadataImage
 	ProductImages GameMetadataProductImages

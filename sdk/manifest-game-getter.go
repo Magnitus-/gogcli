@@ -132,6 +132,7 @@ func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan Manife
 
 					if gameRes.Error != nil {
 						outGameCh <- gameRes
+						continue
 					}
 
 					gd, err := s.GetGameDetails(gameRes.Game.Id)
@@ -254,6 +255,7 @@ func TapManifestGameIds(done <-chan struct{}, inGameCh <-chan ManifestGameResult
 				
 				if gameRes.Error != nil {
 					outGameIdsCh <- ManifestGameIdsResult{Ids: []int64{}, Error: gameRes.Error}
+					continue
 				}
 
 				games = append(games, gameRes.Game)

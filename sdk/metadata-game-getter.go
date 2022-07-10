@@ -3,16 +3,17 @@ package sdk
 import (
 	"gogcli/metadata"
 	
-	/*"errors"
+	//"errors"
 	"fmt"
 	"strings"
 	"sync"
-	"time"*/
+	"time"
 )
 
 type MetadataGameResult struct {
-	Game  metadata.MetadataGame
-	Error error
+	Game     metadata.MetadataGame
+	Warnings []error
+	Error    error
 }
 
 type MetadataGameIdsResult struct {
@@ -20,6 +21,9 @@ type MetadataGameIdsResult struct {
 	Error error
 }
 
+func processProductImageUrl(u string) string {
+	return fmt.Sprintf("%s%s", "https:", ensureFileNameSuffix(u, ".png"))
+}
 
 func OwnedGamePagesToMetadataGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGamesPageReturn, gameIds []int64) <-chan MetadataGameResult {
 	gameCh := make(chan MetadataGameResult)
@@ -35,8 +39,9 @@ func OwnedGamePagesToMetadataGames(done <-chan struct{}, ownedGamesPageCh <-chan
 
 				if pageRes.err != nil {
 					gameCh <- MetadataGameResult{
-						Game: metadata.MetadataGame{},
-						Error: pageRes.err,
+						Game:     metadata.MetadataGame{},
+						Warnings: []error{},
+						Error:    pageRes.err,
 					}
 					continue
 				}
@@ -47,17 +52,22 @@ func OwnedGamePagesToMetadataGames(done <-chan struct{}, ownedGamesPageCh <-chan
 					}
 
 					game := metadata.MetadataGame{
-						Id:       product.Id,
-						Title:    product.Title,
-						Slug:     product.Slug,
-						Category: product.Category,
-						Rating:   product.Rating,
-						Dlcs:     product.DlcCount,
+						Id:           product.Id,
+						Title:        product.Title,
+						Slug:         product.Slug,
+						Category:     product.Category,
+						Rating:       product.Rating,
+						Dlcs:         product.DlcCount,
+						ListingImage: metadata.GameMetadataImage{
+							Url: processProductImageUrl(product.Image),
+							Tag: "Logo",
+						},
 					}
 
 					gameCh <- MetadataGameResult{
-						Game: game,
-						Error: nil,
+						Game:     game,
+						Warnings: []error{},
+						Error:    nil,
 					}
 				}
 			case <-done:
@@ -85,7 +95,7 @@ func TapMetadataGameIds(done <-chan struct{}, inGameCh <-chan MetadataGameResult
 				if !ok {
 					outGameIdsCh <- MetadataGameIdsResult{Ids: gameIds, Error: nil}
 					for _, game := range games {
-						outGameCh <- MetadataGameResult{Game: game, Error: nil}
+						outGameCh <- MetadataGameResult{Game: game, Warnings: []error{}, Error: nil}
 					}
 					return
 				}
@@ -105,6 +115,127 @@ func TapMetadataGameIds(done <-chan struct{}, inGameCh <-chan MetadataGameResult
 	return outGameCh, outGameIdsCh
 }
 
+/*
+Left:
+type MetadataGame struct {
+	ProductCards          []Image
+	Features              []string
+}
+*/
+
+func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-chan MetadataGameResult, concurrency int, pause int) <-chan MetadataGameResult {
+	var wg sync.WaitGroup
+	outGameCh := make(chan MetadataGameResult)
+
+	for i := 0; i < concurrency; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for true {
+				select {
+				case gameRes, ok := <- inGameCh:
+					if !ok {
+						return
+					}
+
+					if gameRes.Error != nil {
+						outGameCh <- gameRes
+						continue
+					}
+
+					product, _, err := s.GetProduct(gameRes.Game.Id)
+					if err != nil {
+						gameRes.Error = err
+						outGameCh <- gameRes
+						continue
+					}
+
+					game := gameRes.Game
+
+					game.Description = metadata.GameMetadataDescription{
+						Summary:    product.Description.Lead,
+						Full:       product.Description.Full,
+						Highlights: product.Description.Whats_cool_about_it,
+					}
+					game.ReleaseDate = product.Release_date
+					game.Changelog = product.Changelog
+			
+					videos := []metadata.GameMetadataVideo{}
+					for _, vid := range product.Videos {
+						videos = append(videos, metadata.GameMetadataVideo{
+							ThumbnailUrl: vid.Thumbnail_url,
+							VideoUrl:     vid.Video_url,
+							Provider:     vid.Provider,
+						})
+					}
+					game.Videos = videos
+			
+					game.ProductImages = metadata.GameMetadataProductImages{
+						Background: metadata.GameMetadataImage{
+							Url: processProductImageUrl(product.Images.Background),
+							Tag: "Background",
+						},
+						Logo: metadata.GameMetadataImage{
+							Url: processProductImageUrl(product.Images.Logo),
+							Tag: "Logo",
+						},
+						Logo2x: metadata.GameMetadataImage{
+							Url: processProductImageUrl(product.Images.Logo2x),
+							Tag: "Logo2x",
+						},
+						Icon: metadata.GameMetadataImage{
+							Url: processProductImageUrl(product.Images.Icon),
+							Tag: "Icon",
+						},
+						SidebarIcon: metadata.GameMetadataImage{
+							Url: processProductImageUrl(product.Images.SidebarIcon),
+							Tag: "SidebarIcon",
+						},
+						SidebarIcon2x: metadata.GameMetadataImage{
+							Url: processProductImageUrl(product.Images.SidebarIcon2x),
+							Tag: "SidebarIcon2x",
+						},
+						MenuNotificationAv: metadata.GameMetadataImage{
+							Url: processProductImageUrl(product.Images.MenuNotificationAv),
+							Tag: "MenuNotificationAv",
+						},
+						MenuNotificationAv2: metadata.GameMetadataImage{
+							Url: processProductImageUrl(product.Images.MenuNotificationAv2),
+							Tag: "MenuNotificationAv2",
+						},
+					}
+			
+					screenshots := []metadata.GameMetadataScreenShot{}
+					for _, prodScreenshot := range product.Screenshots {
+						screenshot := metadata.GameMetadataScreenShot{}
+						for _, prodScreenshotRes := range prodScreenshot.Formatted_images {
+							screenshot = append(screenshot, metadata.GameMetadataImage{
+								Url: strings.Replace(prodScreenshotRes.Image_url, ".jpg", ".png", -1),
+								Tag: prodScreenshotRes.Formatter_name,
+							})
+						}
+						screenshots = append(screenshots, screenshot)
+					}
+					game.Screenshots = screenshots
+
+					gameRes.Game = game
+					outGameCh <- gameRes
+				case <- done:
+					return
+				}
+
+				time.Sleep(time.Duration(pause) * time.Millisecond)
+			}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(outGameCh)
+	}()
+
+	return outGameCh
+}
 
 func (s *Sdk) GenerateMetadataGameGetter(concurrency int, pause int, tolerateDangles bool) metadata.MetadataGameGetter {
 	return func(done <-chan struct{}, gameIds []int64) (<-chan metadata.MetadataGameGetterGame, <-chan metadata.MetadataGameGetterGameIds) {
@@ -119,6 +250,8 @@ func (s *Sdk) GenerateMetadataGameGetter(concurrency int, pause int, tolerateDan
 				gameIds,
 			),
 		)
+
+		gamesCh = s.AddProductsInfoToMetadataGames(done, gamesCh, concurrency, pause)
 
 		go func() {
 			defer close(gameIdsResultCh)

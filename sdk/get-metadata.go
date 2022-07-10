@@ -1,7 +1,6 @@
 package sdk
 
 import (
-	"fmt"
 	"gogcli/metadata"
 	"strings"
 )
@@ -32,18 +31,6 @@ func addOwnedGamesPagesToMetadata(m *metadata.Metadata, pages []OwnedGamesPage) 
 			)
 		}
 	}
-}
-
-/*
-Left:
-type MetadataGame struct {
-	ProductCards          []Image
-	Features              []string
-}
-*/
-
-func processProductImageUrl(u string) string {
-	return fmt.Sprintf("%s%s", "https:", strings.Replace(u, ".jpg", ".png", -1))
 }
 
 func updateMetadataWithProducts(m *metadata.Metadata, products []Product) {

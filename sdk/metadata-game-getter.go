@@ -236,6 +236,64 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 	return outGameCh
 }
 
+func fillGameMetadataImageInfo(gameImage *metadata.GameMetadataImage, info *ImageInfo) {
+	(*gameImage).Name = (*info).Name
+	(*gameImage).Size = (*info).Size
+	(*gameImage).Checksum = (*info).Checksum
+}
+
+func (s *Sdk) AddImagesInfoToMetadataGames(done <-chan struct{}, inGameCh <-chan MetadataGameResult, concurrency int, pause int) <-chan MetadataGameResult {
+	var wg sync.WaitGroup
+	outGameCh := make(chan MetadataGameResult)
+
+	for i := 0; i < concurrency; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for true {
+				select{
+				case gameRes, ok := <- inGameCh:
+					if !ok {
+						return
+					}
+
+					if gameRes.Error != nil || !gameRes.Game.HasProductInfo {
+						outGameCh <- gameRes
+						continue
+					}
+
+					game := gameRes.Game
+
+					gameImagesPtrs := game.GetImagesPointers()
+					for _, ptr := range gameImagesPtrs {
+						info, err := s.GetImageInfo((*ptr).Url)
+						if err != nil {
+							gameRes.Error = err
+							outGameCh <- gameRes
+							break
+						}
+						fillGameMetadataImageInfo(ptr, &info)
+					}
+
+					gameRes.Game = game
+					outGameCh <- gameRes
+				case <- done:
+					return
+				}
+
+				time.Sleep(time.Duration(pause) * time.Millisecond)
+			}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(outGameCh)
+	}()
+
+	return outGameCh
+}
+
 func (s *Sdk) GenerateMetadataGameGetter(concurrency int, pause int, tolerateDangles bool) metadata.MetadataGameGetter {
 	return func(done <-chan struct{}, gameIds []int64) (<-chan metadata.MetadataGameGetterGame, <-chan metadata.MetadataGameGetterGameIds) {
 		gameResultCh := make(chan metadata.MetadataGameGetterGame)
@@ -250,7 +308,12 @@ func (s *Sdk) GenerateMetadataGameGetter(concurrency int, pause int, tolerateDan
 			),
 		)
 
-		gamesCh = s.AddProductsInfoToMetadataGames(done, gamesCh, concurrency, pause)
+		gamesCh = s.AddImagesInfoToMetadataGames(
+			done,
+			s.AddProductsInfoToMetadataGames(done, gamesCh, concurrency, pause),
+			concurrency,
+			pause,
+		)
 
 		go func() {
 			defer close(gameIdsResultCh)

@@ -51,6 +51,27 @@ type MetadataGame struct {
 	HasProductInfo bool
 }
 
+func (g *MetadataGame) GetImagesPointers() []*GameMetadataImage {
+	result := []*GameMetadataImage{
+		&(*g).ListingImage,
+		&(*g).ProductImages.Background,
+		&(*g).ProductImages.Logo,
+		&(*g).ProductImages.Logo2x,
+		&(*g).ProductImages.Icon,
+		&(*g).ProductImages.SidebarIcon,
+		&(*g).ProductImages.SidebarIcon2x,
+		&(*g).ProductImages.MenuNotificationAv,
+		&(*g).ProductImages.MenuNotificationAv2,
+	}
+
+	for idx, _ := range (*g).Screenshots {
+		for idxInner := range (*g).Screenshots[idx] {
+			result = append(result, &(*g).Screenshots[idx][idxInner])
+		}
+	}
+	return result
+}
+
 type Metadata struct {
 	Games []MetadataGame
 	Size  int64

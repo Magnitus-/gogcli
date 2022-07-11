@@ -34,22 +34,21 @@ type GameMetadataProductImages struct {
 type GameMetadataScreenShot []GameMetadataImage
 
 type MetadataGame struct {
-	Id            int64
-	Title         string
-	Tags          []string
-	ListingImage  GameMetadataImage
-	Description   GameMetadataDescription
-	ProductCards  []GameMetadataImage
-	ProductImages GameMetadataProductImages
-	Screenshots   []GameMetadataScreenShot
-	Videos        []GameMetadataVideo
-	Slug          string
-	ReleaseDate   string
-	Rating        int
-	Category      string
-	Dlcs          int
-	Features      []string
-	Changelog     string
+	Id             int64
+	Title          string
+	Tags           []string
+	ListingImage   GameMetadataImage
+	Description    GameMetadataDescription
+	ProductImages  GameMetadataProductImages
+	Screenshots    []GameMetadataScreenShot
+	Videos         []GameMetadataVideo
+	Slug           string
+	ReleaseDate    string
+	Rating         int
+	Category       string
+	Dlcs           int
+	Changelog      string
+	HasProductInfo bool
 }
 
 type Metadata struct {

@@ -115,14 +115,6 @@ func TapMetadataGameIds(done <-chan struct{}, inGameCh <-chan MetadataGameResult
 	return outGameCh, outGameIdsCh
 }
 
-/*
-Left:
-type MetadataGame struct {
-	ProductCards          []Image
-	Features              []string
-}
-*/
-
 func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-chan MetadataGameResult, concurrency int, pause int) <-chan MetadataGameResult {
 	var wg sync.WaitGroup
 	outGameCh := make(chan MetadataGameResult)
@@ -147,6 +139,7 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 					if err != nil {
 						if dangling {
 							gameRes.Warnings = []error{err}
+							gameRes.Game.HasProductInfo = false
 							outGameCh <- gameRes
 							continue
 						}
@@ -156,6 +149,7 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 					}
 
 					game := gameRes.Game
+					game.HasProductInfo = true
 
 					game.Description = metadata.GameMetadataDescription{
 						Summary:    product.Description.Lead,

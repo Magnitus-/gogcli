@@ -22,7 +22,6 @@ func generateMetadataGenerateCmd() *cobra.Command {
 			CleanupFile(warningFile)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			//m, errs, warnings := sdkPtr.GetMetadata(concurrency, pause, tolerateDangles)
 			progressFn := PersistMetadataProgress(progressFile)
 			writer := metadata.NewMetadataGamesWriter(
 				metadata.NewMetadataGamesWriterState([]int64{}),

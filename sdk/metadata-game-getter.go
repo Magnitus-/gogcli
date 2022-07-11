@@ -143,8 +143,13 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 						continue
 					}
 
-					product, _, err := s.GetProduct(gameRes.Game.Id)
+					product, dangling, err := s.GetProduct(gameRes.Game.Id)
 					if err != nil {
+						if dangling {
+							gameRes.Warnings = []error{err}
+							outGameCh <- gameRes
+							continue
+						}
 						gameRes.Error = err
 						outGameCh <- gameRes
 						continue
@@ -285,7 +290,7 @@ func (s *Sdk) GenerateMetadataGameGetter(concurrency int, pause int, tolerateDan
 
 					gameResultCh <- metadata.MetadataGameGetterGame{
 						Game: gameRes.Game,
-						Warnings: []error{},
+						Warnings: gameRes.Warnings,
 						Errors: []error{},
 					}
 				case <-done:

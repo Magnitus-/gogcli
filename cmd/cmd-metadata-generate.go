@@ -44,6 +44,8 @@ func generateMetadataGenerateCmd() *cobra.Command {
 			}
 
 			processSerializableOutput(m, []error{}, terminalOutput, metadataFile)
+		
+			CleanupFile(progressFile)
 		},
 	}
 

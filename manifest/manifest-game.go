@@ -196,19 +196,15 @@ func (g *ManifestGame) GetExtraNamed(name string) (ManifestGameExtra, error) {
 	return ManifestGameExtra{}, errors.New(msg)
 }
 
-func (g *ManifestGame) TrimInstallers(oses []string, languages []string, keepAny bool) {
+func (g *ManifestGame) TrimInstallers(oses []string, languages []string, keepAny bool, skipUrl FilterSkipUrlFn) {
 	filteredInstallers := make([]ManifestGameInstaller, 0)
 
 	if keepAny {
-		if len(oses) == 0 && len(languages) == 0 {
-			//Save some needless computation
-			return
-		}
-
 		for _, i := range (*g).Installers {
 			hasOneOfOses := len(oses) == 0 || i.HasOneOfOses(oses)
 			hasOneOfLanguages := len(languages) == 0 || i.HasOneOfLanguages(languages)
-			if hasOneOfOses && hasOneOfLanguages {
+			urlOk := !skipUrl(i.Url)
+			if hasOneOfOses && hasOneOfLanguages && urlOk {
 				filteredInstallers = append(filteredInstallers, i)
 			}
 		}
@@ -216,16 +212,14 @@ func (g *ManifestGame) TrimInstallers(oses []string, languages []string, keepAny
 	(*g).Installers = filteredInstallers
 }
 
-func (g *ManifestGame) TrimExtras(typeTerms []string, keepAny bool) {
+func (g *ManifestGame) TrimExtras(typeTerms []string, keepAny bool, skipUrl FilterSkipUrlFn) {
 	filteredExtras := make([]ManifestGameExtra, 0)
 
 	if keepAny {
-		if len(typeTerms) == 0 {
-			return
-		}
-
 		for _, e := range (*g).Extras {
-			if e.HasOneOfTypeTerms(typeTerms) {
+			hasOneOfTypeTerms := len(typeTerms) == 0 || e.HasOneOfTypeTerms(typeTerms)
+			urlOk := !skipUrl(e.Url)
+			if hasOneOfTypeTerms && urlOk {
 				filteredExtras = append(filteredExtras, e)
 			}
 		}
@@ -333,6 +327,7 @@ func (g *ManifestGame) PassesFilter(filter ManifestFilter) bool {
 }
 
 func (g *ManifestGame) TrimFilesFromFilter(filter ManifestFilter) {
-	g.TrimInstallers(filter.Oses, filter.Languages, filter.Installers)
-	g.TrimExtras(filter.ExtraTypes, filter.Extras)
+	skipUrlFn := filter.GetSkipUrlFn()
+	g.TrimInstallers(filter.Oses, filter.Languages, filter.Installers, skipUrlFn)
+	g.TrimExtras(filter.ExtraTypes, filter.Extras, skipUrlFn)
 }

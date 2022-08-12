@@ -16,6 +16,7 @@ func generateManifestSearchCmd() *cobra.Command {
 	var downloads bool
 	var extras bool
 	var extraTypeFilters []string
+	var skipUrlFilters []string
 	var file string
 	var terminalOutput bool
 
@@ -36,6 +37,7 @@ func generateManifestSearchCmd() *cobra.Command {
 				downloads,
 				extras,
 				extraTypeFilters,
+				skipUrlFilters,
 			)
 			f.Intersect(m.Filter)
 			m.Filter = f
@@ -52,7 +54,8 @@ func generateManifestSearchCmd() *cobra.Command {
 	manifestSearchCmd.Flags().StringArrayVarP(&gameTitleFilters, "title", "i", []string{}, "If you want to include only games with title that contain at least one of the given strings")
 	manifestSearchCmd.Flags().BoolVarP(&downloads, "installers", "n", true, "Whether to incluse installer downloads")
 	manifestSearchCmd.Flags().BoolVarP(&extras, "extras", "e", true, "Whether to incluse extras")
-	manifestSearchCmd.Flags().StringArrayVarP(&extraTypeFilters, "extratype", "x", []string{}, "If you want to include only extras whole type contain one of the given strings. Look at full generated manifest without this flag to figure out valid types")
+	manifestSearchCmd.Flags().StringArrayVarP(&extraTypeFilters, "extra-type", "x", []string{}, "If you want to include only extras whole type contain one of the given strings. Look at full generated manifest without this flag to figure out valid types")
+	manifestSearchCmd.Flags().StringArrayVarP(&skipUrlFilters, "skip-url", "v", []string{}, "Regex of file urls that should be skipped")
 	manifestSearchCmd.Flags().StringVarP(&file, "file", "f", "search.json", "File to output the search in")
 	manifestSearchCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", true, "If set to true, the search will be output on the terminal instead of in a file")
 	return manifestSearchCmd

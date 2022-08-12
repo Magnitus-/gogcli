@@ -109,13 +109,15 @@ func (m *Manifest) TrimInstallers() {
 	keepAny := (*m).Filter.Installers
 	filteredGames := make([]ManifestGame, 0)
 
-	if len(oses) == 0 && len(languages) == 0 && keepAny {
+	if len((*m).Filter.SkipUrls) == 0 && len(oses) == 0 && len(languages) == 0 && keepAny {
 		//Save some needless computation
 		return
 	}
 
+	skipUrlFn := (*m).Filter.GetSkipUrlFn()
+
 	for _, g := range (*m).Games {
-		g.TrimInstallers(oses, languages, keepAny)
+		g.TrimInstallers(oses, languages, keepAny, skipUrlFn)
 		if !g.IsEmpty() {
 			filteredGames = append(filteredGames, g)
 		}
@@ -129,13 +131,15 @@ func (m *Manifest) TrimExtras() {
 	keepAny := (*m).Filter.Extras
 	filteredGames := make([]ManifestGame, 0)
 
-	if len(typeTerms) == 0 && keepAny {
+	if len((*m).Filter.SkipUrls) == 0 && len(typeTerms) == 0 && keepAny {
 		//Save some needless computation
 		return
 	}
 
+	skipUrlFn := (*m).Filter.GetSkipUrlFn()
+
 	for _, g := range (*m).Games {
-		g.TrimExtras(typeTerms, keepAny)
+		g.TrimExtras(typeTerms, keepAny, skipUrlFn)
 		if !g.IsEmpty() {
 			filteredGames = append(filteredGames, g)
 		}

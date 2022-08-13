@@ -5,7 +5,7 @@ import (
 	
 	//"errors"
 	"fmt"
-	"strings"
+	//"strings"
 	"sync"
 	"time"
 )
@@ -22,7 +22,7 @@ type MetadataGameIdsResult struct {
 }
 
 func processProductImageUrl(u string) string {
-	return fmt.Sprintf("%s%s", "https:", ensureFileNameSuffix(u, ".png"))
+	return fmt.Sprintf("%s%s", "https:", ensureFileNameSuffix(u, ".jpg"))
 }
 
 func OwnedGamePagesToMetadataGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGamesPageReturn, gameIds []int64) <-chan MetadataGameResult {
@@ -190,13 +190,13 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 						for _, prodScreenshotRes := range prodScreenshot.Formatted_images {
 							if prodScreenshotRes.Formatter_name == "ggvgm" {
 								screenshot.List = metadata.GameMetadataImage{
-									Url: strings.Replace(prodScreenshotRes.Image_url, ".jpg", ".png", -1),
+									Url: prodScreenshotRes.Image_url,
 									Tag: "List",
 								}
 							}
 							if prodScreenshotRes.Formatter_name == "ggvgl_2x" {
 								screenshot.Main = metadata.GameMetadataImage{
-									Url: strings.Replace(prodScreenshotRes.Image_url, ".jpg", ".png", -1),
+									Url: prodScreenshotRes.Image_url,
 									Tag: "Main",
 								}
 							}

@@ -48,7 +48,7 @@ func generateMetadataGenerateCmd() *cobra.Command {
 		},
 	}
 
-	metadataGenerateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 10, "Maximum number of concurrent requests that will be made on the GOG api")
+	metadataGenerateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 4, "Maximum number of concurrent requests that will be made on the GOG api")
 	metadataGenerateCmd.Flags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")
 	metadataGenerateCmd.Flags().StringVarP(&metadataFile, "file", "f", "metadata.json", "File to output the metadata in")
 	metadataGenerateCmd.Flags().BoolVarP(&terminalOutput, "terminal", "t", false, "If set to true, the metadata will be output on the terminal instead of in a file")

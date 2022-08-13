@@ -23,15 +23,13 @@ type GameMetadataVideo struct {
 type GameMetadataProductImages struct {
 	Background          GameMetadataImage
 	Logo                GameMetadataImage
-	Logo2x              GameMetadataImage
 	Icon                GameMetadataImage
-	SidebarIcon         GameMetadataImage
-	SidebarIcon2x       GameMetadataImage
-	MenuNotificationAv  GameMetadataImage
-	MenuNotificationAv2 GameMetadataImage
 }
 
-type GameMetadataScreenShot []GameMetadataImage
+type GameMetadataScreenShot struct {
+	List GameMetadataImage
+	Main GameMetadataImage
+}
 
 type MetadataGame struct {
 	Id             int64
@@ -56,18 +54,12 @@ func (g *MetadataGame) GetImagesPointers() []*GameMetadataImage {
 		&(*g).ListingImage,
 		&(*g).ProductImages.Background,
 		&(*g).ProductImages.Logo,
-		&(*g).ProductImages.Logo2x,
 		&(*g).ProductImages.Icon,
-		&(*g).ProductImages.SidebarIcon,
-		&(*g).ProductImages.SidebarIcon2x,
-		&(*g).ProductImages.MenuNotificationAv,
-		&(*g).ProductImages.MenuNotificationAv2,
 	}
 
 	for idx, _ := range (*g).Screenshots {
-		for idxInner := range (*g).Screenshots[idx] {
-			result = append(result, &(*g).Screenshots[idx][idxInner])
-		}
+		result = append(result, &(*g).Screenshots[idx].List)
+		result = append(result, &(*g).Screenshots[idx].Main)
 	}
 	return result
 }

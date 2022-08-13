@@ -175,32 +175,12 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 							Tag: "Background",
 						},
 						Logo: metadata.GameMetadataImage{
-							Url: processProductImageUrl(product.Images.Logo),
-							Tag: "Logo",
-						},
-						Logo2x: metadata.GameMetadataImage{
 							Url: processProductImageUrl(product.Images.Logo2x),
-							Tag: "Logo2x",
+							Tag: "Logo",
 						},
 						Icon: metadata.GameMetadataImage{
 							Url: processProductImageUrl(product.Images.Icon),
 							Tag: "Icon",
-						},
-						SidebarIcon: metadata.GameMetadataImage{
-							Url: processProductImageUrl(product.Images.SidebarIcon),
-							Tag: "SidebarIcon",
-						},
-						SidebarIcon2x: metadata.GameMetadataImage{
-							Url: processProductImageUrl(product.Images.SidebarIcon2x),
-							Tag: "SidebarIcon2x",
-						},
-						MenuNotificationAv: metadata.GameMetadataImage{
-							Url: processProductImageUrl(product.Images.MenuNotificationAv),
-							Tag: "MenuNotificationAv",
-						},
-						MenuNotificationAv2: metadata.GameMetadataImage{
-							Url: processProductImageUrl(product.Images.MenuNotificationAv2),
-							Tag: "MenuNotificationAv2",
 						},
 					}
 			
@@ -208,10 +188,18 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 					for _, prodScreenshot := range product.Screenshots {
 						screenshot := metadata.GameMetadataScreenShot{}
 						for _, prodScreenshotRes := range prodScreenshot.Formatted_images {
-							screenshot = append(screenshot, metadata.GameMetadataImage{
-								Url: strings.Replace(prodScreenshotRes.Image_url, ".jpg", ".png", -1),
-								Tag: prodScreenshotRes.Formatter_name,
-							})
+							if prodScreenshotRes.Formatter_name == "ggvgm" {
+								screenshot.List = metadata.GameMetadataImage{
+									Url: strings.Replace(prodScreenshotRes.Image_url, ".jpg", ".png", -1),
+									Tag: "List",
+								}
+							}
+							if prodScreenshotRes.Formatter_name == "ggvgl_2x" {
+								screenshot.Main = metadata.GameMetadataImage{
+									Url: strings.Replace(prodScreenshotRes.Image_url, ".jpg", ".png", -1),
+									Tag: "Main",
+								}
+							}
 						}
 						screenshots = append(screenshots, screenshot)
 					}

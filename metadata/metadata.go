@@ -50,11 +50,22 @@ type MetadataGame struct {
 }
 
 func (g *MetadataGame) GetImagesPointers() []*GameMetadataImage {
-	result := []*GameMetadataImage{
-		&(*g).ListingImage,
-		&(*g).ProductImages.Background,
-		&(*g).ProductImages.Logo,
-		&(*g).ProductImages.Icon,
+	result := []*GameMetadataImage{}
+
+	if (*g).ListingImage.Url != "" {
+		result = append(result, &(*g).ListingImage)
+	}
+
+	if (*g).ProductImages.Background.Url != "" {
+		result = append(result, &(*g).ProductImages.Background)
+	}
+
+	if (*g).ProductImages.Logo.Url != "" {
+		result = append(result, &(*g).ProductImages.Logo)
+	}
+
+	if (*g).ProductImages.Icon.Url != "" {
+		result = append(result, &(*g).ProductImages.Icon)
 	}
 
 	for idx, _ := range (*g).Screenshots {

@@ -58,7 +58,7 @@ func OwnedGamePagesToMetadataGames(done <-chan struct{}, ownedGamesPageCh <-chan
 						Dlcs:         product.DlcCount,
 						ListingImage: metadata.GameMetadataImage{
 							Url: processProductImageUrl(product.Image),
-							Tag: "Logo",
+							Tag: "Listing",
 						},
 					}
 
@@ -166,18 +166,33 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 						})
 					}
 					game.Videos = videos
-			
+					
+					backgroundUrl := ""
+					if !containsStr(skipImages, processProductImageUrl(product.Images.Background)) {
+						backgroundUrl = processProductImageUrl(product.Images.Background)
+					}
+
+					logoUrl := ""
+					if !containsStr(skipImages, processProductImageUrl(product.Images.Logo2x)) {
+						logoUrl = processProductImageUrl(product.Images.Logo2x)
+					}
+
+					iconUrl := ""
+					if !containsStr(skipImages, processProductImageUrl(product.Images.Icon)) {
+						iconUrl = processProductImageUrl(product.Images.Icon)
+					}
+
 					game.ProductImages = metadata.GameMetadataProductImages{
 						Background: metadata.GameMetadataImage{
-							Url: processProductImageUrl(product.Images.Background),
+							Url: backgroundUrl,
 							Tag: "Background",
 						},
 						Logo: metadata.GameMetadataImage{
-							Url: processProductImageUrl(product.Images.Logo2x),
+							Url: logoUrl,
 							Tag: "Logo",
 						},
 						Icon: metadata.GameMetadataImage{
-							Url: processProductImageUrl(product.Images.Icon),
+							Url: iconUrl,
 							Tag: "Icon",
 						},
 					}

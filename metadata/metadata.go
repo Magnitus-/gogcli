@@ -65,13 +65,15 @@ func (g *MetadataGame) GetImagesPointers() []*GameMetadataImage {
 }
 
 type Metadata struct {
-	Games []MetadataGame
-	Size  int64
+	Games      []MetadataGame
+	SkipImages []string
+	Size       int64
 }
 
-func NewEmptyMetadata() *Metadata {
+func NewEmptyMetadata(skipImages []string) *Metadata {
 	m := Metadata{
 		Games: []MetadataGame{},
+		SkipImages: skipImages,
 		Size:  0,
 	}
 	return &m

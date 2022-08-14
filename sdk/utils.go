@@ -22,6 +22,16 @@ func contains(list []int64, elem int64) bool {
 	return false
 }
 
+func containsStr(list []string, elem string) bool {
+	for _, val := range list {
+		if val == elem {
+			return true
+		}
+	}
+	
+	return false
+}
+
 var imageUrlRegex *regexp.Regexp
 
 func init() {

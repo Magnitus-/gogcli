@@ -3,9 +3,7 @@ package sdk
 import (
 	"gogcli/metadata"
 	
-	//"errors"
 	"fmt"
-	//"strings"
 	"sync"
 	"time"
 )
@@ -115,7 +113,7 @@ func TapMetadataGameIds(done <-chan struct{}, inGameCh <-chan MetadataGameResult
 	return outGameCh, outGameIdsCh
 }
 
-func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-chan MetadataGameResult, concurrency int, pause int) <-chan MetadataGameResult {
+func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-chan MetadataGameResult, concurrency int, pause int, skipImages []string) <-chan MetadataGameResult {
 	var wg sync.WaitGroup
 	outGameCh := make(chan MetadataGameResult)
 
@@ -186,8 +184,14 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 			
 					screenshots := []metadata.GameMetadataScreenShot{}
 					for _, prodScreenshot := range product.Screenshots {
+						isBad := false
 						screenshot := metadata.GameMetadataScreenShot{}
 						for _, prodScreenshotRes := range prodScreenshot.Formatted_images {
+							if containsStr(skipImages, prodScreenshotRes.Image_url) {
+								isBad = true
+								break
+							}
+
 							if prodScreenshotRes.Formatter_name == "ggvgm" {
 								screenshot.List = metadata.GameMetadataImage{
 									Url: prodScreenshotRes.Image_url,
@@ -201,7 +205,10 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 								}
 							}
 						}
-						screenshots = append(screenshots, screenshot)
+
+						if !isBad {
+							screenshots = append(screenshots, screenshot)
+						}
 					}
 					game.Screenshots = screenshots
 
@@ -254,7 +261,7 @@ func (s *Sdk) AddImagesInfoToMetadataGames(done <-chan struct{}, inGameCh <-chan
 
 					gameImagesPtrs := game.GetImagesPointers()
 					for _, ptr := range gameImagesPtrs {
-						info, err := s.GetImageInfo((*ptr).Url)
+						info, err := s.GetImageInfoWithFallback(ptr)
 						if err != nil {
 							gameRes.Error = err
 							outGameCh <- gameRes
@@ -283,7 +290,7 @@ func (s *Sdk) AddImagesInfoToMetadataGames(done <-chan struct{}, inGameCh <-chan
 }
 
 func (s *Sdk) GenerateMetadataGameGetter(concurrency int, pause int, tolerateDangles bool) metadata.MetadataGameGetter {
-	return func(done <-chan struct{}, gameIds []int64) (<-chan metadata.MetadataGameGetterGame, <-chan metadata.MetadataGameGetterGameIds) {
+	return func(done <-chan struct{}, gameIds []int64, skipImages []string) (<-chan metadata.MetadataGameGetterGame, <-chan metadata.MetadataGameGetterGameIds) {
 		gameResultCh := make(chan metadata.MetadataGameGetterGame)
 		gameIdsResultCh := make(chan metadata.MetadataGameGetterGameIds)
 
@@ -298,7 +305,7 @@ func (s *Sdk) GenerateMetadataGameGetter(concurrency int, pause int, tolerateDan
 
 		gamesCh = s.AddImagesInfoToMetadataGames(
 			done,
-			s.AddProductsInfoToMetadataGames(done, gamesCh, concurrency, pause),
+			s.AddProductsInfoToMetadataGames(done, gamesCh, concurrency, pause, skipImages),
 			concurrency,
 			pause,
 		)

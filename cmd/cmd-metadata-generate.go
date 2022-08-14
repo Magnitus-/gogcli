@@ -14,6 +14,7 @@ func generateMetadataGenerateCmd() *cobra.Command {
 	var terminalOutput bool
 	var tolerateDangles bool
 	var warningFile string
+	var skipImages []string
 
 	metadataGenerateCmd := &cobra.Command{
 		Use:   "generate",
@@ -24,7 +25,7 @@ func generateMetadataGenerateCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			progressFn := PersistMetadataProgress(progressFile)
 			writer := metadata.NewMetadataGamesWriter(
-				metadata.NewMetadataGamesWriterState([]int64{}),
+				metadata.NewMetadataGamesWriterState([]int64{}, skipImages),
 				logSource,
 			)
 			errs := writer.Write( 
@@ -55,5 +56,6 @@ func generateMetadataGenerateCmd() *cobra.Command {
 	metadataGenerateCmd.Flags().BoolVarP(&tolerateDangles, "tolerate-dangles", "d", true, "If set to true, undownloadable dangling files (ie, 404 code on download url) will be tolerated and will not prevent metadata generation")
 	metadataGenerateCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "metadata-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
 	metadataGenerateCmd.Flags().StringVarP(&progressFile, "progress-file", "z", "metadata-generation-progress.json", "File to save transient progress for the metadata generation in")
+	metadataGenerateCmd.Flags().StringArrayVarP(&skipImages, "skip-images", "k", []string{}, "The given image urls will be skipped")
 	return metadataGenerateCmd
 }

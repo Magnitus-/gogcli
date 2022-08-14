@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"gogcli/logging"
+	"gogcli/metadata"
 	"gogcli/manifest"
 	"io"
 	"io/ioutil"
@@ -194,6 +195,24 @@ func (s S3Store) HasManifest() (bool, error) {
 	return true, nil
 }
 
+func (s S3Store) HasMetadata() (bool, error) {
+	configs := *s.configs
+	_, err := s.client.StatObject(context.Background(), configs.Bucket, "metadata.json", minio.StatObjectOptions{})
+	if err != nil {
+		errResponse := minio.ToErrorResponse(err)
+		if errResponse.Code == "NoSuchKey" {
+			s.logger.Debug("HasMetadata() -> Metadata not found")
+			return false, nil
+		}
+
+		msg := fmt.Sprintf("HasMetadata() -> The following error occured while ascertaining metadata's existance: %s", err.Error())
+		return true, errors.New(msg)
+	}
+
+	s.logger.Debug("HasMetadata() -> Metadata found")
+	return true, nil
+}
+
 func (s S3Store) HasActions() (bool, error) {
 	configs := *s.configs
 	_, err := s.client.StatObject(context.Background(), configs.Bucket, "actions.json", minio.StatObjectOptions{})
@@ -248,6 +267,28 @@ func (s S3Store) StoreManifest(m *manifest.Manifest) error {
 	_, err = s.client.PutObject(context.Background(), configs.Bucket, "manifest.json", bytes.NewReader(output), int64(len(output)), minio.PutObjectOptions{ContentType: "application/json"})
 	if err == nil {
 		s.logger.Debug(fmt.Sprintf("StoreManifest(...) -> Stored manifest with %d games", len((*m).Games)))
+	}
+	return err
+}
+
+func (s S3Store) StoreMetadata(m *metadata.Metadata) error {
+	var err error
+	var buf bytes.Buffer
+	var output []byte
+	configs := *s.configs
+
+	output, err = json.Marshal(*m)
+
+	if err != nil {
+		return err
+	}
+
+	json.Indent(&buf, output, "", "  ")
+	output = buf.Bytes()
+
+	_, err = s.client.PutObject(context.Background(), configs.Bucket, "metadata.json", bytes.NewReader(output), int64(len(output)), minio.PutObjectOptions{ContentType: "application/json"})
+	if err == nil {
+		s.logger.Debug(fmt.Sprintf("StoreMetadata(...) -> Stored metadata with %d games", len((*m).Games)))
 	}
 	return err
 }
@@ -316,6 +357,29 @@ func (s S3Store) LoadManifest() (*manifest.Manifest, error) {
 	}
 
 	s.logger.Debug(fmt.Sprintf("LoadManifest() -> Loaded manifest with %d games", len(m.Games)))
+	return &m, nil
+}
+
+func (s S3Store) LoadMetadata() (*metadata.Metadata, error) {
+	var m metadata.Metadata
+	configs := *s.configs
+
+	objPtr, err := s.client.GetObject(context.Background(), configs.Bucket, "metadata.json", minio.GetObjectOptions{})
+	if err != nil {
+		return &m, err
+	}
+
+	bs, bErr := ioutil.ReadAll(objPtr)
+	if bErr != nil {
+		return &m, bErr
+	}
+
+	err = json.Unmarshal(bs, &m)
+	if err != nil {
+		return &m, err
+	}
+
+	s.logger.Debug(fmt.Sprintf("LoadMetadata() -> Loaded metadata with %d games", len(m.Games)))
 	return &m, nil
 }
 

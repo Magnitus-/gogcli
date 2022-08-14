@@ -2,6 +2,7 @@ package storage
 
 import (
 	"gogcli/manifest"
+	"gogcli/metadata"
 	"io"
 )
 
@@ -14,12 +15,15 @@ type Storage interface {
 	Exists() (bool, error)
 	Initialize() error
 	HasManifest() (bool, error)
+	HasMetadata() (bool, error)
 	HasActions() (bool, error)
 	HasSource() (bool, error)
 	StoreManifest(m *manifest.Manifest) error
+	StoreMetadata(m *metadata.Metadata) error
 	StoreActions(a *manifest.GameActions) error
 	StoreSource(s *Source) error
 	LoadManifest() (*manifest.Manifest, error)
+	LoadMetadata() (*metadata.Metadata, error)
 	LoadActions() (*manifest.GameActions, error)
 	LoadSource() (*Source, error)
 	RemoveActions() error

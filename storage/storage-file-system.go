@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"gogcli/logging"
+	"gogcli/metadata"
 	"gogcli/manifest"
 	"io"
 	"io/ioutil"
@@ -143,6 +144,21 @@ func (f FileSystem) HasManifest() (bool, error) {
 	return true, nil
 }
 
+func (f FileSystem) HasMetadata() (bool, error) {
+	_, err := os.Stat(path.Join(f.Path, "metadata.json"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			f.logger.Debug("HasMetadata() -> Metadata not found")
+			return false, nil
+		}
+
+		msg := fmt.Sprintf("HasMetadata() -> The following error occured while ascertaining metadata's existance: %s", err.Error())
+		return true, errors.New(msg)
+	}
+	f.logger.Debug("HasMetadata() -> Metadata found")
+	return true, nil
+}
+
 func (f FileSystem) HasActions() (bool, error) {
 	_, err := os.Stat(path.Join(f.Path, "actions.json"))
 	if err != nil {
@@ -190,6 +206,27 @@ func (f FileSystem) StoreManifest(m *manifest.Manifest) error {
 	err = ioutil.WriteFile(path.Join(f.Path, "manifest.json"), output, 0644)
 	if err == nil {
 		f.logger.Debug(fmt.Sprintf("StoreManifest(...) -> Stored manifest with %d games", len((*m).Games)))
+	}
+	return err
+}
+
+func (f FileSystem) StoreMetadata(m *metadata.Metadata) error {
+	var err error
+	var buf bytes.Buffer
+	var output []byte
+
+	output, err = json.Marshal(*m)
+
+	if err != nil {
+		return err
+	}
+
+	json.Indent(&buf, output, "", "  ")
+	output = buf.Bytes()
+
+	err = ioutil.WriteFile(path.Join(f.Path, "metadata.json"), output, 0644)
+	if err == nil {
+		f.logger.Debug(fmt.Sprintf("StoreMetadata(...) -> Stored metadata with %d games", len((*m).Games)))
 	}
 	return err
 }
@@ -250,6 +287,23 @@ func (f FileSystem) LoadManifest() (*manifest.Manifest, error) {
 	}
 
 	f.logger.Debug(fmt.Sprintf("LoadManifest() -> Loaded manifest with %d games", len(m.Games)))
+	return &m, nil
+}
+
+func (f FileSystem) LoadMetadata() (*metadata.Metadata, error) {
+	var m metadata.Metadata
+
+	bs, err := ioutil.ReadFile(path.Join(f.Path, "metadata.json"))
+	if err != nil {
+		return &m, err
+	}
+
+	err = json.Unmarshal(bs, &m)
+	if err != nil {
+		return &m, err
+	}
+
+	f.logger.Debug(fmt.Sprintf("LoadMetadata() -> Loaded metadata with %d games", len(m.Games)))
 	return &m, nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"gogcli/metadata"
 	"gogcli/manifest"
     "gogcli/storagegrpc"
 	"io"
@@ -162,6 +163,11 @@ func (g GrpcStore) HasManifest() (bool, error) {
 	return res.GetHasManifest(), nil
 }
 
+//TODO
+func (g GrpcStore) HasMetadata() (bool, error) {
+	return false, nil
+}
+
 func (g GrpcStore) HasActions() (bool, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -234,6 +240,11 @@ func (g GrpcStore) StoreManifest(m *manifest.Manifest) error {
 		return err
 	}
 
+	return nil
+}
+
+//TODO
+func (g GrpcStore) StoreMetadata(m *metadata.Metadata) error {
 	return nil
 }
 
@@ -327,6 +338,11 @@ func (g GrpcStore) LoadManifest() (*manifest.Manifest, error) {
 	}
 
 	return &man, nil
+}
+
+//TODO
+func (g GrpcStore) LoadMetadata() (*metadata.Metadata, error) {
+	return nil, nil
 }
 
 func (g GrpcStore) LoadActions() (*manifest.GameActions, error) {

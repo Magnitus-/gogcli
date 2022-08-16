@@ -168,17 +168,17 @@ func (s *Sdk) AddProductsInfoToMetadataGames(done <-chan struct{}, inGameCh <-ch
 					game.Videos = videos
 					
 					backgroundUrl := ""
-					if !containsStr(skipImages, processProductImageUrl(product.Images.Background)) {
+					if (!containsStr(skipImages, processProductImageUrl(product.Images.Background))) && product.Images.Background != "" {
 						backgroundUrl = processProductImageUrl(product.Images.Background)
 					}
 
 					logoUrl := ""
-					if !containsStr(skipImages, processProductImageUrl(product.Images.Logo2x)) {
+					if (!containsStr(skipImages, processProductImageUrl(product.Images.Logo2x))) && product.Images.Logo2x != "" {
 						logoUrl = processProductImageUrl(product.Images.Logo2x)
 					}
 
 					iconUrl := ""
-					if !containsStr(skipImages, processProductImageUrl(product.Images.Icon)) {
+					if (!containsStr(skipImages, processProductImageUrl(product.Images.Icon))) && product.Images.Icon != "" {
 						iconUrl = processProductImageUrl(product.Images.Icon)
 					}
 

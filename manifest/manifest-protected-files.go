@@ -30,6 +30,10 @@ func (p *ProtectedGameFiles) RemoveGameFile(file FileInfo) {
 type ProtectedManifestFiles map[int64]ProtectedGameFiles
 
 func (p *ProtectedManifestFiles) AddGameFile(file FileInfo) {
+	if (*p) == nil {
+		(*p) = make(map[int64]ProtectedGameFiles)
+	}
+
 	game, ok := (*p)[file.Game.Id]
 	if !ok {
 		game = ProtectedGameFiles{
@@ -43,6 +47,10 @@ func (p *ProtectedManifestFiles) AddGameFile(file FileInfo) {
 }
 
 func (p *ProtectedManifestFiles) RemoveGameFile(file FileInfo) {
+	if (*p) == nil {
+		(*p) = make(map[int64]ProtectedGameFiles)
+	}
+	
 	game, ok := (*p)[file.Game.Id]
 	if !ok {
 		return

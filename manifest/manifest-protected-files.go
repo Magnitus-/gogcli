@@ -14,7 +14,7 @@ func (p *ProtectedGameFiles) AddGameFile(file FileInfo) {
 	}
 
 	if !containsStr((*p).Installers, file.Name) {
-		(*p).Extras = append((*p).Installers, file.Name)
+		(*p).Installers = append((*p).Installers, file.Name)
 	}
 }
 
@@ -50,7 +50,7 @@ func (p *ProtectedManifestFiles) RemoveGameFile(file FileInfo) {
 	if (*p) == nil {
 		(*p) = make(map[int64]ProtectedGameFiles)
 	}
-	
+
 	game, ok := (*p)[file.Game.Id]
 	if !ok {
 		return

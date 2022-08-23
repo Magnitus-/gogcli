@@ -617,3 +617,18 @@ func (g GrpcStore) DownloadFile(file manifest.FileInfo) (io.ReadCloser, int64, e
 
 	return &fileDownloader, expectedSize, nil
 }
+
+//TODO
+func (g GrpcStore) UploadImage(source io.ReadCloser, image metadata.GameMetadataImage) (string, error) {
+	return "", nil 
+}
+
+//TODO
+func (g GrpcStore) RemoveImage(image metadata.GameMetadataImage) error {
+	return nil
+}
+
+//TODO
+func (g GrpcStore) DownloadImage(image metadata.GameMetadataImage) (io.ReadCloser, int64, error) {
+	return nil, 0, nil
+}

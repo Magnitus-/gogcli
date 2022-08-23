@@ -572,3 +572,18 @@ func (s S3Store) DownloadFile(file manifest.FileInfo) (io.ReadCloser, int64, err
 	s.logger.Debug(fmt.Sprintf("DownloadFile(gameId=%d, kind=%s, name=%s) -> Fetched file download handle", file.Game.Id, file.Kind, file.Name))
 	return downloadHandle, size, nil
 }
+
+//TODO
+func (s S3Store) UploadImage(source io.ReadCloser, image metadata.GameMetadataImage) (string, error) {
+	return "", nil 
+}
+
+//TODO
+func (s S3Store) RemoveImage(image metadata.GameMetadataImage) error {
+	return nil
+}
+
+//TODO
+func (s S3Store) DownloadImage(image metadata.GameMetadataImage) (io.ReadCloser, int64, error) {
+	return nil, 0, nil
+}

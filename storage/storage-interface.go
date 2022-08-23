@@ -33,4 +33,7 @@ type Storage interface {
 	UploadFile(source io.ReadCloser, file manifest.FileInfo) (string, error)
 	RemoveFile(file manifest.FileInfo) error
 	DownloadFile(file manifest.FileInfo) (io.ReadCloser, int64, error)
+	UploadImage(source io.ReadCloser, image metadata.GameMetadataImage) (string, error)
+	RemoveImage(image metadata.GameMetadataImage) error
+	DownloadImage(image metadata.GameMetadataImage) (io.ReadCloser, int64, error)
 }

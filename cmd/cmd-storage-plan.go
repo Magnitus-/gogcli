@@ -61,6 +61,12 @@ func generateStoragePlanCmd() *cobra.Command {
 				checksumValidation = manifest.ChecksumValidationIfPresent
 			}
 
+			err = storage.ImprintProtectedFiles(&m, gamesStorage)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+
 			actions, err = storage.PlanManifest(&m, gamesStorage, checksumValidation)
 			if err != nil {
 				fmt.Println(err)

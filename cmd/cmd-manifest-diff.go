@@ -31,6 +31,7 @@ func generateManifestDiffCmd() *cobra.Command {
 				checksumValidation = manifest.ChecksumValidationIfPresent
 			}
 
+			next.ImprintProtectedFiles(&curr)
 			a := curr.Plan(&next, checksumValidation, false)
 			processSerializableOutput(a, []error{}, terminalOutput, diffFile)
 		},

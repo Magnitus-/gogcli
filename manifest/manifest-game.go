@@ -133,6 +133,26 @@ func (g *ManifestGame) TrimIncompleteFiles() {
 	(*g).Extras = extras
 }
 
+func (g *ManifestGame) ImprintProtectedFiles(prev *ManifestGame, prot *ProtectedGameFiles) {
+	for _, instName := range (*prot).Installers {
+		if !(*g).HasInstallerNamed(instName) {
+			installer, err := (*prev).GetInstallerNamed(instName)
+			if err == nil {
+				(*g).Installers = append((*g).Installers, installer)
+			}
+		}
+	}
+
+	for _, extraName := range (*prot).Extras {
+		if !(*g).HasExtraNamed(extraName) {
+			extra, err := (*prev).GetExtraNamed(extraName)
+			if err == nil {
+				(*g).Extras = append((*g).Extras, extra)
+			}
+		}
+	}
+}
+
 func (g *ManifestGame) ImprintMissingChecksums(prev *ManifestGame) error {
 	if (*g).Id != (*prev).Id {
 		return errors.New("imprintMissingChecksums(...) -> Game ids do not match")
@@ -174,6 +194,16 @@ func (g *ManifestGame) ImprintMissingChecksums(prev *ManifestGame) error {
 	return nil
 }
 
+func (g *ManifestGame) HasInstallerNamed(name string) bool {
+	for idx, _ := range (*g).Installers {
+		if (*g).Installers[idx].Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (g *ManifestGame) GetInstallerNamed(name string) (ManifestGameInstaller, error) {
 	for idx, _ := range (*g).Installers {
 		if (*g).Installers[idx].Name == name {
@@ -183,6 +213,16 @@ func (g *ManifestGame) GetInstallerNamed(name string) (ManifestGameInstaller, er
 
 	msg := fmt.Sprintf("*ManifestGame.GetInstallerNamed(name=%s) -> No installer by that name", name)
 	return ManifestGameInstaller{}, errors.New(msg)
+}
+
+func (g *ManifestGame) HasExtraNamed(name string) bool {
+	for idx, _ := range (*g).Extras {
+		if (*g).Extras[idx].Name == name {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (g *ManifestGame) GetExtraNamed(name string) (ManifestGameExtra, error) {

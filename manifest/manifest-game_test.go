@@ -194,11 +194,383 @@ func TestManifestGameImprintMissingChecksums(t *testing.T) {
 }
 
 func TestManifestGameGetInstallerNamed(t *testing.T) {
-	//TODO
+	installers := []ManifestGameInstaller{
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare",
+			Title:         "installer",
+			Name:          "installer",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "",
+		},
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare2",
+			Title:         "installer2",
+			Name:          "installer2",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare3",
+			Title:         "installer3",
+			Name:          "installer3",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+	}
+
+	extras := []ManifestGameExtra{
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare",
+			Title:         "extra",
+			Name:          "extra",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "",
+		},
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare2",
+			Title:         "extra2",
+			Name:          "extra2",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare3",
+			Title:         "extra3",
+			Name:          "extra3",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+	}
+
+	game := ManifestGame{
+		Id:            1,
+		Slug:          "game",
+		Title:         "game",
+		CdKey:         "key",
+		Tags:          []string{"COMPLETED"},
+		Installers:    installers,
+		Extras:        extras,
+		EstimatedSize: "10mb",
+		VerifiedSize:  10000,
+	}
+
+	inst, err := game.GetInstallerNamed("installer2")
+	if err != nil || inst.Url != "/dontknowdontcare2" || inst.Name != "installer2" {
+		t.Errorf("Getting installer with a given name doesn't behave as expected when installer is found")
+	}
+
+	inst, err = game.GetInstallerNamed("installer2222")
+	if err == nil {
+		t.Errorf("Getting installer with a given name doesn't behave as expected when installer is not found")
+	}
 }
 
 func TestManifestGameGetExtraNamed(t *testing.T) {
-	//TODO
+	installers := []ManifestGameInstaller{
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare",
+			Title:         "installer",
+			Name:          "installer",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "",
+		},
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare2",
+			Title:         "installer2",
+			Name:          "installer2",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare3",
+			Title:         "installer3",
+			Name:          "installer3",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+	}
+
+	extras := []ManifestGameExtra{
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare",
+			Title:         "extra",
+			Name:          "extra",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "",
+		},
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare2",
+			Title:         "extra2",
+			Name:          "extra2",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare3",
+			Title:         "extra3",
+			Name:          "extra3",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+	}
+
+	game := ManifestGame{
+		Id:            1,
+		Slug:          "game",
+		Title:         "game",
+		CdKey:         "key",
+		Tags:          []string{"COMPLETED"},
+		Installers:    installers,
+		Extras:        extras,
+		EstimatedSize: "10mb",
+		VerifiedSize:  10000,
+	}
+
+	extra, err := game.GetExtraNamed("extra2")
+	if err != nil || extra.Url != "/dontknowdontcare2" || extra.Name != "extra2" {
+		t.Errorf("Getting extra with a given name doesn't behave as expected when extra is found")
+	}
+
+	extra, err = game.GetExtraNamed("extra2222")
+	if err == nil {
+		t.Errorf("Getting extra with a given name doesn't behave as expected when extra is not found")
+	}
+}
+
+func TestManifestGameHasInstallerNamed(t *testing.T) {
+	installers := []ManifestGameInstaller{
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare",
+			Title:         "installer",
+			Name:          "installer",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "",
+		},
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare2",
+			Title:         "installer2",
+			Name:          "installer2",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare3",
+			Title:         "installer3",
+			Name:          "installer3",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+	}
+
+	extras := []ManifestGameExtra{
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare",
+			Title:         "extra",
+			Name:          "extra",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "",
+		},
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare2",
+			Title:         "extra2",
+			Name:          "extra2",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare3",
+			Title:         "extra3",
+			Name:          "extra3",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+	}
+
+	game := ManifestGame{
+		Id:            1,
+		Slug:          "game",
+		Title:         "game",
+		CdKey:         "key",
+		Tags:          []string{"COMPLETED"},
+		Installers:    installers,
+		Extras:        extras,
+		EstimatedSize: "10mb",
+		VerifiedSize:  10000,
+	}
+
+	if !game.HasInstallerNamed("installer2") {
+		t.Errorf("Checking installer existence with a given name doesn't behave as expected when installer is found")
+	}
+
+	if game.HasInstallerNamed("installer2222") {
+		t.Errorf("Checking installer existence with a given name doesn't behave as expected when installer is not found")
+	}
+}
+
+func TestManifestGameHasExtraNamed(t *testing.T) {
+	installers := []ManifestGameInstaller{
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare",
+			Title:         "installer",
+			Name:          "installer",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "",
+		},
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare2",
+			Title:         "installer2",
+			Name:          "installer2",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+		ManifestGameInstaller{
+			Languages:     []string{"english"},
+			Os:            "windows",
+			Url:           "/dontknowdontcare3",
+			Title:         "installer3",
+			Name:          "installer3",
+			Version:       "vDontKnowToo",
+			Date:          "2111-12-12",
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+	}
+
+	extras := []ManifestGameExtra{
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare",
+			Title:         "extra",
+			Name:          "extra",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "",
+		},
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare2",
+			Title:         "extra2",
+			Name:          "extra2",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+		ManifestGameExtra{
+			Url:           "/dontknowdontcare3",
+			Title:         "extra3",
+			Name:          "extra3",
+			Type:          "ost",
+			Info:          1,
+			EstimatedSize: "1kb",
+			VerifiedSize:  1000,
+			Checksum:      "abcdefg",
+		},
+	}
+
+	game := ManifestGame{
+		Id:            1,
+		Slug:          "game",
+		Title:         "game",
+		CdKey:         "key",
+		Tags:          []string{"COMPLETED"},
+		Installers:    installers,
+		Extras:        extras,
+		EstimatedSize: "10mb",
+		VerifiedSize:  10000,
+	}
+
+	if !game.HasExtraNamed("extra2") {
+		t.Errorf("Checking extra existence with a given name doesn't behave as expected when extra is found")
+	}
+
+	if game.HasExtraNamed("extra2222") {
+		t.Errorf("Checking extra existence with a given name doesn't behave as expected when extra is not found")
+	}
 }
 
 func TestManifestGameTrimInstallers(t *testing.T) {

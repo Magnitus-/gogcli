@@ -31,6 +31,9 @@ func generateStorageApplyManifestCmd() *cobra.Command {
 			err := storage.EnsureInitialization(gamesStorage)
 			processError(err)
 
+			err = storage.ImprintProtectedFiles(&m, gamesStorage)
+			processError(err)
+
 			if !allowGameDeletions {
 				checksumValidation := manifest.ChecksumValidation
 				if allowEmptyCheckum {

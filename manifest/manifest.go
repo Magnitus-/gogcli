@@ -8,10 +8,11 @@ import (
 type ManifestFilenameDuplicates []GameFilenameDuplicates
 
 type Manifest struct {
-	Games         []ManifestGame
-	EstimatedSize string
-	VerifiedSize  int64
-	Filter        ManifestFilter
+	Games          []ManifestGame
+	EstimatedSize  string
+	VerifiedSize   int64
+	Filter         ManifestFilter
+	ProtectedFiles ProtectedManifestFiles
 }
 
 func (m *Manifest) HandleDuplicateFilenames() ManifestFilenameDuplicates {
@@ -32,6 +33,24 @@ func (m *Manifest) TrimIncompleteFiles() {
 		game := (*m).Games[idx]
 		game.TrimIncompleteFiles()
 		(*m).Games[idx] = game
+	}
+}
+
+func (m *Manifest) ImprintProtectedFiles(prev *Manifest) {
+	prevGames := make(map[int64]ManifestGame)
+	protectedFiles := (*prev).ProtectedFiles
+
+	for _, game := range (*prev).Games {
+		prevGames[game.Id] = game
+	}
+
+	for idx, game := range (*m).Games {
+		if prevGame, ok := prevGames[game.Id]; ok {
+			if protectedGameFiles, ok := protectedFiles[game.Id]; ok {
+				game.ImprintProtectedFiles(&prevGame, &protectedGameFiles)
+				(*m).Games[idx] = game
+			}
+		}
 	}
 }
 

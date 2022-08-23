@@ -82,3 +82,22 @@ func RemoveIdFromList(ids []int64, id int64) []int64 {
 	}
 	return ids
 }
+
+func containsStr(list []string, elem string) bool {
+	for _, val := range list {
+		if val == elem {
+			return true
+		}
+	}
+	
+	return false
+}
+
+func RemoveStrFromList(list []string, elem string) []string {
+	for idx, val := range list {
+		if elem == val {
+			return append(list[:idx], list[idx+1:]...)
+		}
+	}
+	return list
+}

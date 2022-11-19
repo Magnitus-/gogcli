@@ -1,6 +1,8 @@
 package storage
 
-import "gogcli/manifest"
+import (
+	"gogcli/manifest"
+)
 
 func Repair(m *manifest.Manifest, s Storage, src Source, concurrency int, verifyChecksum bool) error {
 	hasActions, actErr := s.HasActions()

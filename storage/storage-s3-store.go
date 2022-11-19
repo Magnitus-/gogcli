@@ -123,6 +123,8 @@ func (s S3Store) GetListing() (*StorageListing, error) {
 			listing.Games[gameId] = gameListing
 		}
 	}
+	
+	s.logger.Debug(fmt.Sprintf("GetListing(...) -> Returned listing for %d games", len(listing.Games)))
 	return &listing, nil
 }
 

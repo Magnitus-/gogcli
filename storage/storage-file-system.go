@@ -81,6 +81,7 @@ func (f FileSystem) GetListing() (*StorageListing, error) {
 		listing.Games[gameId] = gameListing
 	}
 
+	f.logger.Debug(fmt.Sprintf("GetListing(...) -> Returned listing for %d games", len(listing.Games)))
 	return &listing, nil
 }
 

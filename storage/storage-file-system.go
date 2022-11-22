@@ -85,6 +85,63 @@ func (f FileSystem) GetListing() (*StorageListing, error) {
 	return &listing, nil
 }
 
+func (f FileSystem) GetGameIds() ([]int64, error) {
+	gameIds := []int64{}
+	files, err := ioutil.ReadDir(f.Path)
+	if err != nil {
+		return gameIds, err
+	}
+	
+	for _, file := range files {
+		gameId, err := strconv.ParseInt(file.Name(), 10, 64)
+		if err != nil {
+			continue
+		}
+		gameIds = append(gameIds, gameId)
+	}
+
+	return gameIds, nil
+}
+
+func (f FileSystem) GetGameFiles(GameId int64) ([]manifest.FileInfo, error) {
+	gameInfo := manifest.GameInfo{Id: GameId}
+	fileInfos := []manifest.FileInfo{}
+
+	gameDir := path.Join(f.Path, strconv.FormatInt(GameId, 10))
+	instDir := path.Join(gameDir, "installers")
+	extrDir := path.Join(gameDir, "extras")
+
+	installers, installersErr := ioutil.ReadDir(instDir)
+	if installersErr != nil {
+		return fileInfos, installersErr
+	}
+
+	for _, file := range installers {
+		fileInfo := manifest.FileInfo{
+			Game: gameInfo, 
+			Name: file.Name(), 
+			Kind: "installer",
+		}
+		fileInfos = append(fileInfos, fileInfo)
+	}
+
+	extras, extrasErr := ioutil.ReadDir(extrDir)
+	if extrasErr != nil {
+		return fileInfos, extrasErr
+	}
+
+	for _, file := range extras {
+		fileInfo := manifest.FileInfo{
+			Game: gameInfo, 
+			Name: file.Name(), 
+			Kind: "extra",
+		}
+		fileInfos = append(fileInfos, fileInfo)
+	}
+
+	return fileInfos, nil
+}
+
 func (f FileSystem) SupportsReaderAt() bool {
 	return true
 }

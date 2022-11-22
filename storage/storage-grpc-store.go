@@ -81,6 +81,41 @@ func (g GrpcStore) GetListing() (*StorageListing, error) {
 	return &listing, nil
 }
 
+func (g GrpcStore) GetGameIds() ([]int64, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.GetGameIdsRequest{}
+	res, err := g.client.GetGameIds(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return []int64{}, err
+	}
+
+	return res.GetIds(), nil
+}
+
+func (g GrpcStore) GetGameFiles(GameId int64) ([]manifest.FileInfo, error) {
+	fileInfos := []manifest.FileInfo{}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := &storagegrpc.GetGameFilesRequest{GameId: GameId}
+	res, err := g.client.GetGameFiles(ctx, req)
+	if err != nil {
+		err = ConvertGrpcError(err)
+		return fileInfos, err
+	}
+
+	files := res.GetFiles()
+	for _, file := range files {
+		fileInfos = append(fileInfos, ConvertGrpcFileInfo(file))
+	}
+
+	return fileInfos, nil
+}
+
 func (g GrpcStore) SupportsReaderAt() bool {
 	return true
 }

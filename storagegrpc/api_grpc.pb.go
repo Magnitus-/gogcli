@@ -19,6 +19,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StorageServiceClient interface {
 	GetListing(ctx context.Context, in *GetListingRequest, opts ...grpc.CallOption) (StorageService_GetListingClient, error)
+	GetGameIds(ctx context.Context, in *GetGameIdsRequest, opts ...grpc.CallOption) (*GetGameIdsResponse, error)
+	GetGameFiles(ctx context.Context, in *GetGameFilesRequest, opts ...grpc.CallOption) (*GetGameFilesResponse, error)
 	IsSelfValidating(ctx context.Context, in *IsSelfValidatingRequest, opts ...grpc.CallOption) (*IsSelfValidatingResponse, error)
 	GetPrintableSummary(ctx context.Context, in *GetPrintableSummaryRequest, opts ...grpc.CallOption) (*GetPrintableSummaryResponse, error)
 	Exists(ctx context.Context, in *ExistsRequest, opts ...grpc.CallOption) (*ExistsResponse, error)
@@ -79,6 +81,24 @@ func (x *storageServiceGetListingClient) Recv() (*GetListingResponse, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func (c *storageServiceClient) GetGameIds(ctx context.Context, in *GetGameIdsRequest, opts ...grpc.CallOption) (*GetGameIdsResponse, error) {
+	out := new(GetGameIdsResponse)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/GetGameIds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) GetGameFiles(ctx context.Context, in *GetGameFilesRequest, opts ...grpc.CallOption) (*GetGameFilesResponse, error) {
+	out := new(GetGameFilesResponse)
+	err := c.cc.Invoke(ctx, "/grpc_storage.StorageService/GetGameFiles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *storageServiceClient) IsSelfValidating(ctx context.Context, in *IsSelfValidatingRequest, opts ...grpc.CallOption) (*IsSelfValidatingResponse, error) {
@@ -410,6 +430,8 @@ func (x *storageServiceDownloadFileClient) Recv() (*DownloadFileResponse, error)
 // for forward compatibility
 type StorageServiceServer interface {
 	GetListing(*GetListingRequest, StorageService_GetListingServer) error
+	GetGameIds(context.Context, *GetGameIdsRequest) (*GetGameIdsResponse, error)
+	GetGameFiles(context.Context, *GetGameFilesRequest) (*GetGameFilesResponse, error)
 	IsSelfValidating(context.Context, *IsSelfValidatingRequest) (*IsSelfValidatingResponse, error)
 	GetPrintableSummary(context.Context, *GetPrintableSummaryRequest) (*GetPrintableSummaryResponse, error)
 	Exists(context.Context, *ExistsRequest) (*ExistsResponse, error)
@@ -439,6 +461,12 @@ type UnimplementedStorageServiceServer struct {
 
 func (UnimplementedStorageServiceServer) GetListing(*GetListingRequest, StorageService_GetListingServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetListing not implemented")
+}
+func (UnimplementedStorageServiceServer) GetGameIds(context.Context, *GetGameIdsRequest) (*GetGameIdsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGameIds not implemented")
+}
+func (UnimplementedStorageServiceServer) GetGameFiles(context.Context, *GetGameFilesRequest) (*GetGameFilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGameFiles not implemented")
 }
 func (UnimplementedStorageServiceServer) IsSelfValidating(context.Context, *IsSelfValidatingRequest) (*IsSelfValidatingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsSelfValidating not implemented")
@@ -532,6 +560,42 @@ type storageServiceGetListingServer struct {
 
 func (x *storageServiceGetListingServer) Send(m *GetListingResponse) error {
 	return x.ServerStream.SendMsg(m)
+}
+
+func _StorageService_GetGameIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGameIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).GetGameIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc_storage.StorageService/GetGameIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).GetGameIds(ctx, req.(*GetGameIdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_GetGameFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGameFilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).GetGameFiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc_storage.StorageService/GetGameFiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).GetGameFiles(ctx, req.(*GetGameFilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _StorageService_IsSelfValidating_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -934,6 +998,14 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "grpc_storage.StorageService",
 	HandlerType: (*StorageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetGameIds",
+			Handler:    _StorageService_GetGameIds_Handler,
+		},
+		{
+			MethodName: "GetGameFiles",
+			Handler:    _StorageService_GetGameFiles_Handler,
+		},
 		{
 			MethodName: "IsSelfValidating",
 			Handler:    _StorageService_IsSelfValidating_Handler,

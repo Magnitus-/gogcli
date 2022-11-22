@@ -8,6 +8,8 @@ import (
 
 type Storage interface {
 	GetListing() (*StorageListing, error)
+	GetGameIds() ([]int64, error)
+	GetGameFiles(GameId int64) ([]manifest.FileInfo, error)
 	SupportsReaderAt() bool
 	IsSelfValidating() (bool, error)
 	GenerateSource() *Source

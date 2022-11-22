@@ -123,9 +123,75 @@ func (s S3Store) GetListing() (*StorageListing, error) {
 			listing.Games[gameId] = gameListing
 		}
 	}
-	
+
 	s.logger.Debug(fmt.Sprintf("GetListing(...) -> Returned listing for %d games", len(listing.Games)))
 	return &listing, nil
+}
+
+func (s S3Store) GetGameIds() ([]int64, error) {
+	gameIds := []int64{}
+	
+	configs := *s.configs
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	gameFileRegex := regexp.MustCompile(`^(?P<id>\d+)/(?P<kind>(?:installers)|(?:extras))/(?P<file>.+)$`)
+
+	objChan := s.client.ListObjects(ctx, configs.Bucket, minio.ListObjectsOptions{
+		Recursive: true,
+	})
+	for obj := range objChan {
+		if obj.Err != nil {
+			return gameIds, obj.Err
+		}
+
+		match := gameFileRegex.FindStringSubmatch(obj.Key)
+		gameId, err := strconv.ParseInt(match[1], 10, 64)
+		if err != nil {
+			continue
+		}
+
+		gameIds = append(gameIds, gameId)
+	}
+
+	return gameIds, nil
+}
+
+func (s S3Store) GetGameFiles(GameId int64) ([]manifest.FileInfo, error) {
+	gameInfo := manifest.GameInfo{Id: GameId}
+	fileInfos := []manifest.FileInfo{}
+	
+	configs := *s.configs
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	gameFileRegex := regexp.MustCompile(`^(?P<id>\d+)/(?P<kind>(?:installers)|(?:extras))/(?P<file>.+)$`)
+
+	objChan := s.client.ListObjects(ctx, configs.Bucket, minio.ListObjectsOptions{
+		Recursive: true,
+	})
+	for obj := range objChan {
+		if obj.Err != nil {
+			return fileInfos, obj.Err
+		}
+
+		match := gameFileRegex.FindStringSubmatch(obj.Key)
+		if match[2] == "installers" {
+			fileInfo := manifest.FileInfo{
+				Game: gameInfo, 
+				Name: match[3], 
+				Kind: "installer",
+			}
+			fileInfos = append(fileInfos, fileInfo)
+		} else {
+			fileInfo := manifest.FileInfo{
+				Game: gameInfo, 
+				Name: match[3], 
+				Kind: "extra",
+			}
+			fileInfos = append(fileInfos, fileInfo)
+		}
+	}
+
+	return fileInfos, nil
 }
 
 func (s S3Store) SupportsReaderAt() bool {

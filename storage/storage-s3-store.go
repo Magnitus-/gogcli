@@ -90,6 +90,7 @@ func getS3Store(configs *S3Configs, logSource *logging.Source, tag string) (S3St
 
 func (s S3Store) GetGameIds() ([]int64, error) {
 	gameIds := []int64{}
+	gameIdsMap := make(map[int64]bool)
 	
 	configs := *s.configs
 	ctx, cancel := context.WithCancel(context.Background())
@@ -105,12 +106,19 @@ func (s S3Store) GetGameIds() ([]int64, error) {
 		}
 
 		match := gameFileRegex.FindStringSubmatch(obj.Key)
+		if len(match) == 0 {
+			continue	
+		}
 		gameId, err := strconv.ParseInt(match[1], 10, 64)
 		if err != nil {
 			continue
 		}
 
-		gameIds = append(gameIds, gameId)
+		gameIdsMap[gameId] = true
+	}
+
+	for id, _ := range gameIdsMap {
+		gameIds = append(gameIds, id)
 	}
 
 	return gameIds, nil
@@ -127,6 +135,7 @@ func (s S3Store) GetGameFiles(GameId int64) ([]manifest.FileInfo, error) {
 
 	objChan := s.client.ListObjects(ctx, configs.Bucket, minio.ListObjectsOptions{
 		Recursive: true,
+		Prefix: fmt.Sprintf("%d/", GameId),
 	})
 	for obj := range objChan {
 		if obj.Err != nil {

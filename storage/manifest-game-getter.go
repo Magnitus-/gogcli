@@ -9,19 +9,6 @@ import (
 	"gogcli/manifest"
 )
 
-/*
-type ManifestGameGetterGame struct {
-	Game ManifestGame
-	Warnings []error
-	Errors   []error
-}
-
-type ManifestGameGetterGameIds struct {
-	Ids   []int64
-	Error error
-}
-*/
-
 func getStorageGameIds(s Storage) <-chan manifest.ManifestGameGetterGameIds {
 	gameIdsCh := make(chan manifest.ManifestGameGetterGameIds)
 	

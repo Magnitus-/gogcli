@@ -1,7 +1,10 @@
 package storage
 
 import (
-	//"sync"
+	"crypto/md5"
+	"encoding/hex"
+	"io"
+	"sync"
 
 	"gogcli/manifest"
 )
@@ -108,11 +111,94 @@ func getStorageGames(s Storage, done <-chan struct{}, gameIdsCh <-chan manifest.
 	return gamesCh
 }
 
-func addStorageGamesFilesMetadata(s Storage, concurrency int, done <-chan struct{}, game <-chan manifest.ManifestGameGetterGame) <-chan manifest.ManifestGameGetterGame {
+func addStorageGamesFilesMetadata(s Storage, concurrency int, done <-chan struct{}, gamesInCh <-chan manifest.ManifestGameGetterGame) <-chan manifest.ManifestGameGetterGame {
+	var wg sync.WaitGroup
 	gamesCh := make(chan manifest.ManifestGameGetterGame)
+
+	for idx := 0; idx < concurrency; idx++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for true {
+				select {
+				case res, ok := <-gamesInCh:
+					if !ok {
+						return
+					}
+
+					if len(res.Errors) > 0 {
+						gamesCh <- res
+						return
+					}
+
+					for idx, installer := range res.Game.Installers {
+						file := manifest.FileInfo{
+							Game: manifest.GameInfo{Id: res.Game.Id},
+							Kind: "installer",
+							Name: installer.Name,
+						}
+						
+						handle, size, err := s.DownloadFile(file)
+						if err != nil {
+							res.Errors = append(res.Errors, err)
+							gamesCh <- res
+							return
+						}
+
+						h := md5.New()
+						io.Copy(h, handle)
+						installer.Checksum = hex.EncodeToString(h.Sum(nil))
+						installer.VerifiedSize = size
+
+						res.Game.Installers[idx] = installer
+
+						select {
+						case <-done:
+							return
+						default:
+						}
+					}
+
+					for idx, extra := range res.Game.Extras {
+						file := manifest.FileInfo{
+							Game: manifest.GameInfo{Id: res.Game.Id},
+							Kind: "extra",
+							Name: extra.Name,
+						}
+						
+						handle, size, err := s.DownloadFile(file)
+						if err != nil {
+							res.Errors = append(res.Errors, err)
+							gamesCh <- res
+							return
+						}
+
+						h := md5.New()
+						io.Copy(h, handle)
+						extra.Checksum = hex.EncodeToString(h.Sum(nil))
+						extra.VerifiedSize = size
+
+						res.Game.Extras[idx] = extra
+
+						select {
+						case <-done:
+							return
+						default:
+						}
+					}
+
+					gamesCh <- res
+				case <-done:
+					return
+				}
+			}
+		}()
+	}
 
 	go func() {
 		defer close(gamesCh)
+		wg.Wait()
 	}()
 
 	return gamesCh

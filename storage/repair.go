@@ -4,7 +4,7 @@ import (
 	"gogcli/manifest"
 )
 
-func Repair(m *manifest.Manifest, s Storage, src Source, concurrency int, verifyChecksum bool) error {
+func Repair(authMan *manifest.Manifest, storeMan *manifest.Manifest, s Storage, src Source, verifyChecksum bool) error {
 	hasActions, actErr := s.HasActions()
 	if actErr != nil {
 		return actErr
@@ -27,19 +27,9 @@ func Repair(m *manifest.Manifest, s Storage, src Source, concurrency int, verify
 		}
 	}
 
-	manErr := s.StoreManifest(m)
+	manErr := s.StoreManifest(authMan)
 	if manErr != nil {
 		return manErr
-	}
-
-	l, lErr := s.GetListing()
-	if lErr != nil {
-		return lErr
-	}
-
-	filesManifest, err := l.GetManifest(concurrency)
-	if err != nil {
-		return err
 	}
 
 	checksumValidation := manifest.ChecksumNoValidation
@@ -47,7 +37,7 @@ func Repair(m *manifest.Manifest, s Storage, src Source, concurrency int, verify
 		checksumValidation = manifest.ChecksumValidation
 	}
 
-	actions := filesManifest.Plan(m, checksumValidation, true)
+	actions := storeMan.Plan(authMan, checksumValidation, true)
 	if len(*actions) > 0 {
 		srcErr = s.StoreSource(&src)
 		if srcErr != nil {

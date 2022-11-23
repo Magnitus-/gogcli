@@ -8,7 +8,7 @@ import (
 )
 
 func generateStorageRepairCmd() *cobra.Command {
-	var m manifest.Manifest
+	var authMan manifest.Manifest
 	var manifestPath string
 	var path string
 	var storageType string
@@ -23,19 +23,35 @@ func generateStorageRepairCmd() *cobra.Command {
 			var err error
 
 			if useFileManifest {
-				m, err = loadManifestFromFile(manifestPath)
+				authMan, err = loadManifestFromFile(manifestPath)
 				processError(err)
 				return
 			}
 
 			gamesStorage, _ := getStorage(path, storageType, logSource, "")
 			storageManifest, err := gamesStorage.LoadManifest()
-			m = (*storageManifest)
+			authMan = (*storageManifest)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			gamesStorage, _ := getStorage(path, storageType, logSource, "")
-			err := storage.Repair(&m, gamesStorage, storage.Source{Type: "gog"}, concurrency, verifyChecksum)
-			processError(err)
+
+			noOpProgressFn := func(state manifest.ManifestGamesWriterState) error {
+				return nil
+			}
+
+			writer := manifest.NewManifestGamesWriter(
+				manifest.NewManifestGamesWriterState(manifest.ManifestFilter{}, []int64{}),
+				logSource,
+			)
+			writeErrs := writer.Write(
+				storage.GenerateManifestGameGetter(gamesStorage, concurrency), 
+				noOpProgressFn,
+			)
+			processErrors(writeErrs)
+			storeMan, _ := writer.State.Manifest, writer.State.Warnings
+
+			repairErr := storage.Repair(&authMan, &storeMan, gamesStorage, storage.Source{Type: "gog"}, verifyChecksum)
+			processError(repairErr)
 		},
 	}
 

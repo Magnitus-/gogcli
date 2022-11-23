@@ -41,50 +41,6 @@ func GetFileSystem(path string, logSource *logging.Source, tag string) FileSyste
 	return FileSystem{path, logSource.CreateLogger(os.Stdout, logPrefix, log.Lmsgprefix)}
 }
 
-func (f FileSystem) GetListing() (*StorageListing, error) {
-	listing := NewEmptyStorageListing(FileSystemDownloader{f})
-	files, err := ioutil.ReadDir(f.Path)
-	if err != nil {
-		return nil, err
-	}
-	for _, file := range files {
-		gameId, err := strconv.ParseInt(file.Name(), 10, 64)
-		if err != nil {
-			continue
-		}
-
-		gameInfo := manifest.GameInfo{Id: gameId}
-		gameListing := StorageListingGame{
-			Game:       gameInfo,
-			Installers: make([]manifest.FileInfo, 0),
-			Extras:     make([]manifest.FileInfo, 0),
-		}
-
-		installers, err := ioutil.ReadDir(path.Join(f.Path, file.Name(), "installers"))
-		if err != nil {
-			return nil, err
-		}
-		for _, installer := range installers {
-			fileInfo := manifest.FileInfo{Game: gameInfo, Name: installer.Name(), Kind: "installer"}
-			gameListing.Installers = append(gameListing.Installers, fileInfo)
-		}
-
-		extras, err := ioutil.ReadDir(path.Join(f.Path, file.Name(), "extras"))
-		if err != nil {
-			return nil, err
-		}
-		for _, extra := range extras {
-			fileInfo := manifest.FileInfo{Game: gameInfo, Name: extra.Name(), Kind: "extra"}
-			gameListing.Extras = append(gameListing.Extras, fileInfo)
-		}
-
-		listing.Games[gameId] = gameListing
-	}
-
-	f.logger.Debug(fmt.Sprintf("GetListing(...) -> Returned listing for %d games", len(listing.Games)))
-	return &listing, nil
-}
-
 func (f FileSystem) GetGameIds() ([]int64, error) {
 	gameIds := []int64{}
 	files, err := ioutil.ReadDir(f.Path)

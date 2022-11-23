@@ -88,46 +88,6 @@ func getS3Store(configs *S3Configs, logSource *logging.Source, tag string) (S3St
 	}, nil
 }
 
-func (s S3Store) GetListing() (*StorageListing, error) {
-	listing := NewEmptyStorageListing(S3StoreDownloader{s})
-	configs := *s.configs
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	gameFileRegex := regexp.MustCompile(`^(?P<id>\d+)/(?P<kind>(?:installers)|(?:extras))/(?P<file>.+)$`)
-
-	objChan := s.client.ListObjects(ctx, configs.Bucket, minio.ListObjectsOptions{
-		Recursive: true,
-	})
-	for obj := range objChan {
-		if obj.Err != nil {
-			return nil, obj.Err
-		}
-		if gameFileRegex.MatchString(obj.Key) {
-			match := gameFileRegex.FindStringSubmatch(obj.Key)
-			gameId, _ := strconv.ParseInt(match[1], 10, 64)
-			gameListing, ok := listing.Games[gameId]
-			if !ok {
-				gameListing = StorageListingGame{
-					Game:       manifest.GameInfo{Id: gameId},
-					Installers: make([]manifest.FileInfo, 0),
-					Extras:     make([]manifest.FileInfo, 0),
-				}
-			}
-			if match[2] == "installers" {
-				fileInfo := manifest.FileInfo{Game: listing.Games[gameId].Game, Name: match[3], Kind: "installer"}
-				gameListing.Installers = append(gameListing.Installers, fileInfo)
-			} else {
-				fileInfo := manifest.FileInfo{Game: listing.Games[gameId].Game, Name: match[3], Kind: "extra"}
-				gameListing.Extras = append(gameListing.Extras, fileInfo)
-			}
-			listing.Games[gameId] = gameListing
-		}
-	}
-
-	s.logger.Debug(fmt.Sprintf("GetListing(...) -> Returned listing for %d games", len(listing.Games)))
-	return &listing, nil
-}
-
 func (s S3Store) GetGameIds() ([]int64, error) {
 	gameIds := []int64{}
 	

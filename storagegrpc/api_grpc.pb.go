@@ -18,7 +18,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StorageServiceClient interface {
-	GetListing(ctx context.Context, in *GetListingRequest, opts ...grpc.CallOption) (StorageService_GetListingClient, error)
 	GetGameIds(ctx context.Context, in *GetGameIdsRequest, opts ...grpc.CallOption) (*GetGameIdsResponse, error)
 	GetGameFiles(ctx context.Context, in *GetGameFilesRequest, opts ...grpc.CallOption) (*GetGameFilesResponse, error)
 	IsSelfValidating(ctx context.Context, in *IsSelfValidatingRequest, opts ...grpc.CallOption) (*IsSelfValidatingResponse, error)
@@ -49,38 +48,6 @@ type storageServiceClient struct {
 
 func NewStorageServiceClient(cc grpc.ClientConnInterface) StorageServiceClient {
 	return &storageServiceClient{cc}
-}
-
-func (c *storageServiceClient) GetListing(ctx context.Context, in *GetListingRequest, opts ...grpc.CallOption) (StorageService_GetListingClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[0], "/grpc_storage.StorageService/GetListing", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &storageServiceGetListingClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type StorageService_GetListingClient interface {
-	Recv() (*GetListingResponse, error)
-	grpc.ClientStream
-}
-
-type storageServiceGetListingClient struct {
-	grpc.ClientStream
-}
-
-func (x *storageServiceGetListingClient) Recv() (*GetListingResponse, error) {
-	m := new(GetListingResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
 }
 
 func (c *storageServiceClient) GetGameIds(ctx context.Context, in *GetGameIdsRequest, opts ...grpc.CallOption) (*GetGameIdsResponse, error) {
@@ -165,7 +132,7 @@ func (c *storageServiceClient) HasSource(ctx context.Context, in *HasSourceReque
 }
 
 func (c *storageServiceClient) StoreManifest(ctx context.Context, opts ...grpc.CallOption) (StorageService_StoreManifestClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[1], "/grpc_storage.StorageService/StoreManifest", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[0], "/grpc_storage.StorageService/StoreManifest", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +166,7 @@ func (x *storageServiceStoreManifestClient) CloseAndRecv() (*StoreManifestRespon
 }
 
 func (c *storageServiceClient) StoreActions(ctx context.Context, opts ...grpc.CallOption) (StorageService_StoreActionsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[2], "/grpc_storage.StorageService/StoreActions", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[1], "/grpc_storage.StorageService/StoreActions", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +209,7 @@ func (c *storageServiceClient) StoreSource(ctx context.Context, in *StoreSourceR
 }
 
 func (c *storageServiceClient) LoadManifest(ctx context.Context, in *LoadManifestRequest, opts ...grpc.CallOption) (StorageService_LoadManifestClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[3], "/grpc_storage.StorageService/LoadManifest", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[2], "/grpc_storage.StorageService/LoadManifest", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +241,7 @@ func (x *storageServiceLoadManifestClient) Recv() (*LoadManifestResponse, error)
 }
 
 func (c *storageServiceClient) LoadActions(ctx context.Context, in *LoadActionsRequest, opts ...grpc.CallOption) (StorageService_LoadActionsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[4], "/grpc_storage.StorageService/LoadActions", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[3], "/grpc_storage.StorageService/LoadActions", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -351,7 +318,7 @@ func (c *storageServiceClient) RemoveGame(ctx context.Context, in *RemoveGameReq
 }
 
 func (c *storageServiceClient) UploadFile(ctx context.Context, opts ...grpc.CallOption) (StorageService_UploadFileClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[5], "/grpc_storage.StorageService/UploadFile", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[4], "/grpc_storage.StorageService/UploadFile", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +361,7 @@ func (c *storageServiceClient) RemoveFile(ctx context.Context, in *RemoveFileReq
 }
 
 func (c *storageServiceClient) DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (StorageService_DownloadFileClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[6], "/grpc_storage.StorageService/DownloadFile", opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[5], "/grpc_storage.StorageService/DownloadFile", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -429,7 +396,6 @@ func (x *storageServiceDownloadFileClient) Recv() (*DownloadFileResponse, error)
 // All implementations must embed UnimplementedStorageServiceServer
 // for forward compatibility
 type StorageServiceServer interface {
-	GetListing(*GetListingRequest, StorageService_GetListingServer) error
 	GetGameIds(context.Context, *GetGameIdsRequest) (*GetGameIdsResponse, error)
 	GetGameFiles(context.Context, *GetGameFilesRequest) (*GetGameFilesResponse, error)
 	IsSelfValidating(context.Context, *IsSelfValidatingRequest) (*IsSelfValidatingResponse, error)
@@ -459,9 +425,6 @@ type StorageServiceServer interface {
 type UnimplementedStorageServiceServer struct {
 }
 
-func (UnimplementedStorageServiceServer) GetListing(*GetListingRequest, StorageService_GetListingServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetListing not implemented")
-}
 func (UnimplementedStorageServiceServer) GetGameIds(context.Context, *GetGameIdsRequest) (*GetGameIdsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGameIds not implemented")
 }
@@ -539,27 +502,6 @@ type UnsafeStorageServiceServer interface {
 
 func RegisterStorageServiceServer(s grpc.ServiceRegistrar, srv StorageServiceServer) {
 	s.RegisterService(&StorageService_ServiceDesc, srv)
-}
-
-func _StorageService_GetListing_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetListingRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(StorageServiceServer).GetListing(m, &storageServiceGetListingServer{stream})
-}
-
-type StorageService_GetListingServer interface {
-	Send(*GetListingResponse) error
-	grpc.ServerStream
-}
-
-type storageServiceGetListingServer struct {
-	grpc.ServerStream
-}
-
-func (x *storageServiceGetListingServer) Send(m *GetListingResponse) error {
-	return x.ServerStream.SendMsg(m)
 }
 
 func _StorageService_GetGameIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1064,11 +1006,6 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetListing",
-			Handler:       _StorageService_GetListing_Handler,
-			ServerStreams: true,
-		},
 		{
 			StreamName:    "StoreManifest",
 			Handler:       _StorageService_StoreManifest_Handler,

@@ -149,12 +149,6 @@ message FileDownload {
     }
 }
 
-message GetListingRequest {}
-
-message GetListingResponse {
-    StorageListingGame ListingGame = 1;
-}
-
 message GetGameIdsRequest {}
 
 message GetGameIdsResponse {
@@ -299,7 +293,6 @@ message DownloadFileResponse {
 }
 
 service StorageService {
-    rpc GetListing(GetListingRequest) returns (stream GetListingResponse) {};
     rpc GetGameIds(GetGameIdsRequest) returns (GetGameIdsResponse) {};
     rpc GetGameFiles(GetGameFilesRequest) returns (GetGameFilesResponse) {};
     rpc IsSelfValidating(IsSelfValidatingRequest) returns (IsSelfValidatingResponse) {};

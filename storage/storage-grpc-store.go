@@ -33,54 +33,6 @@ func getGrpcStore(endpoint string) (GrpcStore, error) {
 	return GrpcStore{&configs, conn, storagegrpc.NewStorageServiceClient(conn)}, nil
 }
 
-func (g GrpcStore) GetListing() (*StorageListing, error) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	listing := NewEmptyStorageListing(GrpcStoreDownloader{g})
-
-	req := &storagegrpc.GetListingRequest{}
-	resStream, err := g.client.GetListing(ctx, req)
-	if err != nil {
-		err = ConvertGrpcError(err)
-		return &listing, err
-	}
-	
-	for {
-		msg, err := resStream.Recv()
-		if err == io.EOF {
-			break;
-		}
-
-		if err != nil {
-			err = ConvertGrpcError(err)
-			return &listing, err
-		}
-
-		listingGame := msg.GetListingGame()
-		
-		game := ConvertGrpcGameInfo(listingGame.GetGame())
-
-		installers := []manifest.FileInfo{}
-		for _, installer := range listingGame.GetInstallers() {
-			installers = append(installers, ConvertGrpcFileInfo(installer))
-		}
-
-		extras := []manifest.FileInfo{}
-		for _, extra := range listingGame.GetExtras() {
-			extras = append(extras, ConvertGrpcFileInfo(extra))
-		}
-		
-		listing.Games[game.Id] = StorageListingGame{
-			Game: game,
-			Installers: installers,
-			Extras: extras,
-		}
-	}
-
-	return &listing, nil
-}
-
 func (g GrpcStore) GetGameIds() ([]int64, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

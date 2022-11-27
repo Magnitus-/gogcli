@@ -15,6 +15,7 @@ func generateStorageRepairCmd() *cobra.Command {
 	var concurrency int
 	var verifyChecksum bool
 	var useFileManifest bool
+	var progressFile string
 
 	storageRepairCmd := &cobra.Command{
 		Use:   "repair",
@@ -35,9 +36,7 @@ func generateStorageRepairCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			gamesStorage, _ := getStorage(path, storageType, logSource, "")
 
-			noOpProgressFn := func(state manifest.ManifestGamesWriterState) error {
-				return nil
-			}
+			progressFn := PersistManifestProgress(progressFile)
 
 			writer := manifest.NewManifestGamesWriter(
 				manifest.NewManifestGamesWriterState(manifest.ManifestFilter{}, []int64{}),
@@ -45,7 +44,7 @@ func generateStorageRepairCmd() *cobra.Command {
 			)
 			writeErrs := writer.Write(
 				storage.GenerateManifestGameGetter(gamesStorage, concurrency), 
-				noOpProgressFn,
+				progressFn,
 			)
 			processErrors(writeErrs)
 			storeMan, _ := writer.State.Manifest, writer.State.Warnings
@@ -62,6 +61,7 @@ func generateStorageRepairCmd() *cobra.Command {
 	storageRepairCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
 	storageRepairCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 4, "Number of manifest games that should be processed at the same time")
     storageRepairCmd.Flags().BoolVarP(&verifyChecksum, "verify-checksum", "v", false, "If set to true, checksum comparison of files against the manifest checksum value will be performed")
+	storageRepairCmd.Flags().StringVarP(&progressFile, "progress-file", "z", "storage-repair-progress.json", "File to save transient progress for the storage repair")
 
 	return storageRepairCmd
 }

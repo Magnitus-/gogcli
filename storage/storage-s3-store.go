@@ -121,6 +121,7 @@ func (s S3Store) GetGameIds() ([]int64, error) {
 		gameIds = append(gameIds, id)
 	}
 
+	s.logger.Debug(fmt.Sprintf("GetGameIds() -> Return ids for %d games", len(gameIds)))
 	return gameIds, nil
 }
 
@@ -160,6 +161,7 @@ func (s S3Store) GetGameFiles(GameId int64) ([]manifest.FileInfo, error) {
 		}
 	}
 
+	s.logger.Debug(fmt.Sprintf("GetGameFiles(GameId=%d) -> Returned %d files", GameId, len(fileInfos)))
 	return fileInfos, nil
 }
 

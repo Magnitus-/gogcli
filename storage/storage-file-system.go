@@ -56,6 +56,7 @@ func (f FileSystem) GetGameIds() ([]int64, error) {
 		gameIds = append(gameIds, gameId)
 	}
 
+	f.logger.Debug(fmt.Sprintf("GetGameIds() -> Return ids for %d games", len(gameIds)))
 	return gameIds, nil
 }
 
@@ -95,6 +96,7 @@ func (f FileSystem) GetGameFiles(GameId int64) ([]manifest.FileInfo, error) {
 		fileInfos = append(fileInfos, fileInfo)
 	}
 
+	f.logger.Debug(fmt.Sprintf("GetGameFiles(GameId=%d) -> Returned %d files", GameId, len(fileInfos)))
 	return fileInfos, nil
 }
 

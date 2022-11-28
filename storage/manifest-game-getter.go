@@ -33,8 +33,14 @@ func duplicateGameIdsChan(gameIdsCh <-chan manifest.ManifestGameGetterGameIds) (
 		defer close(gameIdsCh2)
 
 		res := <-gameIdsCh
+		idsCopy := make([]int64, len(res.Ids))
+		copy(idsCopy, res.Ids)
+
 		gameIdsCh1 <-res
-		gameIdsCh2 <-res
+		gameIdsCh2 <-manifest.ManifestGameGetterGameIds{
+			Ids: idsCopy,
+			Error: res.Error,
+		}
 	}()
 
 	return gameIdsCh1, gameIdsCh2

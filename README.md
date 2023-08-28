@@ -371,6 +371,48 @@ And finally, update the actions list in your storage with your updated manifest:
 gogcli storage apply manifest --empty-checksum --path=s3.json --storage=s3
 ```
 
+## Searching Manifest
+
+Sometimes, you want to find games matching certain criteria in your manifest. Gogcli has a search command to help you accomplish this.
+
+You can output the result of your search either in a terminal or in a file.
+
+For example, if you want to find games who title include the string **master of orion** and output them on the terminal, you would type:
+
+```
+gogcli manifest search --title="master of orion"
+```
+
+If you want to find games containing patch installer files and output them in the terminal, you would type:
+
+```
+gogcli manifest search --has-url="^/downloads/.*/[a-z]{2,2}[0-9]patch[0-9]$"
+```
+
+And if you find there is too much output on the terminal with your last command and would rather output into a file, you would type:
+
+```
+gogcli manifest search --has-url="^/downloads/.*/[a-z]{2,2}[0-9]patch[0-9]$" --terminal=false
+```
+
+If you want to adapt the above command to find games containing a French-only installer, you would type:
+
+```
+gogcli manifest search --has-url="^/downloads/.*/fr[0-9]installer[0-9]$" --terminal=false
+```
+
+NOTE: The feature to search games that contain a specific url pattern is currently in the main branch and not yet released.
+
+## Manifest Summary
+
+The following command will output a summary of your manifest:
+
+```
+gogcli manifest summary
+```
+
+It will tell you how many games are in your manifest, how many files, how many installer files, how many extra files, the aggregate size of all your game files, the average size of a game in your collection as well as the largest and smallest game in your collection.
+
 ## Migration 
 
 ### From gogcli version 0.10.x to 0.18.x

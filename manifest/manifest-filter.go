@@ -14,12 +14,15 @@ type ManifestFilter struct {
 	Extras          bool
 	ExtraTypes      []string
 	SkipUrls        []string
+	HasUrls         []string
 	Intersections   []ManifestFilter
+	hasUrlsRegexes  []*regexp.Regexp
 	skipUrlsRegexes []*regexp.Regexp
-	once            sync.Once
+	skipUrlOnce     sync.Once
+	hasUrlOnce      sync.Once
 }
 
-func NewManifestFilter(titles []string, oses []string, languages []string, tags []string, installers bool, extras bool, extraTypes []string, skipUrls []string) ManifestFilter {
+func NewManifestFilter(titles []string, oses []string, languages []string, tags []string, installers bool, extras bool, extraTypes []string, skipUrls []string, hasUrls []string) ManifestFilter {
 	return ManifestFilter{
 		Titles:          titles,
 		Oses:            oses,
@@ -29,15 +32,17 @@ func NewManifestFilter(titles []string, oses []string, languages []string, tags 
 		Extras:          extras,
 		ExtraTypes:      extraTypes,
 		SkipUrls:        skipUrls,
+		HasUrls:         hasUrls,
 		Intersections:   []ManifestFilter{},
 		skipUrlsRegexes: []*regexp.Regexp{},
+		hasUrlsRegexes:  []*regexp.Regexp{},
 	}
 }
 
 type FilterSkipUrlFn func(string) bool
 
 func (f *ManifestFilter) GetSkipUrlFn() FilterSkipUrlFn {
-	(*f).once.Do(func(){
+	(*f).skipUrlOnce.Do(func(){
 		for _, u := range (*f).SkipUrls {
 			(*f).skipUrlsRegexes = append((*f).skipUrlsRegexes, regexp.MustCompile(u))
 		}
@@ -56,11 +61,34 @@ func (f *ManifestFilter) GetSkipUrlFn() FilterSkipUrlFn {
 	return fn
 }
 
+type FilterHasUrlFn func(string) bool
+
+func (f *ManifestFilter) GetHasUrlFn() FilterHasUrlFn {
+	(*f).hasUrlOnce.Do(func(){
+		for _, u := range (*f).HasUrls {
+			(*f).hasUrlsRegexes = append((*f).hasUrlsRegexes, regexp.MustCompile(u))
+		}
+	})
+
+	fn := func(u string) bool {
+		for _, hasRegex := range (*f).hasUrlsRegexes {
+			if hasRegex.MatchString(u) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	return fn
+}
+
 func (f *ManifestFilter) IsEmpty() bool {
 	isEmpty := len((*f).Titles) == 0 && len((*f).Oses) == 0
 	isEmpty = isEmpty && len((*f).Languages) == 0 && len((*f).Tags) == 0
 	isEmpty = isEmpty && len((*f).ExtraTypes) == 0 && len((*f).Intersections) == 0
 	isEmpty = isEmpty && len((*f).SkipUrls) == 0
+	isEmpty = isEmpty && len((*f).HasUrls) == 0
 	return isEmpty
 }
 
@@ -94,6 +122,10 @@ func (f *ManifestFilter) Intersect(other ManifestFilter) {
 	if len((*f).SkipUrls) == 0 {
 		(*f).SkipUrls = other.SkipUrls
 		other.SkipUrls = []string{}
+	}
+	if len((*f).HasUrls) == 0 {
+		(*f).HasUrls = other.HasUrls
+		other.HasUrls = []string{}
 	}
 	if (!other.IsEmpty()) || len(other.Intersections) > 0 {
 		intersections := other.Intersections

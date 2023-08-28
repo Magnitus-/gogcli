@@ -363,7 +363,17 @@ func (g *ManifestGame) PassesFilter(filter ManifestFilter) bool {
 	tags := filter.Tags
 	hasTitleTerm := len(titles) == 0 || (*g).HasTitleTerms(titles)
 	hasOneOfTags := len(tags) == 0 || (*g).HasOneOfTags(tags)
-	return hasTitleTerm && hasOneOfTags
+	hasUrl := len(filter.HasUrls) == 0
+	if len(filter.HasUrls) > 0 {
+		hasUrlFn := filter.GetHasUrlFn()
+		for _, installer := range g.Installers {
+			if hasUrlFn(installer.Url) {
+				hasUrl = true
+				break
+			}
+		}
+	}
+	return hasTitleTerm && hasOneOfTags && hasUrl
 }
 
 func (g *ManifestGame) TrimFilesFromFilter(filter ManifestFilter) {

@@ -108,7 +108,7 @@ func (m *Manifest) Finalize() ManifestFilenameDuplicates {
 func (m *Manifest) TrimGames() {
 	filteredGames := make([]ManifestGame, 0)
 
-	if len((*m).Filter.Titles) == 0 && len((*m).Filter.Tags) == 0 {
+	if len((*m).Filter.Titles) == 0 && len((*m).Filter.Tags) == 0 && len((*m).Filter.HasUrls) == 0 {
 		//Save some needless computation
 		return
 	}

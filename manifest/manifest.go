@@ -265,3 +265,15 @@ func (m *Manifest) GetUrlMappedExtras() map[string]*ManifestGameExtra {
 
 	return extras
 }
+
+func (m *Manifest) AddUrlFilterForGame(gameId int64, filter string) error {
+	for _, game := range m.Games {
+		if game.Id == gameId {
+			skipUrl := fmt.Sprintf("^/downloads/%s/%s$", game.Slug, filter)
+			m.Filter.AddSkipUrl(skipUrl)
+			return nil
+		}
+	}
+
+	return fmt.Errorf("Could not find game with id %d in the manifest", gameId)
+}

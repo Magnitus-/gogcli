@@ -2,7 +2,6 @@ package manifest
 
 import (
 	"regexp"
-	"sync"
 )
 
 type ManifestFilter struct {
@@ -18,12 +17,10 @@ type ManifestFilter struct {
 	Intersections   []ManifestFilter
 	hasUrlsRegexes  []*regexp.Regexp
 	skipUrlsRegexes []*regexp.Regexp
-	skipUrlOnce     sync.Once
-	hasUrlOnce      sync.Once
 }
 
 func NewManifestFilter(titles []string, oses []string, languages []string, tags []string, installers bool, extras bool, extraTypes []string, skipUrls []string, hasUrls []string) ManifestFilter {
-	return ManifestFilter{
+	newFilter := ManifestFilter{
 		Titles:          titles,
 		Oses:            oses,
 		Languages:       languages,
@@ -37,17 +34,24 @@ func NewManifestFilter(titles []string, oses []string, languages []string, tags 
 		skipUrlsRegexes: []*regexp.Regexp{},
 		hasUrlsRegexes:  []*regexp.Regexp{},
 	}
+	newFilter.compileSkipUrls()
+	newFilter.compileHasUrls()
+	return newFilter
+}
+
+func (f *ManifestFilter) AddSkipUrl(url string) {
+	for _, skipUrl := range f.SkipUrls {
+		if url == skipUrl {
+			return
+		}
+	}
+	f.SkipUrls = append(f.SkipUrls, url)
+	f.compileSkipUrls()
 }
 
 type FilterSkipUrlFn func(string) bool
 
 func (f *ManifestFilter) GetSkipUrlFn() FilterSkipUrlFn {
-	(*f).skipUrlOnce.Do(func(){
-		for _, u := range (*f).SkipUrls {
-			(*f).skipUrlsRegexes = append((*f).skipUrlsRegexes, regexp.MustCompile(u))
-		}
-	})
-
 	fn := func(u string) bool {
 		for _, skipRegex := range (*f).skipUrlsRegexes {
 			if skipRegex.MatchString(u) {
@@ -64,12 +68,6 @@ func (f *ManifestFilter) GetSkipUrlFn() FilterSkipUrlFn {
 type FilterHasUrlFn func(string) bool
 
 func (f *ManifestFilter) GetHasUrlFn() FilterHasUrlFn {
-	(*f).hasUrlOnce.Do(func(){
-		for _, u := range (*f).HasUrls {
-			(*f).hasUrlsRegexes = append((*f).hasUrlsRegexes, regexp.MustCompile(u))
-		}
-	})
-
 	fn := func(u string) bool {
 		for _, hasRegex := range (*f).hasUrlsRegexes {
 			if hasRegex.MatchString(u) {
@@ -132,5 +130,19 @@ func (f *ManifestFilter) Intersect(other ManifestFilter) {
 		other.Intersections = []ManifestFilter{}
 		intersections = append(intersections, other)
 		(*f).Intersections = intersections
+	}
+}
+
+func (f *ManifestFilter) compileSkipUrls() {
+	(*f).skipUrlsRegexes = []*regexp.Regexp{}
+	for _, u := range (*f).SkipUrls {
+		(*f).skipUrlsRegexes = append((*f).skipUrlsRegexes, regexp.MustCompile(u))
+	}
+}
+
+func (f *ManifestFilter) compileHasUrls() {
+	(*f).hasUrlsRegexes = []*regexp.Regexp{}
+	for _, u := range (*f).HasUrls {
+		(*f).hasUrlsRegexes = append((*f).hasUrlsRegexes, regexp.MustCompile(u))
 	}
 }

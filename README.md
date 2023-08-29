@@ -401,7 +401,40 @@ If you want to adapt the above command to find games containing a French-only in
 gogcli manifest search --has-url="^/downloads/.*/fr[0-9]installer[0-9]$" --terminal=false
 ```
 
-NOTE: The feature to search games that contain a specific url pattern is currently in the main branch and not yet released.
+**NOTE: The feature to search games that contain a specific url pattern is currently in the main branch and not yet released.**
+
+## Trim Patches
+
+Patches for some games can take a lot of disk space. Gogcli containes a convenience command to trim patches for a given game from your manifest and then you can apply it to your storage normally.
+
+Lets assume I want to trim the patches for the game with id **1488706732**. Assume I have an s3 store with storage specifications in a file called **s3.json**.
+
+I would run the following command to get the manifest from storage:
+
+```
+gogcli storage download manifest -p s3.json -k s3
+```
+
+I would run the following command to trim the patches from the game in the manifest:
+
+```
+gogcli manifest trim-patches --id=1488706732
+```
+
+I would run the following command to look at a plan for the update (outputed in **actions.json**):
+
+```
+gogcli storage plan --empty-checksum --path=s3.json --storage=s3
+```
+
+And finally, assuming I am satisfied with the plan, I would run the following two commands to apply the update to the storage and delete the files:
+
+```
+gogcli storage apply manifest --empty-checksum --path=s3.json --storage=s3
+gogcli storage execute-actions --concurrency=1 --path=s3.json --storage=s3
+```
+
+**NOTE: The feature to trim patches for a given game is currently in the main branch and not yet released.**
 
 ## Manifest Summary
 

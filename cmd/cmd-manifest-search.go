@@ -41,8 +41,7 @@ func generateManifestSearchCmd() *cobra.Command {
 				skipUrlFilters,
 				hasUrlFilters,
 			)
-			f.Intersect(m.Filter)
-			m.Filter = f
+			m.Filter = *(f.Intersect(m.Filter))
 			m.Trim()
 			m.Finalize()
 			processSerializableOutput(m, []error{}, terminalOutput, file)

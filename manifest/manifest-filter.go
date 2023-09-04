@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"regexp"
+	"sync"
 )
 
 type ManifestFilter struct {
@@ -17,6 +18,8 @@ type ManifestFilter struct {
 	Intersections   []ManifestFilter
 	hasUrlsRegexes  []*regexp.Regexp
 	skipUrlsRegexes []*regexp.Regexp
+	hasUrlsOnce     sync.Once
+	skipUrlsOnce    sync.Once
 }
 
 func NewManifestFilter(titles []string, oses []string, languages []string, tags []string, installers bool, extras bool, extraTypes []string, skipUrls []string, hasUrls []string) ManifestFilter {
@@ -34,24 +37,42 @@ func NewManifestFilter(titles []string, oses []string, languages []string, tags 
 		skipUrlsRegexes: []*regexp.Regexp{},
 		hasUrlsRegexes:  []*regexp.Regexp{},
 	}
-	newFilter.compileSkipUrls()
-	newFilter.compileHasUrls()
 	return newFilter
 }
 
-func (f *ManifestFilter) AddSkipUrl(url string) {
+func (f *ManifestFilter) Copy() *ManifestFilter {
+	newFilter := NewManifestFilter(
+		f.Titles,
+		f.Oses,
+		f.Languages,
+		f.Tags,
+		f.Installers,
+		f.Extras,
+		f.ExtraTypes,
+		f.SkipUrls,
+		f.HasUrls,
+	)
+	return &newFilter
+}
+
+func (f *ManifestFilter) AddSkipUrl(url string) *ManifestFilter {
 	for _, skipUrl := range f.SkipUrls {
 		if url == skipUrl {
-			return
+			return f
 		}
 	}
-	f.SkipUrls = append(f.SkipUrls, url)
-	f.compileSkipUrls()
+	newFilter := f.Copy()
+	newFilter.SkipUrls = append(newFilter.SkipUrls, url)
+	return newFilter
 }
 
 type FilterSkipUrlFn func(string) bool
 
 func (f *ManifestFilter) GetSkipUrlFn() FilterSkipUrlFn {
+	(*f).skipUrlsOnce.Do(func(){
+		f.compileSkipUrls()
+	})
+
 	fn := func(u string) bool {
 		for _, skipRegex := range (*f).skipUrlsRegexes {
 			if skipRegex.MatchString(u) {
@@ -68,6 +89,10 @@ func (f *ManifestFilter) GetSkipUrlFn() FilterSkipUrlFn {
 type FilterHasUrlFn func(string) bool
 
 func (f *ManifestFilter) GetHasUrlFn() FilterHasUrlFn {
+	(*f).hasUrlsOnce.Do(func(){
+		f.compileHasUrls()
+	})
+
 	fn := func(u string) bool {
 		for _, hasRegex := range (*f).hasUrlsRegexes {
 			if hasRegex.MatchString(u) {
@@ -90,47 +115,52 @@ func (f *ManifestFilter) IsEmpty() bool {
 	return isEmpty
 }
 
-func (f *ManifestFilter) Intersect(other ManifestFilter) {
-	if len((*f).Titles) == 0 {
-		(*f).Titles = other.Titles
-		other.Titles = []string{}
+func (f *ManifestFilter) Intersect(other ManifestFilter) *ManifestFilter {
+	newFilter := f.Copy()
+	otherCopy := other.Copy()
+
+	if len(newFilter.Titles) == 0 {
+		newFilter.Titles = otherCopy.Titles
+		otherCopy.Titles = []string{}
 	}
-	if len((*f).Oses) == 0 {
-		(*f).Oses = other.Oses
-		other.Oses = []string{}
+	if len(newFilter.Oses) == 0 {
+		newFilter.Oses = otherCopy.Oses
+		otherCopy.Oses = []string{}
 	}
-	if len((*f).Languages) == 0 {
-		(*f).Languages = other.Languages
-		other.Languages = []string{}
+	if len(newFilter.Languages) == 0 {
+		newFilter.Languages = otherCopy.Languages
+		otherCopy.Languages = []string{}
 	}
-	if len((*f).Tags) == 0 {
-		(*f).Tags = other.Tags
-		other.Tags = []string{}
+	if len(newFilter.Tags) == 0 {
+		newFilter.Tags = otherCopy.Tags
+		otherCopy.Tags = []string{}
 	}
-	if len((*f).ExtraTypes) == 0 {
-		(*f).ExtraTypes = other.ExtraTypes
-		other.ExtraTypes = []string{}
+	if len(newFilter.ExtraTypes) == 0 {
+		newFilter.ExtraTypes = otherCopy.ExtraTypes
+		otherCopy.ExtraTypes = []string{}
 	}
-	if (*f).Installers {
-		(*f).Installers = other.Installers
+	if newFilter.Installers {
+		newFilter.Installers = otherCopy.Installers
 	}
-	if (*f).Extras {
-		(*f).Extras = other.Extras
+	if newFilter.Extras {
+		newFilter.Extras = otherCopy.Extras
 	}
-	if len((*f).SkipUrls) == 0 {
-		(*f).SkipUrls = other.SkipUrls
-		other.SkipUrls = []string{}
+	if len(newFilter.SkipUrls) == 0 {
+		newFilter.SkipUrls = otherCopy.SkipUrls
+		otherCopy.SkipUrls = []string{}
 	}
-	if len((*f).HasUrls) == 0 {
-		(*f).HasUrls = other.HasUrls
-		other.HasUrls = []string{}
+	if len(newFilter.HasUrls) == 0 {
+		newFilter.HasUrls = otherCopy.HasUrls
+		otherCopy.HasUrls = []string{}
 	}
-	if (!other.IsEmpty()) || len(other.Intersections) > 0 {
-		intersections := other.Intersections
-		other.Intersections = []ManifestFilter{}
-		intersections = append(intersections, other)
-		(*f).Intersections = intersections
+	if (!otherCopy.IsEmpty()) || len(otherCopy.Intersections) > 0 {
+		intersections := otherCopy.Intersections
+		otherCopy.Intersections = []ManifestFilter{}
+		intersections = append(intersections, *otherCopy)
+		newFilter.Intersections = intersections
 	}
+
+	return newFilter
 }
 
 func (f *ManifestFilter) compileSkipUrls() {

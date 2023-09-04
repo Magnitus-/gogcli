@@ -270,7 +270,7 @@ func (m *Manifest) AddUrlFilterForGame(gameId int64, filter string) error {
 	for _, game := range m.Games {
 		if game.Id == gameId {
 			skipUrl := fmt.Sprintf("^/downloads/%s/%s$", game.Slug, filter)
-			m.Filter.AddSkipUrl(skipUrl)
+			m.Filter = *(m.Filter.AddSkipUrl(skipUrl))
 			return nil
 		}
 	}

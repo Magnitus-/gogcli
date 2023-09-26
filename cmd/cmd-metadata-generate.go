@@ -7,6 +7,7 @@ import (
 )
 
 func generateMetadataGenerateCmd() *cobra.Command {
+	var gameTitleFilters []string
 	var concurrency int
 	var pause int
 	var metadataFile string
@@ -23,9 +24,12 @@ func generateMetadataGenerateCmd() *cobra.Command {
 			CleanupFile(warningFile)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
+			f := metadata.NewMetadataFilter(
+				gameTitleFilters,
+			)
 			progressFn := PersistMetadataProgress(progressFile)
 			writer := metadata.NewMetadataGamesWriter(
-				metadata.NewMetadataGamesWriterState([]int64{}, skipImages),
+				metadata.NewMetadataGamesWriterState(f, []int64{}, skipImages),
 				logSource,
 			)
 			errs := writer.Write( 
@@ -49,6 +53,7 @@ func generateMetadataGenerateCmd() *cobra.Command {
 		},
 	}
 
+	metadataGenerateCmd.Flags().StringArrayVarP(&gameTitleFilters, "title", "i", []string{}, "If you want to include only games with title that contain at least one of the given strings")
 	metadataGenerateCmd.Flags().IntVarP(&concurrency, "concurrency", "r", 4, "Maximum number of concurrent requests that will be made on the GOG api")
 	metadataGenerateCmd.Flags().IntVarP(&pause, "pause", "s", 200, "Number of milliseconds to wait between batches of api calls")
 	metadataGenerateCmd.Flags().StringVarP(&metadataFile, "file", "f", "metadata.json", "File to output the metadata in")

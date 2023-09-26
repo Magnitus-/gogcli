@@ -34,7 +34,7 @@ func generateManifestTrimPatchesCmd() *cobra.Command {
 				logSource,
 			)
 			errs := writer.Write( 
-				sdkPtr.GenerateManifestGameGetter(m.Filter, concurrency, pause, tolerateDangles, tolerateBadFileMetadata),
+				sdkPtr.GenerateManifestGameGetter(concurrency, pause, tolerateDangles, tolerateBadFileMetadata),
 				func(state manifest.ManifestGamesWriterState) error {return nil},
 			)
 			uManifest, warnings := writer.State.Manifest, writer.State.Warnings

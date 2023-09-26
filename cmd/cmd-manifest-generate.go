@@ -51,7 +51,7 @@ func generateManifestGenerateCmd() *cobra.Command {
 				logSource,
 			)
 			errs := writer.Write( 
-				sdkPtr.GenerateManifestGameGetter(f, concurrency, pause, tolerateDangles, tolerateBadFileMetadata),
+				sdkPtr.GenerateManifestGameGetter(concurrency, pause, tolerateDangles, tolerateBadFileMetadata),
 				progressFn,
 			)
 			m, warnings := writer.State.Manifest, writer.State.Warnings

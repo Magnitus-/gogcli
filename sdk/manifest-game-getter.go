@@ -384,7 +384,7 @@ func (s *Sdk) AddFileInfoToGames(done <-chan struct{}, inGameCh <-chan ManifestG
 	return outGameCh
 }
 
-func (s *Sdk) GenerateManifestGameGetter(f manifest.ManifestFilter, concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) manifest.ManifestGameGetter {
+func (s *Sdk) GenerateManifestGameGetter(concurrency int, pause int, tolerateDangles bool, tolerateBadMetadata bool) manifest.ManifestGameGetter {
 	return func(done <-chan struct{}, gameIds []int64, filter manifest.ManifestFilter) (<-chan manifest.ManifestGameGetterGame, <-chan manifest.ManifestGameGetterGameIds) {
 		gameResultCh := make(chan manifest.ManifestGameGetterGame)
 		gameIdsResultCh := make(chan manifest.ManifestGameGetterGameIds)

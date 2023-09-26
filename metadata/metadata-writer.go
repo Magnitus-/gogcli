@@ -35,8 +35,8 @@ type MetadataGameGetterGameIds struct {
 	Error error
 }
 
-func NewMetadataGamesWriterState(gameIds []int64, skipImages []string) MetadataGamesWriterState {
-	m := NewEmptyMetadata(skipImages)
+func NewMetadataGamesWriterState(filter MetadataFilter, gameIds []int64, skipImages []string) MetadataGamesWriterState {
+	m := NewEmptyMetadata(filter, skipImages)
 	return MetadataGamesWriterState{
 		Metadata: *m,
 		GameIds: gameIds,
@@ -51,7 +51,7 @@ func NewMetadataGamesWriter(state MetadataGamesWriterState, logSource *logging.S
 	}
 }
 
-type MetadataGameGetter func(<-chan struct{}, []int64, []string) (<-chan MetadataGameGetterGame, <-chan MetadataGameGetterGameIds)
+type MetadataGameGetter func(<-chan struct{}, []int64, MetadataFilter, []string) (<-chan MetadataGameGetterGame, <-chan MetadataGameGetterGameIds)
 type MetadataWriterStatePersister func(state MetadataGamesWriterState) error
 
 func (w *MetadataGamesWriter) Write(getter MetadataGameGetter, persister MetadataWriterStatePersister) []error {
@@ -60,7 +60,7 @@ func (w *MetadataGamesWriter) Write(getter MetadataGameGetter, persister Metadat
 	done := make(chan struct{})
 	defer close(done)
 
-	gameCh, gameIdsCh := getter(done, (*w).State.GameIds, (*w).State.Metadata.SkipImages)
+	gameCh, gameIdsCh := getter(done, (*w).State.GameIds, (*w).State.Metadata.Filter, (*w).State.Metadata.SkipImages)
 
 	IdsResult := <- gameIdsCh
 	if IdsResult.Error != nil {

@@ -1,5 +1,9 @@
 package metadata
 
+import (
+	"strings"
+)
+
 type GameMetadataDescription struct {
 	Summary    string
 	Full       string
@@ -75,15 +79,31 @@ func (g *MetadataGame) GetImagesPointers() []*GameMetadataImage {
 	return result
 }
 
+func (g *MetadataGame) HasTitleTerms(titleTerms []string) bool {
+	if len(titleTerms) == 0 {
+		return true
+	}
+
+	for idx, _ := range titleTerms {
+		if strings.Contains(strings.ToLower((*g).Title), strings.ToLower(titleTerms[idx])) {
+			return true
+		}
+	}
+
+	return false
+}
+
 type Metadata struct {
 	Games      []MetadataGame
+	Filter     MetadataFilter
 	SkipImages []string
 	Size       int64
 }
 
-func NewEmptyMetadata(skipImages []string) *Metadata {
+func NewEmptyMetadata(filter MetadataFilter, skipImages []string) *Metadata {
 	m := Metadata{
 		Games: []MetadataGame{},
+		Filter: filter,
 		SkipImages: skipImages,
 		Size:  0,
 	}

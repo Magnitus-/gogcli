@@ -23,11 +23,12 @@ func processProductImageUrl(u string) string {
 	return fmt.Sprintf("%s%s", "https:", ensureFileNameSuffix(u, ".jpg"))
 }
 
-func OwnedGamePagesToMetadataGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGamesPageReturn, gameIds []int64) <-chan MetadataGameResult {
+func OwnedGamePagesToMetadataGames(done <-chan struct{}, ownedGamesPageCh <-chan OwnedGamesPageReturn, gameIds []int64, filter metadata.MetadataFilter) <-chan MetadataGameResult {
 	gameCh := make(chan MetadataGameResult)
 	
 	go func() {
 		defer close(gameCh)
+		titles := filter.Titles
 		for true {
 			select {
 			case pageRes, ok := <- ownedGamesPageCh:
@@ -60,6 +61,10 @@ func OwnedGamePagesToMetadataGames(done <-chan struct{}, ownedGamesPageCh <-chan
 							Url: processProductImageUrl(product.Image),
 							Tag: "Listing",
 						},
+					}
+
+					if len(titles) > 0 && (!game.HasTitleTerms(titles)) {
+						continue
 					}
 
 					gameCh <- MetadataGameResult{
@@ -305,7 +310,7 @@ func (s *Sdk) AddImagesInfoToMetadataGames(done <-chan struct{}, inGameCh <-chan
 }
 
 func (s *Sdk) GenerateMetadataGameGetter(concurrency int, pause int, tolerateDangles bool) metadata.MetadataGameGetter {
-	return func(done <-chan struct{}, gameIds []int64, skipImages []string) (<-chan metadata.MetadataGameGetterGame, <-chan metadata.MetadataGameGetterGameIds) {
+	return func(done <-chan struct{}, gameIds []int64, filter metadata.MetadataFilter, skipImages []string) (<-chan metadata.MetadataGameGetterGame, <-chan metadata.MetadataGameGetterGameIds) {
 		gameResultCh := make(chan metadata.MetadataGameGetterGame)
 		gameIdsResultCh := make(chan metadata.MetadataGameGetterGameIds)
 
@@ -315,6 +320,7 @@ func (s *Sdk) GenerateMetadataGameGetter(concurrency int, pause int, tolerateDan
 				done, 
 				s.GetAllOwnedGamesPages(done, "", concurrency, pause), 
 				gameIds,
+				filter,
 			),
 		)
 

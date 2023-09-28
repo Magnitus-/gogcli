@@ -1,4 +1,4 @@
-package manifest
+package gameupdates
 
 import (
 	"testing"

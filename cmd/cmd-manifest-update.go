@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gogcli/manifest"
+	"gogcli/gameupdates"
 	"io/ioutil"
 	"os"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func generateManifestUpdateCmd() *cobra.Command {
-	var u *manifest.Updates
+	var u *gameupdates.Updates
 	var m manifest.Manifest
 	var gameIds []int64
 	var updateFile string
@@ -45,7 +46,7 @@ func generateManifestUpdateCmd() *cobra.Command {
 					os.Exit(1)
 				}
 
-				u = &manifest.Updates{}
+				u = &gameupdates.Updates{}
 				err = json.Unmarshal(bs, u)
 				if err != nil {
 					fmt.Println("Updates file doesn't appear to contain valid json: ", err)

@@ -1,9 +1,9 @@
 package sdk
 
-import "gogcli/manifest"
+import "gogcli/gameupdates"
 
-func (s *Sdk) GetUpdates(concurrency int, pause int) (manifest.Updates, []error) {
-	updates := manifest.NewEmptyUpdates()
+func (s *Sdk) GetUpdates(concurrency int, pause int) (gameupdates.Updates, []error) {
+	updates := gameupdates.NewEmptyUpdates()
 
 	pages, err := s.GetAllOwnedGamesPagesSync("", concurrency, pause)
 	if err != nil {

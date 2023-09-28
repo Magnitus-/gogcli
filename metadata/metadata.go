@@ -37,6 +37,7 @@ type GameMetadataScreenShot struct {
 
 type MetadataGame struct {
 	Id             int64
+	Slug           string
 	Title          string
 	Tags           []string
 	ListingImage   GameMetadataImage
@@ -44,7 +45,6 @@ type MetadataGame struct {
 	ProductImages  GameMetadataProductImages
 	Screenshots    []GameMetadataScreenShot
 	Videos         []GameMetadataVideo
-	Slug           string
 	ReleaseDate    string
 	Rating         int
 	Category       string
@@ -108,4 +108,31 @@ func NewEmptyMetadata(filter MetadataFilter, skipImages []string) *Metadata {
 		Size:  0,
 	}
 	return &m
+}
+
+func (m *Metadata) OverwriteGames(games []MetadataGame) {
+	filteredGames := make([]MetadataGame, 0)
+	replaceMap := make(map[int64]MetadataGame)
+	existingMap := make(map[int64]MetadataGame)
+
+	for _, game := range games {
+		replaceMap[game.Id] = game
+	}
+
+	for _, game := range (*m).Games {
+		existingMap[game.Id] = game
+		if repl, ok := replaceMap[game.Id]; ok {
+			filteredGames = append(filteredGames, repl)
+		} else {
+			filteredGames = append(filteredGames, game)
+		}
+	}
+
+	for _, game := range games {
+		if _, ok := existingMap[game.Id]; !ok {
+			filteredGames = append(filteredGames, game)
+		}
+	}
+
+	(*m).Games = filteredGames
 }

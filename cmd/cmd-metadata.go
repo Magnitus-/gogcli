@@ -15,6 +15,7 @@ func generateMetadataCmd() *cobra.Command {
 
 	metadataCmd.AddCommand(generateMetadataGenerateCmd())
 	metadataCmd.AddCommand(generateMetadataGenerateResumeCmd())
+	metadataCmd.AddCommand(generateMetadataUpdateCmd())
 
 	return metadataCmd
 }

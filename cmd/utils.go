@@ -45,6 +45,21 @@ func loadManifestFromFile(path string) (manifest.Manifest, error) {
 	return m, nil
 }
 
+func loadMetadataFromFile(path string) (metadata.Metadata, error) {
+	var m metadata.Metadata
+	bs, err := ioutil.ReadFile(path)
+	if err != nil {
+		return metadata.Metadata{}, err
+	}
+
+	err = json.Unmarshal(bs, &m)
+	if err != nil {
+		return metadata.Metadata{}, err
+	}
+
+	return m, nil
+}
+
 func getStorage(path string, storageType string, logSource *logging.Source, loggerTag string) (storage.Storage, storage.Downloader) {
 	if storageType != "fs" && storageType != "s3" {
 		msg := fmt.Sprintf("Source storage type %s is invalid", storageType)

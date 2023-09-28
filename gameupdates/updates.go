@@ -1,4 +1,4 @@
-package manifest
+package gameupdates
 
 type Updates struct {
 	NewGames     []int64

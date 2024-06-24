@@ -31,6 +31,7 @@ func generateStorageRepairCmd() *cobra.Command {
 
 			gamesStorage, _ := getStorage(path, storageType, logSource, "")
 			storageManifest, err := gamesStorage.LoadManifest()
+			processError(err)
 			authMan = (*storageManifest)
 		},
 		Run: func(cmd *cobra.Command, args []string) {

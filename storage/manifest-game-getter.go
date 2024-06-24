@@ -9,12 +9,23 @@ import (
 	"gogcli/manifest"
 )
 
-func getStorageGameIds(s Storage) <-chan manifest.ManifestGameGetterGameIds {
+func getStorageGameIds(s Storage, gameIds []int64) <-chan manifest.ManifestGameGetterGameIds {
 	gameIdsCh := make(chan manifest.ManifestGameGetterGameIds)
 	
 	go func() {
 		defer close(gameIdsCh)
 		ids, err := s.GetGameIds()
+
+		if len(gameIds) > 0 {
+			filtered_ids := []int64{}
+			for _, id := range ids {
+				if contains(gameIds, int64(id)) {
+					filtered_ids = append(filtered_ids, int64(id))
+				}
+			}
+			ids = filtered_ids
+		}
+
 		gameIdsCh <- manifest.ManifestGameGetterGameIds{
 			Ids: ids,
 			Error: err,
@@ -199,7 +210,7 @@ func addStorageGamesFilesMetadata(s Storage, concurrency int, done <-chan struct
 
 func GenerateManifestGameGetter(s Storage, concurrency int) manifest.ManifestGameGetter {
 	return func(done <-chan struct{}, gameIds []int64, filter manifest.ManifestFilter) (<-chan manifest.ManifestGameGetterGame, <-chan manifest.ManifestGameGetterGameIds) {
-		gameIdsResultCh, gameIdsCh2 := duplicateGameIdsChan(getStorageGameIds(s))
+		gameIdsResultCh, gameIdsCh2 := duplicateGameIdsChan(getStorageGameIds(s, gameIds))
 		gameResultCh :=  addStorageGamesFilesMetadata(s, concurrency, done, getStorageGames(s, done, gameIdsCh2))
 		return gameResultCh, gameIdsResultCh
 	}

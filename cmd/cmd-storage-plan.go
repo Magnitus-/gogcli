@@ -20,6 +20,7 @@ func generateStoragePlanCmd() *cobra.Command {
 	var path string
 	var storageType string
 	var allowEmptyCheckum bool
+	var useStorageFilter bool
 
 	show := func(a *manifest.GameActions) {
 		var buf bytes.Buffer
@@ -67,6 +68,11 @@ func generateStoragePlanCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
+			if useStorageFilter {
+				err = storage.ImprintFilter(&m, gamesStorage)
+				processError(err)
+			}
+
 			actions, err = storage.PlanManifest(&m, gamesStorage, checksumValidation)
 			if err != nil {
 				fmt.Println(err)
@@ -83,6 +89,7 @@ func generateStoragePlanCmd() *cobra.Command {
 	storagePlanCmd.Flags().StringVarP(&path, "path", "p", "games", "Path to your games' storage (directory if it is of type fs, json configuration file if it is of type s3)")
 	storagePlanCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
 	storagePlanCmd.Flags().BoolVarP(&allowEmptyCheckum, "empty-checksum", "s", false, "If set to true, manifest files with empty checksums will count as already uploaded if everything else matches")
+	storagePlanCmd.Flags().BoolVarP(&useStorageFilter, "storage-filter", "l", false, "If set to true, applies the filter of the manifest in storage to current manifest before doing the plan")
 
 	return storagePlanCmd
 }

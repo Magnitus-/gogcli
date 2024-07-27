@@ -80,6 +80,11 @@ func (m *Manifest) Trim() {
 	m.TrimExtras()
 }
 
+func (m *Manifest) ImprintFilter(prev *Manifest) {
+	m.Filter = prev.Filter
+	m.Trim()
+}
+
 func NewEmptyManifest(f ManifestFilter) *Manifest {
 	return &Manifest{
 		Games:         make([]ManifestGame, 0),

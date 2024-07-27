@@ -16,6 +16,7 @@ func generateStorageApplyManifestCmd() *cobra.Command {
 	var storageType string
 	var allowEmptyCheckum bool
 	var allowGameDeletions bool
+	var useStorageFilter bool
 
 	storageApplyManifestCmd := &cobra.Command{
 		Use:   "manifest",
@@ -33,6 +34,11 @@ func generateStorageApplyManifestCmd() *cobra.Command {
 
 			err = storage.ImprintProtectedFiles(&m, gamesStorage)
 			processError(err)
+
+			if useStorageFilter {
+				err = storage.ImprintFilter(&m, gamesStorage)
+				processError(err)
+			}
 
 			if !allowGameDeletions {
 				checksumValidation := manifest.ChecksumValidation
@@ -59,5 +65,6 @@ func generateStorageApplyManifestCmd() *cobra.Command {
 	storageApplyManifestCmd.Flags().StringVarP(&storageType, "storage", "k", "fs", "The type of storage you are using. Can be 'fs' (for file system) or 's3' (for s3 store)")
 	storageApplyManifestCmd.Flags().BoolVarP(&allowEmptyCheckum, "empty-checksum", "s", false, "If set to true, manifest files with empty checksums will count as already uploaded if everything else matches")
 	storageApplyManifestCmd.Flags().BoolVarP(&allowGameDeletions, "allow-game-deletions", "d", false, "If set to true, an actions file that contain game deletion actions will be allowed, otherwise the command will abort if this would be the result")
+	storageApplyManifestCmd.Flags().BoolVarP(&useStorageFilter, "storage-filter", "l", false, "If set to true, applies the filter of the manifest in storage to current manifest before doing the apply")
 	return storageApplyManifestCmd
 }

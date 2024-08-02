@@ -91,7 +91,7 @@ func (p product) StringifyTags(ts []tag) string {
 	return tags
 }
 
-func (o OwnedGamesPage) Print() {
+func (o *OwnedGamesPage) Print() {
 	fmt.Println("Page:                  ", o.Page)
 	fmt.Println("TotalPages:            ", o.TotalPages)
 	fmt.Println("ProductsPerPage:       ", o.ProductsPerPage)

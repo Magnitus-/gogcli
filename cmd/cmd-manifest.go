@@ -22,6 +22,7 @@ func generateManifestCmd() *cobra.Command {
 	manifestCmd.AddCommand(generateManifestDiffCmd())
 	manifestCmd.AddCommand(generateManifestMigrateCmd())
 	manifestCmd.AddCommand(generateManifestTrimPatchesCmd())
+	manifestCmd.AddCommand(generateManifestMissingGamesCmd())
 
 	return manifestCmd
 }

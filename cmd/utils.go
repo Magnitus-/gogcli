@@ -207,3 +207,29 @@ func callPersistentPreRun(cmd *cobra.Command, args []string) {
 		}
 	}
 }
+
+func getLanguageMap() map[string]string {
+	langMap := make(map[string]string)
+	langMap["english"] = "en"
+	langMap["french"] = "fr"
+	langMap["dutch"] = "nl"
+	langMap["spanish"] = "es"
+	langMap["portuguese_brazilian"] = "pt-br"
+	langMap["russian"] = "ru"
+	langMap["korean"] = "ko"
+	langMap["chinese_simplified"] = "zh"
+	langMap["japanese"] = "jp"
+	langMap["polish"] = "pl"
+	langMap["italian"] = "it"
+	langMap["german"] = "de"
+	langMap["czech"] = "cs"
+	langMap["hungarian"] = "hu"
+	langMap["portuguese"] = "pt"
+	langMap["danish"] = "da"
+	langMap["finnish"] = "fi"
+	langMap["swedish"] = "sv"
+	langMap["turkish"] = "tr"
+	langMap["arabic"] = "ar"
+	langMap["romanian"] = "ro"
+	return langMap
+}

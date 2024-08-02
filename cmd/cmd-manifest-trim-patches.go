@@ -60,7 +60,7 @@ func generateManifestTrimPatchesCmd() *cobra.Command {
 
 	manifestTrimPatchesCmd.Flags().StringVarP(&manifestFile, "manifest-file", "f", "manifest.json", "Manifest file to update")
 	manifestTrimPatchesCmd.MarkFlagFilename("manifest-file")
-	manifestTrimPatchesCmd.Flags().Int64VarP(&gameId, "id", "i", -1, "File to output the manifest summary in if in json format")
+	manifestTrimPatchesCmd.Flags().Int64VarP(&gameId, "id", "i", -1, "Id of the game that should have its patches trimmed out")
 	manifestTrimPatchesCmd.MarkFlagRequired("id")
 	manifestTrimPatchesCmd.Flags().StringVarP(&warningFile, "warning-file", "w", "manifest-update-warnings.json", "Warnings from files whose download url return 404 will be listed in this file. Will only be generated if tolerate-dangles is set to true")
 	manifestTrimPatchesCmd.Flags().StringVarP(&duplicatesFile, "duplicates-file", "l", "manifest-update-duplicates.json", "Files that had duplicate filenames within the same game and had to be renamed will be listed in this file")

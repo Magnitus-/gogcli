@@ -3,6 +3,8 @@ on:
     tags:
       - 'v*'
 name: Upload Artifacts
+env:
+  CGO_ENABLED: "0"
 jobs:
   upload:
     runs-on: ubuntu-22.04

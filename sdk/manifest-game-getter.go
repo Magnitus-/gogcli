@@ -154,6 +154,10 @@ func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan Manife
 					game.CdKey = gd.CdKey
 
 					for _, i := range gd.Downloads {
+						if i.Size == "0 MB" {
+							continue
+						}
+
 						game.Installers = append(
 							game.Installers,
 							manifest.ManifestGameInstaller{
@@ -169,6 +173,10 @@ func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan Manife
 					}
 
 					for _, e := range gd.Extras {
+						if e.Size == "0 MB" {
+							continue
+						}
+
 						game.Extras = append(
 							game.Extras,
 							manifest.ManifestGameExtra{
@@ -183,6 +191,10 @@ func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan Manife
 
 					for _, d := range gd.Dlcs {
 						for _, i := range d.Downloads {
+							if i.Size == "0 MB" {
+								continue
+							}
+							
 							game.Installers = append(
 								game.Installers,
 								manifest.ManifestGameInstaller{
@@ -198,6 +210,10 @@ func (s *Sdk) AddGameDetailsToGames(done <-chan struct{}, inGameCh <-chan Manife
 						}
 
 						for _, e := range d.Extras {
+							if e.Size == "0 MB" {
+								continue
+							}
+
 							game.Extras = append(
 								game.Extras,
 								manifest.ManifestGameExtra{

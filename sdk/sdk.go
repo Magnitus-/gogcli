@@ -9,19 +9,22 @@ import (
 )
 
 type Sdk struct {
-	session        string
-	al             string
-	maxRetries     int64
-	retryPause     time.Duration
-	logger         *logging.Logger
+	cookie_values map[string]string
+	maxRetries    int64
+	retryPause    time.Duration
+	logger        *logging.Logger
 }
 
 func NewSdk(cookie GogCookie, logSource *logging.Source) *Sdk {
 	logger := logSource.CreateLogger(os.Stdout, "[sdk] ", log.Lmsgprefix)
 	pause, _ := time.ParseDuration("100ms")
+	
+	cookie_values := make(map[string]string)
+	cookie_values["gog-al"] = cookie.Al
+	cookie_values["sessions_gog_com"] = cookie.Session
+	
 	sdk := Sdk{
-		session: cookie.Session, 
-		al: cookie.Al, 
+		cookie_values: cookie_values, 
 		maxRetries: 5, 
 		retryPause: pause, 
 		logger: logger,
@@ -34,10 +37,11 @@ func (s *Sdk) pauseAfterError() {
 }
 
 func (s *Sdk) getClient(followRedirects bool) http.Client {
-	cs := []*http.Cookie{
-		&http.Cookie{Name: "sessions_gog_com", Value: (*s).session},
-		&http.Cookie{Name: "gog-al", Value: (*s).al},
+	cs := []*http.Cookie{}
+	for key, val := range (*s).cookie_values {
+		cs = append(cs, &http.Cookie{Name: key, Value: val})
 	}
+
 	j := Jar{cookies: cs}
 	if followRedirects {
 		return http.Client{Jar: &j}

@@ -130,22 +130,15 @@ func (s *Sdk) getDownloadFileInfo(downloadPath string) (string, string, int64, e
 
 	(*s).logger.Debug(fmt.Sprintf("%s -> GET %s", fn, u))
 
-	//First redirection
+	//Redirection
 	reply, err := s.getUrlRedirect(u, fn, (*s).maxRetries)
 	if err != nil {
 		return "", "", int64(-1), err, reply.StatusCode == 403 || reply.StatusCode == 404, reply.StatusCode != 403 && reply.StatusCode != 404
 	}
 	filenameLoc := reply.RedirectUrl
-	
-	//Second redirection
-	reply, err = s.getUrlRedirect(filenameLoc, fn, (*s).maxRetries)
-	if err != nil {
-		return "", "", int64(-1), err, reply.StatusCode == 403 || reply.StatusCode == 404, reply.StatusCode != 403 && reply.StatusCode != 404
-	}
-	downloadLoc := reply.RedirectUrl
 
 	//Convert final download url to metadata url
-	metadataUrl, metadataUrlErr := convertDownloadUrlToMetadataUrl(downloadLoc)
+	metadataUrl, metadataUrlErr := convertDownloadUrlToMetadataUrl(filenameLoc)
 	if metadataUrlErr != nil {
 		return "", "", int64(-1), metadataUrlErr, false, true
 	}
@@ -163,7 +156,7 @@ func (s *Sdk) getDownloadFileInfo(downloadPath string) (string, string, int64, e
 			return "", "", int64(-1), err, false, true
 		}
 
-		lengthReply, lengthErr := s.getUrlBodyLength(downloadLoc, fn, (*s).maxRetries)
+		lengthReply, lengthErr := s.getUrlBodyLength(filenameLoc, fn, (*s).maxRetries)
 		if lengthErr != nil {
 			return "", "", int64(-1), lengthErr, false, true
 		}

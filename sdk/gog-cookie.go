@@ -1,33 +1,55 @@
 package sdk
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"strings"
 )
 
-type GogCookie struct {
-	Session string
-	Al      string
+type FirefoxCookie struct {
+	RequestCookies map[string]string `json:"Request Cookies"`
 }
 
-func readDefaultCookie(lines []string) (string, string) {
-	session := ""
-	al := ""
+func readDefaultCookie(content string) ([]*http.Cookie, error) {
+	cs := []*http.Cookie{}
+	lines := strings.Split(strings.Replace(content, "\r\n", "\n", -1), "\n")
+
 	for _, line := range lines {
 		if strings.HasPrefix(line, "sessions_gog_com=") {
-			session = strings.TrimPrefix(line, "sessions_gog_com=")
+			cs = append(cs, &http.Cookie{Name: "sessions_gog_com", Value: strings.TrimPrefix(line, "sessions_gog_com=")})
 		} else if strings.HasPrefix(line, "gog-al=") {
-			al = strings.TrimPrefix(line, "gog-al=")
+			cs = append(cs, &http.Cookie{Name: "gog-al", Value: strings.TrimPrefix(line, "gog-al=")})
 		}
 	}
-	return session, al
+
+	if len(cs) == 0 {
+		return cs, errors.New("Could not parse cookie with default format. No cookie values were read.")
+	}
+
+    return cs, nil
 }
 
-func readNetscapeCookie(lines []string) (string, string) {
-	session := ""
-	al := ""
+func readStringCookie(content string) ([]*http.Cookie, error) {
+    header := http.Header{}
+    header.Add("Cookie", content)
+    request := http.Request{Header: header}
+
+	cs := request.Cookies()
+
+	if len(cs) == 0 {
+		return cs, errors.New("Could not parse cookie string. No cookie values were read.")
+	}
+
+    return cs, nil
+}
+
+func readNetscapeCookie(content string) ([]*http.Cookie, error) {
+	cs := []*http.Cookie{}
+	lines := strings.Split(strings.Replace(content, "\r\n", "\n", -1), "\n")
+
 	for _, line := range lines {
 		if strings.HasPrefix(line, "#") || line == "" {
 			continue
@@ -37,33 +59,59 @@ func readNetscapeCookie(lines []string) (string, string) {
 			continue
 		}
 
-		if lineFields[5] == "sessions_gog_com" {
-			session = lineFields[6]
-		} else if lineFields[5] == "gog-al" {
-			al = lineFields[6]
-		}
+		cs = append(cs, &http.Cookie{Name: lineFields[5], Value: lineFields[6]})
 	}
-	return session, al
+
+	if len(cs) == 0 {
+		return cs, errors.New("Could not parse Netscape cookie. No cookie values were read.")
+	}
+
+	return cs, nil
 }
 
-func ReadCookie(path string, kind string) (GogCookie, error) {
-	if kind != "default" && kind != "netscape" {
-		msg := fmt.Sprintf("Cookie type of %s is not supported: %s", kind)
-		return GogCookie{"", ""}, errors.New(msg)
+func readFirefoxCookie(content string) ([]*http.Cookie, error) {
+	cs := []*http.Cookie{}
+
+	fCookie := FirefoxCookie{}
+
+	err := json.Unmarshal([]byte(content), &fCookie)
+	if err != nil {
+		return cs, errors.New(fmt.Sprintf("Following error occured while parsing Firefox cookie: %s", err.Error()))
+	}
+
+	for key, val := range fCookie.RequestCookies {
+		cs = append(cs, &http.Cookie{Name: key, Value: val})
+	}
+
+	if len(cs) == 0 {
+		return cs, errors.New("Could not parse Firefox cookie. No cookie values were read.")
+	}
+
+	return cs, nil
+}
+
+func ReadCookie(path string, kind string) ([]*http.Cookie, error) {
+	if kind != "default" && kind != "string" && kind != "netscape" && kind != "firefox" {
+		msg := fmt.Sprintf("Cookie type of %s is not supported", kind)
+		return []*http.Cookie{}, errors.New(msg)
 	}
 
 	bs, err := ioutil.ReadFile(path)
 	if err != nil {
-		msg := fmt.Sprintf("Error retrieving session: %s", err.Error())
-		return GogCookie{"", ""}, errors.New(msg)
+		msg := fmt.Sprintf("Error reading file to retrieve cookie: %s", err.Error())
+		return []*http.Cookie{}, errors.New(msg)
 	}
 
-	lines := strings.Split(strings.Replace(string(bs), "\r\n", "\n", -1), "\n")
-	if kind == "netscape" {
-		session, al := readNetscapeCookie(lines)
-		return GogCookie{session, al}, nil
+	switch kind {
+	case "default":
+		return readDefaultCookie(string(bs))
+	case "string":
+		return readStringCookie(string(bs))
+	case "firefox":
+		return readFirefoxCookie(string(bs))
+	case "netscape":
+		return readNetscapeCookie(string(bs))
 	}
 
-	session, al := readDefaultCookie(lines)
-	return GogCookie{session, al}, nil
+	return []*http.Cookie{}, nil
 }

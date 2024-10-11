@@ -96,21 +96,14 @@ func (s *Sdk) retrieveDownloadMetadata(metadataUrl string, fn string, retriesLef
 	}, nil
 }
 
-func getFilenameFromQueryParams(location string, fn string) (string, error) {
+func getFilenameFromUrlPath(location string, fn string) (string, error) {
 	locUrl, err := url.Parse(location)
 	if err != nil {
 		msg := fmt.Sprintf("%s -> Error parsing location header url: %s", fn, err.Error())
 		return "", errors.New(msg)
 	}
 
-	queryParams := locUrl.Query()
-	pathParam, ok := queryParams["path"]
-	if !ok {
-		msg := fmt.Sprintf("%s -> Error location header url does not have the expected path query parameter", fn)
-		return "", errors.New(msg)
-	}
-
-	return path.Base(pathParam[0]), nil
+	return path.Base(locUrl.Path), nil
 }
 
 func convertDownloadUrlToMetadataUrl(downloadUrl string) (string, error) {
@@ -151,7 +144,7 @@ func (s *Sdk) getDownloadFileInfo(downloadPath string) (string, string, int64, e
 	
 	if !metadata.Found {
 		var filename string
-		filename, err = getFilenameFromQueryParams(filenameLoc, fn)
+		filename, err = getFilenameFromUrlPath(filenameLoc, fn)
 		if err != nil {
 			return "", "", int64(-1), err, false, true
 		}
@@ -246,7 +239,7 @@ func (s *Sdk) GetDownloadFilename(downloadPath string) (string, error) {
 		return "", err
 	}
 
-	name, err := getFilenameFromQueryParams(reply.RedirectUrl, fn)
+	name, err := getFilenameFromUrlPath(reply.RedirectUrl, fn)
 	return name, err
 }
 

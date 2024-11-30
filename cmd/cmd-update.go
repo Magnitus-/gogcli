@@ -14,6 +14,7 @@ func generateUpdateCmd() *cobra.Command {
 	}
 
 	updateCmd.AddCommand(generateUpdateGenerateCmd())
+	updateCmd.AddCommand(generateUpdateAccumulateCmd())
 
 	return updateCmd
 }

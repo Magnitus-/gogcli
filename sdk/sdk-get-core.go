@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"golang.org/x/net/html"
 	"io"
 	"io/ioutil"
 	"strconv"
@@ -254,7 +255,14 @@ func (s *Sdk) getUrlBody(url string, fnCall string, jsonBody bool, retriesLeft i
 		var out bytes.Buffer
 		jErr := json.Indent(&out, b, "", "  ")
 		if jErr != nil {
-			msg := fmt.Sprintf("%s -> json parsing error: %s", fnCall, jErr.Error())
+			var msg string
+			_, err := html.Parse(bytes.NewReader(b))
+			if err == nil {
+				msg = fmt.Sprintf("%s -> expected json and got html from gog api call, either the gog api contract changed or more likely your cookie is expired", fnCall)
+			} else {
+				msg = fmt.Sprintf("%s -> json parsing error: %s", fnCall, jErr.Error())
+			}
+
 			return BodyReply{
 				Body: nil,
 				FinalUrl: reply.FinalUrl,

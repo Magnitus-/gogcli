@@ -10,7 +10,7 @@ import (
 type tag struct {
 	Id           string
 	Name         string
-	ProductCount string
+	ProductCount int64
 }
 
 type productAvailability struct {

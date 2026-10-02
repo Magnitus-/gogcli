@@ -14,7 +14,7 @@ type simpleGalaxyInstaller struct {
 type gameDetailsTags struct {
 	Id           string
 	Name         string
-	ProductCount string
+	ProductCount int64
 }
 
 type gameDetailsExtra struct {
